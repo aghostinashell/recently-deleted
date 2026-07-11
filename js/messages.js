@@ -90,9 +90,10 @@
       <section class="message-conversation">
         <header class="conversation-header">
           <button type="button" data-back-messages aria-label="Back to messages">‹</button>
-          <img src="${escapeHtml(data.contact.photo)}" alt="${escapeHtml(data.contact.name)}">
-          <strong>${escapeHtml(data.contact.name)}</strong>
-          <span>›</span>
+          <div class="conversation-contact-glass">
+            <img src="${escapeHtml(data.contact.photo)}" alt="${escapeHtml(data.contact.name)}">
+            <strong>${escapeHtml(data.contact.name)}</strong>
+          </div>
         </header>
         <div class="conversation-stream">
           ${data.messages.map((message) => {
