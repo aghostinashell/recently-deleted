@@ -782,6 +782,9 @@ function showAppWindow(app) {
   } else if (app.id === "maps" && window.MyMessages) {
     appContent.classList.add("connected-app-content");
     window.MyMessages.openMaps(appContent);
+  } else if (app.id === "instagram") {
+    appContent.classList.add("instagram-app-content");
+    appContent.innerHTML = renderInstagramApp();
   } else {
     appContent.innerHTML = `
       <article class="placeholder-card">
@@ -796,6 +799,24 @@ function showAppWindow(app) {
     .classList.add("open");
 
   showDock();
+}
+
+function renderInstagramApp() {
+  return `
+    <section class="instagram-profile-launcher">
+      <div class="instagram-wordmark">Instagram</div>
+      <div class="instagram-profile-card">
+        <div class="instagram-profile-avatar"><span>EX</span></div>
+        <div class="instagram-profile-copy">
+          <p>ARTIST PROFILE</p>
+          <h2>@saintedxachari</h2>
+          <span>Open the official profile to follow Ed, like posts, and comment using your own Instagram account.</span>
+        </div>
+      </div>
+      <a class="instagram-open-profile" href="https://www.instagram.com/saintedxachari" target="_blank" rel="noopener noreferrer">Open in Instagram</a>
+      <p class="instagram-privacy-note">Instagram opens securely outside myPhone. Your login and activity remain between you and Instagram.</p>
+    </section>
+  `;
 }
 
 function renderSupplyApp() {
