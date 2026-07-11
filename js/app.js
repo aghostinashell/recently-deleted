@@ -54,6 +54,12 @@ const apps = [
     name: "Supply",
     icon: "S",
     description: "Limited objects and releases."
+  },
+  {
+    id: "maps",
+    name: "Maps",
+    icon: "⌖",
+    description: "Shared locations will live here."
   }
 ];
 
@@ -89,6 +95,7 @@ function bootSite() {
   updateDateAndTime();
   initializeBattery();
   initializeWeather();
+  window.MyMessages?.syncUnreadBadge();
 
   window.setInterval(updateDateAndTime, 1000);
 }
@@ -333,6 +340,7 @@ function renderGlassIcon(iconId, className) {
     mail: `<span class="mail-symbol"><i></i></span>`,
     instagram: `<span class="instagram-symbol"><i></i><b></b></span>`,
     supply: `<span class="supply-symbol"><i class="supply-handle"></i><i class="supply-basket"></i><i class="supply-wheel left"></i><i class="supply-wheel right"></i><b></b></span>`,
+    maps: `<span class="maps-symbol"><i></i><b></b></span>`,
     phone: `<span class="icon-symbol phone-symbol">☎</span>`,
     messages: `<span class="messages-symbol"><i></i></span>`
   };
@@ -372,6 +380,7 @@ function renderSystemDock() {
           aria-label="Open Messages"
         >
           ${renderGlassIcon("messages", "dock-icon")}
+          <span class="messages-unread-badge" data-messages-unread aria-label="Unread messages"></span>
         </button>
       </div>
 
@@ -764,6 +773,15 @@ function showAppWindow(app) {
   } else if (app.id === "supply") {
     appContent.classList.add("supply-app-content");
     appContent.innerHTML = renderSupplyApp();
+  } else if (app.id === "messages" && window.MyMessages) {
+    appContent.classList.add("connected-app-content");
+    window.MyMessages.openMessages(appContent);
+  } else if (app.id === "photos" && window.MyMessages) {
+    appContent.classList.add("connected-app-content");
+    window.MyMessages.openPhotos(appContent);
+  } else if (app.id === "maps" && window.MyMessages) {
+    appContent.classList.add("connected-app-content");
+    window.MyMessages.openMaps(appContent);
   } else {
     appContent.innerHTML = `
       <article class="placeholder-card">

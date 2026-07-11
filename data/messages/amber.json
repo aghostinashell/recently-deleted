@@ -1,0 +1,99 @@
+{
+  "threadId": "amber",
+  "contact": {
+    "name": "Amber",
+    "photo": "media/messages/amber/IMG_0266.jpg"
+  },
+  "initiallyUnread": true,
+  "locations": [
+    {
+      "id": "not-just-coffee-south-blvd",
+      "name": "Not Just Coffee",
+      "address": "2000 South Blvd, Charlotte, NC 28203",
+      "latitude": 35.1991141,
+      "longitude": -80.8524755
+    }
+  ],
+  "photos": [
+    { "id": "amber-new-hair", "src": "media/messages/amber/IMG_0266.jpg", "timestamp": "2026-04-04T00:42:00-04:00", "caption": "New hair." },
+    { "id": "amber-work", "src": "media/messages/amber/IMG_5297.jpg", "timestamp": "2026-05-18T08:06:00-04:00", "caption": "Avoiding working." },
+    { "id": "amber-after-work", "src": "media/messages/amber/IMG_0276.jpg", "timestamp": "2026-06-26T12:14:00-04:00", "caption": "Ended up here again after work." },
+    { "id": "amber-car", "src": "media/messages/amber/FullSizeRender.jpg", "timestamp": "2026-07-05T17:56:00-04:00", "caption": "Look who I found." }
+  ],
+  "messages": [
+    { "date": "Thursday, April 2, 2026", "time": "8:17 PM", "sender": "Amber", "type": "text", "text": "You disappear on purpose?" },
+    { "time": "8:49 PM", "sender": "Ed", "type": "text", "text": "Sometimes by accident.", "receipt": "Read" },
+    { "time": "8:50 PM", "sender": "Amber", "type": "text", "text": "😂\n\nSure." },
+    { "time": "8:51 PM", "sender": "Ed", "type": "text", "text": "You sound disappointed.", "receipt": "Read" },
+    { "time": "8:52 PM", "sender": "Amber", "type": "text", "text": "I didn't say all that." },
+    { "time": "8:53 PM", "sender": "Ed", "type": "text", "text": "You laughed.\n\nCounts.", "receipt": "Read" },
+    { "time": "10:12 PM", "sender": "Amber", "type": "text", "text": "You eat yet?", "breakBefore": true },
+    { "time": "11:46 PM", "sender": "Ed", "type": "text", "text": "Depends.", "receipt": "Read" },
+    { "time": "11:47 PM", "sender": "Amber", "type": "text", "text": "On?" },
+    { "time": "11:49 PM", "sender": "Ed", "type": "text", "text": "If gummy bears count.", "receipt": "Read" },
+    { "time": "11:50 PM", "sender": "Amber", "type": "text", "text": "Absolutely not." },
+    { "time": "11:51 PM", "sender": "Ed", "type": "text", "text": "Damn.\n\nThought I was thriving.", "receipt": "Read" },
+
+    { "date": "Friday, April 3, 2026", "time": "11:48 PM", "sender": "Amber", "type": "text", "text": "You still awake?" },
+    { "date": "Saturday, April 4, 2026", "time": "12:16 AM", "sender": "Ed", "type": "text", "text": "Unfortunately.", "receipt": "Read" },
+    { "time": "12:17 AM", "sender": "Amber", "type": "text", "text": "Same." },
+    { "time": "12:31 AM", "sender": "Amber", "type": "text", "text": "You always make people come find you.", "breakBefore": true },
+    { "time": "12:33 AM", "sender": "Ed", "type": "text", "text": "Saves gas.", "receipt": "Read" },
+    { "time": "12:34 AM", "sender": "Amber", "type": "text", "text": "😂" },
+    { "time": "12:42 AM", "sender": "Amber", "type": "image", "photoId": "amber-new-hair", "text": "New hair.\n\nDon't roast me.", "breakBefore": true },
+    { "time": "12:46 AM", "sender": "Ed", "type": "text", "text": "You definitely took 47 pictures before sending that one.", "receipt": "Read" },
+    { "time": "12:47 AM", "sender": "Amber", "type": "text", "text": "12." },
+    { "time": "12:48 AM", "sender": "Ed", "type": "text", "text": "Still excessive.", "receipt": "Read" },
+    { "time": "12:49 AM", "sender": "Amber", "type": "text", "text": "Whatever 😂" },
+    { "time": "12:53 AM", "sender": "Amber", "type": "text", "text": "Better make that my contact picture.", "breakBefore": true },
+    { "time": "12:54 AM", "sender": "Ed", "type": "text", "text": "Bossy.", "receipt": "Read" },
+    { "time": "12:54 AM", "sender": "Amber", "type": "text", "text": "Do it anyway." },
+    { "time": "12:56 AM", "sender": "Ed", "type": "text", "text": "We'll see.", "receipt": "Read" },
+    { "time": "1:02 AM", "sender": "Amber", "type": "text", "text": "You don't always have to leave.", "breakBefore": true },
+    { "time": "1:04 AM", "sender": "Ed", "type": "text", "text": "I'm still here.", "receipt": "Read" },
+
+    { "date": "Tuesday, April 14, 2026", "time": "8:09 AM", "sender": "Amber", "type": "location", "locationId": "not-just-coffee-south-blvd", "text": "Coffee before work." },
+    { "time": "8:27 AM", "sender": "Ed", "type": "text", "text": "Already spending money?", "receipt": "Read" },
+    { "time": "8:30 AM", "sender": "Amber", "type": "text", "text": "Supporting small businesses." },
+    { "time": "8:33 AM", "sender": "Ed", "type": "text", "text": "That's what everybody says after an $8 latte.", "receipt": "Read" },
+    { "time": "8:34 AM", "sender": "Amber", "type": "text", "text": "😂" },
+
+    { "date": "Monday, May 18, 2026", "time": "8:06 AM", "sender": "Amber", "type": "image", "photoId": "amber-work", "text": "" },
+    { "time": "8:18 AM", "sender": "Ed", "type": "text", "text": "Working?", "receipt": "Read" },
+    { "time": "8:19 AM", "sender": "Amber", "type": "text", "text": "Avoiding working." },
+    { "time": "8:21 AM", "sender": "Ed", "type": "text", "text": "Respect.", "receipt": "Read" },
+
+    { "date": "Thursday, May 28, 2026", "time": "2:11 PM", "sender": "Amber", "type": "text", "text": "You alive?" },
+    { "time": "8:37 PM", "sender": "Ed", "type": "text", "text": "Unfortunately.", "receipt": "Read" },
+    { "time": "8:38 PM", "sender": "Amber", "type": "text", "text": "😂\n\nKnew you'd say that." },
+
+    { "date": "Friday, June 12, 2026", "time": "6:03 PM", "sender": "Amber", "type": "text", "text": "Don’t make me have to find you Ed" },
+    { "time": "6:18 PM", "sender": "Ed", "type": "text", "text": "I'm scared.", "receipt": "Read" },
+    { "time": "6:19 PM", "sender": "Amber", "type": "text", "text": "You should be." },
+    { "time": "6:21 PM", "sender": "Ed", "type": "text", "text": "Was that a threat?", "receipt": "Read" },
+    { "time": "6:22 PM", "sender": "Amber", "type": "text", "text": "Depends who's asking." },
+
+    { "date": "Friday, June 26, 2026", "time": "12:14 PM", "sender": "Amber", "type": "image", "photoId": "amber-after-work", "text": "Ended up here again after work." },
+    { "time": "1:41 PM", "sender": "Ed", "type": "text", "text": "Long day?", "receipt": "Read" },
+    { "time": "1:44 PM", "sender": "Amber", "type": "text", "text": "Long week." },
+    { "time": "1:46 PM", "sender": "Ed", "type": "text", "text": "Same.", "receipt": "Read" },
+
+    { "date": "Sunday, July 5, 2026", "time": "5:56 PM", "sender": "Amber", "type": "image", "photoId": "amber-car", "text": "Look who I found 😂" },
+    { "time": "6:17 PM", "sender": "Ed", "type": "text", "text": "😂", "receipt": "Read" },
+    { "time": "6:18 PM", "sender": "Amber", "type": "text", "text": "Thought it was you at first." },
+    { "time": "6:23 PM", "sender": "Ed", "type": "text", "text": "Wrong car.", "receipt": "Read" },
+    { "time": "6:24 PM", "sender": "Amber", "type": "text", "text": "The sticker says otherwise." },
+    { "time": "6:26 PM", "sender": "Ed", "type": "text", "text": "Fair.", "receipt": "Read" },
+
+    { "date": "Thursday, July 9, 2026", "time": "8:18 PM", "sender": "Amber", "type": "text", "text": "Still busy?" },
+    { "time": "8:47 PM", "sender": "Ed", "type": "text", "text": "Little bit.", "receipt": "Read" },
+    { "time": "8:49 PM", "sender": "Amber", "type": "text", "text": "Figured." },
+    { "time": "8:50 PM", "sender": "Ed", "type": "text", "text": "How?", "receipt": "Read" },
+    { "time": "8:51 PM", "sender": "Amber", "type": "text", "text": "You would've sent me a meme by now." },
+    { "time": "8:53 PM", "sender": "Ed", "type": "text", "text": "...\n\nFair.", "receipt": "Read" },
+    { "time": "8:54 PM", "sender": "Amber", "type": "text", "text": "Go finish whatever you're building." },
+    { "time": "8:56 PM", "sender": "Ed", "type": "text", "text": "Yes ma'am.", "receipt": "Delivered" },
+    { "time": "8:56 PM", "sender": "Amber", "type": "text", "text": "Don't call me that." },
+    { "time": "8:57 PM", "sender": "Ed", "type": "text", "text": "👍", "receipt": "Delivered" }
+  ]
+}
