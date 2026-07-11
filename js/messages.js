@@ -147,7 +147,7 @@
       <section class="photos-library">
         <header><h2>Library</h2><span>${photos.length} Photos</span></header>
         <div class="photos-grid">
-          ${photos.map((photo) => `<button type="button" data-photo-src="${escapeHtml(photo.src)}" aria-label="View ${escapeHtml(photo.caption)}"><img src="${escapeHtml(photo.src)}" alt="${escapeHtml(photo.caption)}" draggable="false"><span>${escapeHtml(photo.caption)}</span></button>`).join("")}
+          ${photos.map((photo) => `<button type="button" data-photo-src="${escapeHtml(photo.src)}" aria-label="View ${escapeHtml(photo.caption)}"><img src="${escapeHtml(photo.src)}" alt="${escapeHtml(photo.caption)}" draggable="false"></button>`).join("")}
         </div>
         <div class="photo-lightbox" hidden><button type="button" aria-label="Close photo">×</button><img alt=""></div>
       </section>`;

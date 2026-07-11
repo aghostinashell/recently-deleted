@@ -2229,8 +2229,6 @@ That keeps the complete passcode block centered vertically.
 .photos-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 2px; }
 .photos-grid button { aspect-ratio: 1; overflow: hidden; background: #111; }
 .photos-grid img { width: 100%; height: 100%; object-fit: cover; }
-.photos-grid button { position: relative; }
-.photos-grid button > span { position: absolute; left: 6px; right: 6px; bottom: 5px; overflow: hidden; color: #fff; font-size: 8px; font-weight: 650; text-align: left; text-overflow: ellipsis; text-shadow: 0 1px 5px #000; white-space: nowrap; pointer-events: none; }
 .photo-lightbox { position: fixed; z-index: 300; inset: 0; display: grid; place-items: center; background: rgba(0,0,0,.95); }
 .photo-lightbox[hidden] { display: none; }
 .photo-lightbox img { max-width: 94%; max-height: 84%; object-fit: contain; }
