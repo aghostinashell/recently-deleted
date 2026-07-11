@@ -2,7 +2,7 @@
   "threadId": "amber",
   "contact": {
     "name": "Amber",
-    "photo": "media/messages/amber/IMG_0266.jpg"
+    "photo": "media/messages/amber/IMG_0266.png"
   },
   "initiallyUnread": true,
   "locations": [
@@ -15,7 +15,7 @@
     }
   ],
   "photos": [
-    { "id": "amber-new-hair", "src": "media/messages/amber/IMG_0266.jpg", "timestamp": "2026-04-04T00:42:00-04:00", "caption": "New hair." },
+    { "id": "amber-new-hair", "src": "media/messages/amber/IMG_0266.png", "timestamp": "2026-04-04T00:42:00-04:00", "caption": "New hair." },
     { "id": "amber-work", "src": "media/messages/amber/IMG_5297.jpg", "timestamp": "2026-05-18T08:06:00-04:00", "caption": "Avoiding working." },
     { "id": "amber-after-work", "src": "media/messages/amber/IMG_0276.jpg", "timestamp": "2026-06-26T12:14:00-04:00", "caption": "Ended up here again after work." },
     { "id": "amber-car", "src": "media/messages/amber/FullSizeRender-blurred.png", "timestamp": "2026-07-05T17:56:00-04:00", "caption": "Look who I found." }
