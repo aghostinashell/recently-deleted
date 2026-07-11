@@ -135,9 +135,12 @@
   async function openPhotos(host) {
     host.innerHTML = `<p class="app-loading">Loading Photos…</p>`;
     const [data, music] = await Promise.all([getData(), getMusicData()]);
+    const uniqueTrackArtworkNumbers = new Set([1, 4, 10]);
     const albumPhotos = [
       { id: "album-cover", src: music.artwork, caption: `${music.album} — Album Cover` },
-      ...music.tracks.map((track) => ({ id: `track-${track.number}`, src: track.artwork, caption: `${track.number}. ${track.title}` }))
+      ...music.tracks
+        .filter((track) => uniqueTrackArtworkNumbers.has(track.number))
+        .map((track) => ({ id: `track-${track.number}`, src: track.artwork, caption: `${track.number}. ${track.title}` }))
     ];
     const photos = [...data.photos, ...albumPhotos].filter((photo, index, list) => list.findIndex((item) => item.src === photo.src) === index);
     host.innerHTML = `
