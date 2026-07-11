@@ -96,8 +96,42 @@ function bootSite() {
   initializeBattery();
   initializeWeather();
   window.MyMessages?.syncUnreadBadge();
+  initializeMediaProtection();
 
   window.setInterval(updateDateAndTime, 1000);
+}
+
+function initializeMediaProtection() {
+  const protectImages = (scope = document) => {
+    scope.querySelectorAll?.("img").forEach((image) => {
+      image.draggable = false;
+      image.setAttribute("data-protected-media", "");
+    });
+  };
+
+  protectImages();
+
+  new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => mutation.addedNodes.forEach((node) => {
+      if (node.nodeType === 1) {
+        if (node.matches?.("img")) protectImages(node.parentElement || document);
+        else protectImages(node);
+      }
+    }));
+  }).observe(document.body, { childList: true, subtree: true });
+
+  document.addEventListener("dragstart", (event) => {
+    if (event.target.closest?.("img")) event.preventDefault();
+  }, true);
+
+  document.addEventListener("contextmenu", (event) => {
+    if (event.target.closest?.("img, [data-photo-src]")) event.preventDefault();
+  }, true);
+
+  window.addEventListener("keydown", (event) => {
+    const key = event.key.toLowerCase();
+    if ((event.metaKey || event.ctrlKey) && ["s", "u", "p"].includes(key)) event.preventDefault();
+  }, true);
 }
 
 function renderStatusBar() {

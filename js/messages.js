@@ -2,8 +2,10 @@
 
 (function createConnectedApps() {
   const DATA_URL = "data/messages/amber.json";
+  const MUSIC_DATA_URL = "data/music/recently-deleted.json";
   const READ_KEY = "myphone.messages.amber.read";
   let dataPromise = null;
+  let musicPromise = null;
 
   function escapeHtml(value) {
     const node = document.createElement("div");
@@ -23,6 +25,16 @@
 
   function isUnread() {
     return localStorage.getItem(READ_KEY) !== "1";
+  }
+
+  function getMusicData() {
+    if (!musicPromise) {
+      musicPromise = fetch(MUSIC_DATA_URL).then((response) => {
+        if (!response.ok) throw new Error("Album artwork could not be loaded.");
+        return response.json();
+      });
+    }
+    return musicPromise;
   }
 
   function syncUnreadBadge() {
@@ -122,12 +134,17 @@
 
   async function openPhotos(host) {
     host.innerHTML = `<p class="app-loading">Loading Photos…</p>`;
-    const data = await getData();
+    const [data, music] = await Promise.all([getData(), getMusicData()]);
+    const albumPhotos = [
+      { id: "album-cover", src: music.artwork, caption: `${music.album} — Album Cover` },
+      ...music.tracks.map((track) => ({ id: `track-${track.number}`, src: track.artwork, caption: `${track.number}. ${track.title}` }))
+    ];
+    const photos = [...data.photos, ...albumPhotos].filter((photo, index, list) => list.findIndex((item) => item.src === photo.src) === index);
     host.innerHTML = `
       <section class="photos-library">
-        <header><h2>Library</h2><span>${data.photos.length} Photos</span></header>
+        <header><h2>Library</h2><span>${photos.length} Photos</span></header>
         <div class="photos-grid">
-          ${data.photos.map((photo) => `<button type="button" data-photo-src="${escapeHtml(photo.src)}"><img src="${escapeHtml(photo.src)}" alt="${escapeHtml(photo.caption)}"></button>`).join("")}
+          ${photos.map((photo) => `<button type="button" data-photo-src="${escapeHtml(photo.src)}" aria-label="View ${escapeHtml(photo.caption)}"><img src="${escapeHtml(photo.src)}" alt="${escapeHtml(photo.caption)}" draggable="false"><span>${escapeHtml(photo.caption)}</span></button>`).join("")}
         </div>
         <div class="photo-lightbox" hidden><button type="button" aria-label="Close photo">×</button><img alt=""></div>
       </section>`;
