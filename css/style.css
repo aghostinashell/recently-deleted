@@ -2195,7 +2195,7 @@ That keeps the complete passcode block centered vertically.
 .thread-chevron { color: rgba(255,255,255,.36); font-size: 21px; }
 
 .message-conversation { min-height: 100%; background: #000; color: #fff; }
-.conversation-header { position: sticky; z-index: 5; top: 0; min-height: 104px; padding: 12px 14px 10px; display: grid; place-items: center; background: linear-gradient(180deg,rgba(8,8,10,.94),rgba(12,12,15,.82)); border-bottom: 1px solid rgba(255,255,255,.08); backdrop-filter: blur(24px); }
+.conversation-header { position: relative; min-height: 104px; padding: 12px 14px 10px; display: grid; place-items: center; background: transparent; border: 0; }
 .conversation-header > button { position: absolute; left: 14px; top: 29px; color: #168cff; background: transparent; font-size: 38px; font-weight: 300; }
 .conversation-contact-glass { position: relative; width: 78px; min-height: 76px; padding: 7px 7px 6px; display: grid; place-items: center; gap: 3px; overflow: hidden; border: 1px solid rgba(255,255,255,.16); border-radius: 24px; background: linear-gradient(145deg,rgba(255,255,255,.18),rgba(255,255,255,.055)); box-shadow: inset 0 1px 1px rgba(255,255,255,.17),0 10px 28px rgba(0,0,0,.35); backdrop-filter: blur(20px) saturate(1.25); }
 .conversation-contact-glass::before { content:""; position:absolute; inset:1px 8px auto; height:32%; border-radius:999px; background:linear-gradient(180deg,rgba(255,255,255,.3),transparent); opacity:.55; pointer-events:none; }
