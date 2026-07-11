@@ -1,0 +1,103 @@
+{
+  "album": "Recently Deleted",
+  "artist": "Saint Ed X",
+  "artwork": "media/artwork/recently-deleted/album-cover.jpg",
+  "tracks": [
+    {
+      "number": 1,
+      "title": "Face ID",
+      "artist": "Saint Ed X",
+      "audio": "media/audio/recently-deleted/01-face-id.m4a",
+      "artwork": "media/artwork/recently-deleted/01-face-id.jpg",
+      "lyrics": "data/notes/recently-deleted/01-face-id.txt"
+    },
+    {
+      "number": 2,
+      "title": "Delivered",
+      "artist": "Saint Ed X",
+      "audio": "media/audio/recently-deleted/02-delivered.m4a",
+      "artwork": "media/artwork/recently-deleted/02-delivered.jpg",
+      "lyrics": "data/notes/recently-deleted/02-delivered.txt"
+    },
+    {
+      "number": 3,
+      "title": "DnD",
+      "artist": "Saint Ed X",
+      "audio": "media/audio/recently-deleted/03-dnd.m4a",
+      "artwork": "media/artwork/recently-deleted/03-dnd.jpg",
+      "lyrics": "data/notes/recently-deleted/03-dnd.txt"
+    },
+    {
+      "number": 4,
+      "title": "White Bronco",
+      "artist": "Saint Ed X",
+      "audio": "media/audio/recently-deleted/04-white-bronco.m4a",
+      "artwork": "media/artwork/recently-deleted/04-white-bronco.jpg",
+      "lyrics": "data/notes/recently-deleted/04-white-bronco.txt"
+    },
+    {
+      "number": 5,
+      "title": "Favorites",
+      "artist": "Saint Ed X",
+      "audio": "media/audio/recently-deleted/05-favorites.m4a",
+      "artwork": "media/artwork/recently-deleted/05-favorites.JPG",
+      "lyrics": "data/notes/recently-deleted/05-favorites.txt"
+    },
+    {
+      "number": 6,
+      "title": "Dark Mode",
+      "artist": "Saint Ed X",
+      "audio": "media/audio/recently-deleted/06-dark-mode.m4a",
+      "artwork": "media/artwork/recently-deleted/06-dark-mode.JPG",
+      "lyrics": "data/notes/recently-deleted/06-dark-mode.txt"
+    },
+    {
+      "number": 7,
+      "title": "Missed Call",
+      "artist": "Saint Ed X",
+      "audio": "media/audio/recently-deleted/07-missed-call.m4a",
+      "artwork": "media/artwork/recently-deleted/07-missed-call.JPG",
+      "lyrics": "data/notes/recently-deleted/07-missed-call.txt"
+    },
+    {
+      "number": 8,
+      "title": "Naomi",
+      "artist": "Saint Ed X",
+      "audio": "media/audio/recently-deleted/08-naomi.m4a",
+      "artwork": "media/artwork/recently-deleted/08-naomi.JPG",
+      "lyrics": "data/notes/recently-deleted/08-naomi.txt"
+    },
+    {
+      "number": 9,
+      "title": "Noelle",
+      "artist": "Saint Ed X",
+      "audio": "media/audio/recently-deleted/09-noelle.m4a",
+      "artwork": "media/artwork/recently-deleted/09-noelle.JPG",
+      "lyrics": "data/notes/recently-deleted/09-noelle.txt"
+    },
+    {
+      "number": 10,
+      "title": "Amber",
+      "artist": "Saint Ed X",
+      "audio": "media/audio/recently-deleted/10-amber.m4a",
+      "artwork": "media/artwork/recently-deleted/10-amber.jpg",
+      "lyrics": "data/notes/recently-deleted/10-amber.txt"
+    },
+    {
+      "number": 11,
+      "title": "Selina",
+      "artist": "Saint Ed X",
+      "audio": "media/audio/recently-deleted/11-selina.m4a",
+      "artwork": "media/artwork/recently-deleted/11-selina.JPG",
+      "lyrics": "data/notes/recently-deleted/11-selina.txt"
+    },
+    {
+      "number": 12,
+      "title": "Ed",
+      "artist": "Saint Ed X",
+      "audio": "media/audio/recently-deleted/12-ed.m4a",
+      "artwork": "media/artwork/recently-deleted/12-ed.JPG",
+      "lyrics": "data/notes/recently-deleted/12-ed.txt"
+    }
+  ]
+}
