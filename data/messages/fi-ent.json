@@ -1,0 +1,77 @@
+{
+  "threadId": "fi-ent",
+  "groupedTimestamps": true,
+  "contact": {
+    "name": "Fi Ent",
+    "initials": "F"
+  },
+  "initiallyUnread": true,
+  "locations": [],
+  "photos": [],
+  "messages": [
+    { "date": "Tuesday, March 3, 2026", "time": "2:14 PM", "sender": "Fi Ent", "type": "text", "text": "Session booked for tonight.\nStudio A\n9:30 PM" },
+    { "sender": "Ed", "type": "text", "text": "I’ll be there." },
+
+    { "date": "Tuesday, March 3, 2026", "time": "9:12 PM", "sender": "Fi Ent", "type": "text", "text": "Running 10 minutes behind.\nEngineer is already set up." },
+
+    { "date": "Wednesday, March 4, 2026", "time": "1:38 AM", "sender": "Fi Ent", "type": "text", "text": "Good work tonight.\nWe’ll run that back later this week." },
+
+    { "date": "Friday, March 6, 2026", "time": "4:52 PM", "sender": "Fi Ent", "type": "text", "text": "Session confirmed.\nSame studio\n11:00 PM" },
+    { "sender": "Ed", "type": "text", "text": "Bet." },
+
+    { "date": "Saturday, March 7, 2026", "time": "2:47 AM", "sender": "Fi Ent", "type": "text", "text": "Track sounding strong.\nLet’s tighten the hook next session." },
+
+    { "date": "Monday, March 9, 2026", "time": "6:18 PM", "sender": "Fi Ent", "type": "text", "text": "Same energy tonight.\nLess talking, more takes." },
+    { "sender": "Ed", "type": "text", "text": "Got it." },
+
+    { "date": "Thursday, March 12, 2026", "time": "10:03 PM", "sender": "Fi Ent", "type": "text", "text": "You running late?" },
+    { "sender": "Ed", "type": "text", "text": "On the way." },
+
+    { "date": "Friday, March 13, 2026", "time": "2:11 AM", "sender": "Fi Ent", "type": "text", "text": "That’s the one." },
+
+    { "date": "Tuesday, March 17, 2026", "time": "5:44 PM", "sender": "Fi Ent", "type": "text", "text": "We’re scheduling cover art this month.\nSend availability." },
+    { "sender": "Ed", "type": "text", "text": "Any day late." },
+    { "sender": "Fi Ent", "type": "text", "text": "Noted." },
+
+    { "date": "Monday, March 23, 2026", "time": "3:26 PM", "sender": "Fi Ent", "type": "text", "text": "Cover shoot locked.\nSaturday\n10:30 PM call time\nLocation sent day of." },
+
+    { "date": "Friday, March 27, 2026", "time": "7:18 PM", "sender": "Fi Ent", "type": "text", "text": "For tomorrow:\nAll black only.\nMask\nHoodie\nBlack sweats\nBlack AF1s\nNo logos." },
+    { "sender": "Fi Ent", "type": "text", "text": "Bring gloves." },
+    { "sender": "Ed", "type": "text", "text": "I got it." },
+
+    { "date": "Saturday, March 28, 2026", "time": "10:11 PM", "sender": "Fi Ent", "type": "text", "text": "Pulling up now.\nBe ready outside." },
+
+    { "date": "Sunday, March 29, 2026", "time": "1:52 AM", "sender": "Fi Ent", "type": "text", "text": "Shots came out clean.\nWe’ll review selects tomorrow." },
+
+    { "date": "Tuesday, March 31, 2026", "time": "6:07 PM", "sender": "Fi Ent", "type": "text", "text": "Lock in on final takes this week." },
+    { "sender": "Ed", "type": "text", "text": "Copy." },
+
+    { "date": "Sunday, April 5, 2026", "time": "2:17 AM", "sender": "Fi Ent", "type": "text", "text": "Save your notes after sessions.\nWe’re organizing everything." },
+
+    { "date": "Thursday, April 9, 2026", "time": "8:33 PM", "sender": "Fi Ent", "type": "text", "text": "Final stretch.\nStay focused." },
+    { "sender": "Ed", "type": "text", "text": "Always." },
+
+    { "date": "Saturday, May 16, 2026", "time": "3:12 PM", "sender": "Fi Ent", "type": "text", "text": "You want access for Game 7 tomorrow?" },
+    { "sender": "Ed", "type": "text", "text": "Yeah." },
+    { "sender": "Fi Ent", "type": "text", "text": "Sending details." },
+
+    { "date": "Sunday, May 17, 2026", "time": "7:08 PM", "sender": "Fi Ent", "type": "text", "text": "Parking pass and tickets sent.\nCall if anything changes." },
+    { "sender": "Ed", "type": "text", "text": "Got it." },
+
+    { "date": "Thursday, June 11, 2026", "time": "5:26 PM", "sender": "Fi Ent", "type": "text", "text": "LA pull-up confirmed.\nShort appearance." },
+    { "sender": "Ed", "type": "text", "text": "What time?" },
+    { "sender": "Fi Ent", "type": "text", "text": "10:30 PM.\nIn and out." },
+
+    { "date": "Friday, June 26, 2026", "time": "6:41 PM", "sender": "Fi Ent", "type": "text", "text": "Dallas meeting moved to Sunday.\nSame location." },
+    { "sender": "Ed", "type": "text", "text": "Cool." },
+
+    { "date": "Saturday, July 4, 2026", "time": "2:18 PM", "sender": "Fi Ent", "type": "text", "text": "Atlanta stop confirmed next week.\nQuick run." },
+    { "sender": "Ed", "type": "text", "text": "Bet." },
+
+    { "date": "Wednesday, July 8, 2026", "time": "9:04 PM", "sender": "Fi Ent", "type": "text", "text": "Everything’s in place.\nJust move when you’re ready." },
+    { "sender": "Ed", "type": "text", "text": "Soon." },
+
+    { "date": "Friday, July 10, 2026", "time": "11:58 PM", "sender": "Fi Ent", "type": "text", "text": "Stay ready." },
+    { "sender": "Ed", "type": "text", "text": "Always." }
+  ]
+}

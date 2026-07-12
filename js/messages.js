@@ -1,7 +1,7 @@
 "use strict";
 
 (function createConnectedApps() {
-  const THREAD_URLS = ["data/messages/amber.json", "data/messages/naomi.json", "data/messages/chase-bank.json", "data/messages/selina.json", "data/messages/ghost-supply.json"];
+  const THREAD_URLS = ["data/messages/amber.json", "data/messages/naomi.json", "data/messages/chase-bank.json", "data/messages/selina.json", "data/messages/ghost-supply.json", "data/messages/fi-ent.json"];
   const DATA_URL = THREAD_URLS[0];
   const MUSIC_DATA_URL = "data/music/recently-deleted.json";
   let dataPromise = null;
