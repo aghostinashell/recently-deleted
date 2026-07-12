@@ -495,7 +495,7 @@ button {
 
   touch-action: none;
 
-  background: #000;
+  background: #000 url("../media/wallpaper/phone-wallpaper.png") center / contain no-repeat;
 
   transition:
     transform 0.38s cubic-bezier(0.22, 1, 0.36, 1),
@@ -1090,7 +1090,7 @@ That keeps the complete passcode block centered vertically.
     20px
     calc(132px + env(safe-area-inset-bottom));
 
-  background: #000;
+  background: #000 url("../media/wallpaper/phone-wallpaper.png") center / contain no-repeat;
 
   transition:
     opacity 0.35s ease,
