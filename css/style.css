@@ -2186,7 +2186,8 @@ That keeps the complete passcode block centered vertically.
 .messages-list-heading h2 { font-size: 30px; letter-spacing: -.04em; }
 .messages-list-heading button { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,.1); color: #178bff; }
 .message-thread-row { position: relative; width: 100%; padding: 11px 4px; display: grid; grid-template-columns: 54px 1fr 10px; gap: 11px; align-items: center; border-top: 1px solid rgba(255,255,255,.12); background: transparent; color: #fff; text-align: left; }
-.message-thread-row > img { width: 54px; height: 54px; border-radius: 50%; object-fit: cover; }
+.message-thread-row > img, .message-thread-row > .contact-initials { width: 54px; height: 54px; border-radius: 50%; object-fit: cover; }
+.contact-initials { display: grid; place-items: center; flex: 0 0 auto; background: linear-gradient(145deg,#85858a,#4c4c50); color: #fff; font-size: 25px; font-weight: 400; text-transform: uppercase; }
 .thread-unread-dot { position: absolute; left: -7px; width: 8px; height: 8px; box-shadow: none; }
 .thread-summary { min-width: 0; display: grid; grid-template-columns: 1fr auto; }
 .thread-summary strong { font-size: 15px; }
@@ -2199,7 +2200,7 @@ That keeps the complete passcode block centered vertically.
 .conversation-header > button { position: absolute; left: 14px; top: 29px; color: #168cff; background: transparent; font-size: 38px; font-weight: 300; }
 .conversation-contact-glass { position: relative; width: 78px; min-height: 76px; padding: 7px 7px 6px; display: grid; place-items: center; gap: 3px; overflow: hidden; border: 1px solid rgba(255,255,255,.16); border-radius: 24px; background: linear-gradient(145deg,rgba(255,255,255,.18),rgba(255,255,255,.055)); box-shadow: inset 0 1px 1px rgba(255,255,255,.17),0 10px 28px rgba(0,0,0,.35); backdrop-filter: blur(20px) saturate(1.25); }
 .conversation-contact-glass::before { content:""; position:absolute; inset:1px 8px auto; height:32%; border-radius:999px; background:linear-gradient(180deg,rgba(255,255,255,.3),transparent); opacity:.55; pointer-events:none; }
-.conversation-contact-glass img { position:relative; z-index:1; width:48px; height:48px; border:1px solid rgba(255,255,255,.3); border-radius:50%; object-fit:cover; box-shadow:0 4px 12px rgba(0,0,0,.3); }
+.conversation-contact-glass img, .conversation-contact-glass .contact-initials { position:relative; z-index:1; width:48px; height:48px; border:1px solid rgba(255,255,255,.3); border-radius:50%; object-fit:cover; box-shadow:0 4px 12px rgba(0,0,0,.3); }
 .conversation-contact-glass strong { position:relative; z-index:1; max-width:64px; overflow:hidden; font-size:10px; font-weight:650; text-align:center; text-overflow:ellipsis; white-space:nowrap; }
 .conversation-stream { padding: 8px 10px 145px; }
 .message-date { margin: 23px auto 12px; color: rgba(255,255,255,.43); font-size: 10px; font-weight: 650; text-align: center; text-transform: uppercase; }
@@ -2208,6 +2209,7 @@ That keeps the complete passcode block centered vertically.
 .message-item.outgoing { margin-left: auto; align-items: flex-end; }
 .message-item time { margin: 4px 8px 3px; color: rgba(255,255,255,.34); font-size: 9px; }
 .message-bubble { overflow: hidden; padding: 8px 12px; border-radius: 18px; background: #303034; font-size: 14px; line-height: 1.28; text-align: left; }
+.message-link { color: #61aaff; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; overflow-wrap: anywhere; }
 .outgoing .message-bubble { background: #1687f8; }
 .outgoing.android-message .message-bubble { background: #34c759; color: #fff; }
 .bank-message.incoming .message-bubble { border: 1px solid rgba(50,148,220,.24); background: linear-gradient(145deg,#252a31,#1c2026); color: #f7fbff; }

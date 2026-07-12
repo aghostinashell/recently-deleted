@@ -1,0 +1,24 @@
+{
+  "threadId": "ghost-supply",
+  "groupedTimestamps": true,
+  "contact": {
+    "name": "Ghost Supply",
+    "initials": "G"
+  },
+  "initiallyUnread": true,
+  "locations": [],
+  "photos": [],
+  "messages": [
+    { "date": "March 2, 2026", "time": "11:42 AM", "sender": "Ghost Supply", "type": "text", "text": "Thanks for your order.\nOrder GS-4182 has been confirmed.\nOrder Date\nMarch 2, 2026\nPayment\nVisa ending in 4821\nWe'll send another update when your order ships." },
+    { "date": "March 3, 2026", "time": "4:18 PM", "sender": "Ghost Supply", "type": "text", "text": "Your order GS-4182 is now being prepared for shipment.\nYou'll receive another text once USPS has your package." },
+    { "date": "March 4, 2026", "time": "8:11 PM", "sender": "Ghost Supply", "type": "text", "text": "Your order GS-4182 has shipped.\nTrack your package anytime:\nhttps://tools.usps.com/go/TrackConfirmAction\nEstimated delivery:\nFriday, March 6" },
+    { "date": "March 6, 2026", "time": "2:17 PM", "sender": "Ghost Supply", "type": "text", "text": "Delivered.\nAccording to USPS, your package was delivered at 2:17 PM.\nThanks for shopping with Ghost Supply." },
+    { "date": "April 14, 2026", "time": "10:03 AM", "sender": "Ghost Supply", "type": "text", "text": "Welcome back.\nBecause you've ordered before, your next purchase qualifies for free standard shipping.\nUse code:\nRETURNX\nExpires April 21." },
+    { "date": "June 8, 2026", "time": "9:00 AM", "sender": "Ghost Supply", "type": "text", "text": "A new collection is now available.\nEarly access ends tonight.\nShop Now →" },
+    { "date": "June 19, 2026", "time": "3:47 PM", "sender": "Ghost Supply", "type": "text", "text": "Thanks for your order.\nOrder GS-4476 has been confirmed.\nOrder Date\nJune 19, 2026\nPayment\nVisa ending in 4558\nWe'll notify you when your package ships." },
+    { "date": "June 20, 2026", "time": "7:31 PM", "sender": "Ghost Supply", "type": "text", "text": "Your order GS-4476 has shipped.\nTrack your shipment:\nhttps://tools.usps.com/go/TrackConfirmAction\nEstimated delivery:\nMonday" },
+    { "date": "June 23, 2026", "time": "1:52 PM", "sender": "Ghost Supply", "type": "text", "text": "Delivered.\nUSPS marked your package as delivered.\nWe hope you enjoy your order." },
+    { "date": "July 3, 2026", "time": "11:00 AM", "sender": "Ghost Supply", "type": "text", "text": "Summer Event is live.\nLimited quantities available.\nShop now →" },
+    { "date": "July 8, 2026", "time": "8:15 PM", "sender": "Ghost Supply", "type": "text", "text": "You're receiving this message because you're subscribed to Ghost Supply SMS.\nStay tuned.\nSomething new is almost here." }
+  ]
+}

@@ -1,7 +1,7 @@
 "use strict";
 
 (function createConnectedApps() {
-  const THREAD_URLS = ["data/messages/amber.json", "data/messages/naomi.json", "data/messages/chase-bank.json", "data/messages/selina.json"];
+  const THREAD_URLS = ["data/messages/amber.json", "data/messages/naomi.json", "data/messages/chase-bank.json", "data/messages/selina.json", "data/messages/ghost-supply.json"];
   const DATA_URL = THREAD_URLS[0];
   const MUSIC_DATA_URL = "data/music/recently-deleted.json";
   let dataPromise = null;
@@ -19,6 +19,18 @@
 
   function displayMessageDate(value) {
     return String(value || "").replace(/^(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday),\s+/i, "");
+  }
+
+  function renderMessageText(value) {
+    return escapeHtml(value)
+      .replace(/(https:\/\/[^\s<]+)/g, '<a class="message-link" href="$1" target="_blank" rel="noopener noreferrer">$1</a>')
+      .replace(/\n/g, "<br>");
+  }
+
+  function contactVisual(contact, className = "") {
+    return contact.photo
+      ? `<img class="${className}" src="${escapeHtml(contact.photo)}" alt="">`
+      : `<span class="contact-initials ${className}" aria-hidden="true">${escapeHtml(contact.initials || contact.name.charAt(0))}</span>`;
   }
 
   function getData() {
@@ -86,7 +98,7 @@
             const last = thread.messages[thread.messages.length - 1];
             return `<button class="message-thread-row" type="button" data-open-thread="${escapeHtml(thread.threadId)}">
               <span class="thread-unread-dot" ${isUnread(thread) ? "" : "hidden"}></span>
-              <img src="${escapeHtml(thread.contact.photo)}" alt="">
+              ${contactVisual(thread.contact)}
               <span class="thread-summary"><strong>${escapeHtml(thread.contact.name)}</strong><small>${escapeHtml(last.time)}</small><p>${escapeHtml(last.text || thread.preview || "")}</p></span>
               <span class="thread-chevron">›</span>
             </button>`;
@@ -128,7 +140,7 @@
         <header class="conversation-header">
           <button type="button" data-back-messages aria-label="Back to messages">‹</button>
           <div class="conversation-contact-glass">
-            <img src="${escapeHtml(data.contact.photo)}" alt="${escapeHtml(data.contact.name)}">
+            ${contactVisual(data.contact)}
             <strong>${escapeHtml(data.contact.name)}</strong>
           </div>
         </header>
@@ -146,7 +158,7 @@
                 ${data.groupedTimestamps ? "" : `<time>${escapeHtml(message.time)}</time>`}
                 <div class="message-bubble ${message.type !== "text" ? `has-${message.type}` : ""}">
                   ${renderAttachment(data, message)}
-                  ${message.text ? `<p>${escapeHtml(message.text).replace(/\n/g, "<br>")}</p>` : ""}
+                  ${message.text ? `<p>${renderMessageText(message.text)}</p>` : ""}
                 </div>
                 ${outgoing && message.receipt ? `<small class="message-receipt">${escapeHtml(message.receipt)}</small>` : ""}
                 ${message.status ? `<small class="message-receipt ${outgoing ? "" : "incoming-status"}">${escapeHtml(message.status)}</small>` : ""}
