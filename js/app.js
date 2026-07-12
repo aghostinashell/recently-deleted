@@ -98,6 +98,7 @@ function bootSite() {
   initializeWeather();
   window.MyMessages?.syncUnreadBadge();
   initializeMediaProtection();
+  window.MyMail?.initialize();
 
   window.setInterval(updateDateAndTime, 1000);
 }
@@ -358,6 +359,7 @@ function renderAppButton(app) {
       aria-label="Open ${app.name}"
     >
       ${renderGlassIcon(app.id, "app-icon")}
+      ${app.id === "mail" ? `<span class="mail-app-badge" data-mail-unread hidden></span>` : ""}
 
       <span class="app-label">
         ${app.name}
@@ -820,6 +822,9 @@ function showAppWindow(app) {
   } else if (app.id === "instagram") {
     appContent.classList.add("instagram-app-content");
     appContent.innerHTML = renderInstagramApp();
+  } else if (app.id === "mail" && window.MyMail) {
+    appContent.classList.add("mail-app-content");
+    window.MyMail.openInbox(appContent);
   } else {
     appContent.innerHTML = `
       <article class="placeholder-card">

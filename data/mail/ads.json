@@ -1,0 +1,69 @@
+{
+  "campaigns": [
+    {
+      "id": "blank-tab-studios",
+      "tier": "Premium",
+      "sender": "Blank Tab Studios",
+      "subject": "Start with a blank tab.",
+      "preview": "Save 20% on custom website design for a limited time.",
+      "label": "Featured Sponsor",
+      "headline": "START WITH A BLANK TAB.",
+      "cta": "START YOUR PROJECT",
+      "url": null,
+      "body": [
+        "Your website should feel like your brand—not like a template with your name added to it.",
+        "Blank Tab Studios builds custom, mobile-first websites for artists, entrepreneurs, brands, and small businesses ready to create a stronger digital presence.",
+        "For a limited time, new clients can save 20% on select website-building packages."
+      ],
+      "sections": [
+        { "title": "STARTER PAGE", "price": "Regular Price: $750 · Launch Offer: $600", "description": "A clean, professional one-page website for individuals, campaigns, events, or new businesses.", "items": ["Custom mobile-first design", "Up to 5 page sections", "Contact or inquiry form", "Social media links", "Domain connection", "Basic search-engine setup", "One revision round"] },
+        { "title": "BUSINESS SITE", "price": "Regular Price: $1,500 · Launch Offer: $1,200", "description": "A complete website for businesses, personal brands, creatives, and service providers.", "items": ["Up to 5 custom pages", "Mobile and desktop design", "Services or portfolio section", "Contact and booking forms", "Social media integration", "Domain and hosting setup", "Basic search-engine setup", "Two revision rounds"] },
+        { "title": "INTERACTIVE EXPERIENCE", "price": "Starting Price: $3,000 · Launch Offer: Starting at $2,400", "description": "A custom digital experience built around your concept, with custom features, animations, media integration, and a design created specifically for the project.", "items": ["Artists and album launches", "Interactive portfolios", "Product releases", "Immersive brand experiences", "Private listening events", "Creative campaigns"] },
+        { "title": "OPTIONAL SERVICES", "items": ["Website maintenance", "Content updates", "Online-store integration", "Email-list setup", "Analytics and visitor tracking", "Custom forms", "Booking systems", "Additional pages"] }
+      ],
+      "closing": ["Your idea does not have to fit inside a template.", "We build the site around the idea.", "20% OFF SELECT WEBSITE PACKAGES", "Limited introductory availability."]
+    },
+    {
+      "id": "ghosts-in-shells",
+      "tier": "Premium",
+      "sender": "Ghosts In Shells",
+      "subject": "You’re already inside it.",
+      "preview": "Discover the company behind the music, brands, visuals, and digital experiences.",
+      "label": "Featured House Ad",
+      "headline": "YOU’RE ALREADY INSIDE IT.",
+      "cta": "BUILT BY GHOSTS IN SHELLS",
+      "url": null,
+      "body": ["This is not just an artist website.", "It is an interactive digital world built for music, storytelling, brands, and experiences that should be explored instead of scrolled past.", "Ghosts In Shells develops the systems, concepts, and creative infrastructure behind independent artists, media brands, original products, and immersive digital experiences."],
+      "sections": [{ "title": "OUR WORK INCLUDES", "items": ["Artist and brand development", "Music and media projects", "Visual storytelling", "Creative direction", "Original product concepts", "Digital experiences", "Independent business development", "Custom platforms like myPhone"] }],
+      "closing": ["Some things are built to be seen.", "Others are built to make everything possible.", "Ghosts In Shells works behind the scenes to turn ideas into complete worlds.", "This experience is one of them."]
+    },
+    {
+      "id": "inkworks-media-group",
+      "tier": "Standard",
+      "sender": "Inkworks Media Group",
+      "subject": "Your next release deserves a real plan.",
+      "preview": "Artist submissions are now open for distribution, development, and label support.",
+      "label": "Sponsored",
+      "headline": "YOUR NEXT RELEASE DESERVES A REAL PLAN.",
+      "cta": "SUBMIT YOUR MUSIC",
+      "url": null,
+      "body": ["Talent gets heard.", "The right structure helps it travel further.", "Inkworks Media Group is currently reviewing submissions from independent artists, producers, and songwriters ready to take the next step."],
+      "sections": [{ "title": "SELECTED ARTISTS MAY RECEIVE SUPPORT WITH", "items": ["Digital distribution", "Release strategy", "Artist development", "Marketing and promotional planning", "Playlist and media outreach", "Brand positioning", "Content and visual coordination", "Metadata and release preparation", "Rights and catalog administration", "Performance and partnership opportunities"] }],
+      "closing": ["We are looking for artists with a clear identity, consistent work ethic, and music they are ready to stand behind.", "We are not here to control your sound.", "We are here to help build the structure around it.", "ARTIST SUBMISSIONS NOW OPEN", "Limited review slots are available."]
+    },
+    {
+      "id": "fi-entertainment",
+      "tier": "Basic",
+      "sender": "Fi Entertainment",
+      "subject": "Your career needs more than talent.",
+      "preview": "Save 20% on select artist-management services for a limited time.",
+      "label": "Sponsored",
+      "headline": "YOUR CAREER NEEDS MORE THAN TALENT.",
+      "cta": "APPLY FOR MANAGEMENT",
+      "url": null,
+      "body": ["Great music can get attention.", "The right team helps you build momentum, protect your time, and turn opportunities into a sustainable career.", "For a limited time, new clients can receive 20% off select Fi Entertainment management services."],
+      "sections": [{ "title": "SERVICES MAY INCLUDE", "items": ["Artist strategy and development", "Booking and appearance coordination", "Brand partnerships", "Release and campaign support", "Schedule and project management", "Business development"] }],
+      "closing": ["You create the vision.", "We help organize the moves behind it.", "20% OFF SELECT MANAGEMENT SERVICES", "Limited availability for new clients."]
+    }
+  ]
+}
