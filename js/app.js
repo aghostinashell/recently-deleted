@@ -11,6 +11,7 @@ let swipeCurrentY = 0;
 let swipeTracking = false;
 
 let faceIdSequenceRunning = false;
+let weatherRefreshTimer = null;
 
 const apps = [
   {
@@ -888,13 +889,48 @@ async function initializeWeather() {
 
   if (!locationNode) return;
 
-  try {
-    const locationResponse = await fetch("https://ipwho.is/");
-    if (!locationResponse.ok) throw new Error("Location unavailable");
-    const location = await locationResponse.json();
-    if (!location.success || !Number.isFinite(location.latitude) || !Number.isFinite(location.longitude)) {
-      throw new Error("Location unavailable");
+  const WEATHER_LOCATIONS = [
+    { name: "Compton, CA", latitude: 33.8958, longitude: -118.2201 },
+    { name: "Sacramento, CA", latitude: 38.5816, longitude: -121.4944 },
+    { name: "Grand Prairie, TX", latitude: 32.7460, longitude: -96.9978 },
+    { name: "Arlington, TX", latitude: 32.7357, longitude: -97.1081 },
+    { name: "Dallas, TX", latitude: 32.7767, longitude: -96.7970 },
+    { name: "Charlotte, NC", latitude: 35.2271, longitude: -80.8431 },
+    { name: "Rockingham, NC", latitude: 34.9393, longitude: -79.7739 },
+    { name: "Fayetteville, NC", latitude: 35.0527, longitude: -78.8784 },
+    { name: "Center Islip, NY", latitude: 40.7907, longitude: -73.2018 },
+    { name: "Las Vegas, NV", latitude: 36.1699, longitude: -115.1398 },
+    { name: "Paradise, NV", latitude: 36.0972, longitude: -115.1467 }
+  ];
+  const ROTATION_KEY = "myphone.weather.rotation.v1";
+  const MIN_STAY = 72 * 60 * 60 * 1000;
+  const MAX_STAY = 144 * 60 * 60 * 1000;
+
+  function randomStay() {
+    return Math.round(MIN_STAY + Math.random() * (MAX_STAY - MIN_STAY));
+  }
+
+  function activeLocation() {
+    const now = Date.now();
+    let state = null;
+    try { state = JSON.parse(localStorage.getItem(ROTATION_KEY)); } catch { /* Reset invalid state below. */ }
+    const valid = state && Number.isInteger(state.index) && WEATHER_LOCATIONS[state.index] && Number.isFinite(state.rotateAt);
+    if (!valid) {
+      state = { index: Math.floor(Math.random() * WEATHER_LOCATIONS.length), rotateAt: now + randomStay() };
+    } else if (now >= state.rotateAt) {
+      let nextIndex = state.index;
+      while (nextIndex === state.index) nextIndex = Math.floor(Math.random() * WEATHER_LOCATIONS.length);
+      state = { index: nextIndex, rotateAt: now + randomStay() };
     }
+    localStorage.setItem(ROTATION_KEY, JSON.stringify(state));
+    return WEATHER_LOCATIONS[state.index];
+  }
+
+  const location = activeLocation();
+  locationNode.textContent = location.name;
+  conditionNode.textContent = "Updating weather…";
+
+  try {
 
     const params = new URLSearchParams({
       latitude: String(location.latitude),
@@ -911,17 +947,21 @@ async function initializeWeather() {
     const code = Number(weather.current?.weather_code);
     const presentation = weatherPresentation(code);
 
-    locationNode.textContent = location.city || location.region || "Nearby";
+    locationNode.textContent = location.name;
     temperatureNode.textContent = `${Math.round(weather.current.temperature_2m)}°`;
     conditionNode.textContent = presentation.label;
     symbolNode.textContent = presentation.symbol;
     rangeNode.textContent = `H:${Math.round(weather.daily.temperature_2m_max[0])}° L:${Math.round(weather.daily.temperature_2m_min[0])}°`;
   } catch (error) {
-    locationNode.textContent = "Local Weather";
+    locationNode.textContent = location.name;
     temperatureNode.textContent = "--°";
-    conditionNode.textContent = "Weather unavailable";
-    rangeNode.textContent = "Tap to retry later";
+    conditionNode.textContent = "Temporarily unavailable";
+    rangeNode.textContent = "Refreshing automatically";
     symbolNode.textContent = "◌";
+  }
+
+  if (!weatherRefreshTimer) {
+    weatherRefreshTimer = window.setInterval(initializeWeather, 15 * 60 * 1000);
   }
 }
 
