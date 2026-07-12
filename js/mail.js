@@ -154,7 +154,7 @@
     host.innerHTML = `
       <article class="sponsored-email">
         <button class="mail-back" type="button" data-mail-back>‹ Inbox</button>
-        <header class="sponsored-email-header"><span>${escapeHtml(campaign.label)}</span><h2>${escapeHtml(campaign.sender)}</h2><h1>${escapeHtml(campaign.headline)}</h1><p>To: Ed</p><time>${escapeHtml(deliveryTime(delivery))}</time></header>
+        <header class="sponsored-email-header"><span>${escapeHtml(campaign.label)}</span>${campaign.logo ? `<img class="sponsored-email-logo" src="${escapeHtml(campaign.logo)}" alt="${escapeHtml(campaign.sender)} logo">` : ""}<h2>${escapeHtml(campaign.sender)}</h2><h1>${escapeHtml(campaign.headline)}</h1><p>To: Ed</p><time>${escapeHtml(deliveryTime(delivery))}</time></header>
         <div class="sponsored-email-body">${renderEmailBody(campaign)}</div>
       </article>`;
     host.querySelector("[data-mail-back]").addEventListener("click", () => renderInbox(host, campaigns));

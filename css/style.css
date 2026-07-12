@@ -2446,6 +2446,7 @@ img,
 .mail-back { margin: 10px 13px; background: transparent; color: #087ff5; font-size: 15px; }
 .sponsored-email-header { padding: 24px 20px 20px; border-top: 1px solid #d6d1c7; border-bottom: 1px solid #d6d1c7; background: #fff; }
 .sponsored-email-header > span { color: #8b6c30; font-size: 8px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+.sponsored-email-logo { width: auto; max-width: 150px; height: auto; max-height: 82px; margin: 16px auto 4px; display: block; object-fit: contain; }
 .sponsored-email-header h2 { margin-top: 8px; font-size: 14px; }
 .sponsored-email-header h1 { margin-top: 13px; font-size: 27px; line-height: 1.02; letter-spacing: -.04em; }
 .sponsored-email-header p,.sponsored-email-header time { display: inline-block; margin-top: 13px; color: #777; font-size: 10px; }
