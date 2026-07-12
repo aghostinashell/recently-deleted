@@ -1,0 +1,81 @@
+{
+  "threadId": "naomi",
+  "platform": "android",
+  "contact": {
+    "name": "Naomi",
+    "photo": "media/artwork/recently-deleted/08-naomi.JPG"
+  },
+  "initiallyUnread": true,
+  "systemNotice": {
+    "title": "Blocked Messages",
+    "text": "You unblocked this contact."
+  },
+  "locations": [],
+  "photos": [],
+  "messages": [
+    { "date": "Sunday, February 8, 2026", "time": "10:47 PM", "sender": "Naomi", "type": "text", "text": "you still got the same number?" },
+    { "time": "10:48 PM", "sender": "Ed", "type": "text", "text": "Yeah." },
+    { "time": "10:49 PM", "sender": "Naomi", "type": "text", "text": "figured" },
+    { "time": "10:50 PM", "sender": "Naomi", "type": "text", "text": "don't know why i asked" },
+
+    { "date": "Thursday, February 19, 2026", "time": "11:13 PM", "sender": "Naomi", "type": "text", "text": "you really disappear whenever you feel like it huh" },
+    { "time": "11:14 PM", "sender": "Naomi", "type": "text", "text": "that's crazy" },
+    { "time": "11:16 PM", "sender": "Ed", "type": "text", "text": "Been busy." },
+    { "time": "11:17 PM", "sender": "Naomi", "type": "text", "text": "sure" },
+
+    { "date": "Monday, March 2, 2026", "time": "1:26 AM", "sender": "Naomi", "type": "text", "text": "come over" },
+    { "time": "1:27 AM", "sender": "Ed", "type": "text", "text": "Can't." },
+    { "time": "1:28 AM", "sender": "Naomi", "type": "text", "text": "i wasn't asking" },
+    { "time": "1:28 AM", "sender": "Naomi", "type": "text", "text": "i said come over" },
+    { "time": "1:30 AM", "sender": "Ed", "type": "text", "text": "Not tonight." },
+
+    { "date": "Saturday, March 14, 2026", "time": "9:48 PM", "sender": "Naomi", "type": "text", "text": "i'm deleting your number" },
+    { "time": "9:49 PM", "sender": "Naomi", "type": "text", "text": "for real this time" },
+    { "time": "9:50 PM", "sender": "Ed", "type": "text", "text": "👍🏾" },
+    { "time": "9:51 PM", "sender": "Naomi", "type": "text", "text": "you know what" },
+    { "time": "9:52 PM", "sender": "Naomi", "type": "text", "text": "fuck you Ed" },
+
+    { "date": "Tuesday, April 7, 2026", "time": "12:31 AM", "sender": "Naomi", "type": "text", "text": "you never chase me" },
+    { "time": "12:32 AM", "sender": "Naomi", "type": "text", "text": "not once" },
+    { "time": "12:34 AM", "sender": "Ed", "type": "text", "text": "You told me not to." },
+    { "time": "12:35 AM", "sender": "Naomi", "type": "text", "text": "that's not the point" },
+    { "time": "12:36 AM", "sender": "Naomi", "type": "text", "text": "you know what i mean" },
+
+    { "date": "Friday, May 15, 2026", "time": "2:32 AM", "sender": "Naomi", "type": "text", "text": "you up" },
+    { "time": "2:33 AM", "sender": "Naomi", "type": "text", "text": "???" },
+    { "time": "2:34 AM", "sender": "Naomi", "type": "text", "text": "i know you're awake" },
+    { "time": "2:35 AM", "sender": "Naomi", "type": "text", "text": "answer your phone" },
+    { "time": "2:37 AM", "sender": "Ed", "type": "text", "text": "Yeah." },
+    { "time": "2:38 AM", "sender": "Naomi", "type": "text", "text": "can i come over" },
+    { "time": "2:39 AM", "sender": "Ed", "type": "text", "text": "Door's unlocked." },
+
+    { "date": "Wednesday, June 10, 2026", "time": "6:41 PM", "sender": "Naomi", "type": "text", "text": "i'm done" },
+    { "time": "6:42 PM", "sender": "Naomi", "type": "text", "text": "seriously" },
+    { "time": "6:43 PM", "sender": "Naomi", "type": "text", "text": "i can't keep doing this shit" },
+    { "time": "6:45 PM", "sender": "Ed", "type": "text", "text": "Okay." },
+    { "time": "6:46 PM", "sender": "Naomi", "type": "text", "text": "that's it?" },
+    { "time": "6:47 PM", "sender": "Naomi", "type": "text", "text": "that's all you got?" },
+    { "time": "6:49 PM", "sender": "Ed", "type": "text", "text": "Thought that's what you wanted." },
+    { "time": "6:50 PM", "sender": "Naomi", "type": "text", "text": "thats what you thought huh" },
+
+    { "date": "Sunday, June 21, 2026", "time": "11:58 PM", "sender": "Naomi", "type": "text", "text": "did I leave my hoodie over there?" },
+    { "time": "11:59 PM", "sender": "Ed", "type": "text", "text": "Yeah." },
+    { "time": "12:00 AM", "sender": "Naomi", "type": "text", "text": "otw to get it" },
+    { "time": "12:01 AM", "sender": "Naomi", "type": "text", "text": "actually nvm" },
+    { "time": "12:02 AM", "sender": "Naomi", "type": "text", "text": "i'll grab it another day" },
+
+    { "date": "Tuesday, June 30, 2026", "time": "8:14 PM", "sender": "Naomi", "type": "text", "text": "i drove by your place today" },
+    { "time": "8:16 PM", "sender": "Ed", "type": "text", "text": "Why?" },
+    { "time": "8:17 PM", "sender": "Naomi", "type": "text", "text": "idk" },
+    { "time": "8:18 PM", "sender": "Naomi", "type": "text", "text": "don't make it weird" },
+
+    { "date": "Thursday, July 9, 2026", "time": "1:18 AM", "sender": "Naomi", "type": "text", "text": "can't sleep" },
+    { "time": "1:19 AM", "sender": "Ed", "type": "text", "text": "Same." },
+    { "time": "1:20 AM", "sender": "Naomi", "type": "text", "text": "thought about calling" },
+    { "time": "1:21 AM", "sender": "Ed", "type": "text", "text": "You didn't." },
+    { "time": "1:22 AM", "sender": "Naomi", "type": "text", "text": "i know." },
+
+    { "date": "Friday, July 10, 2026", "time": "11:56 PM", "sender": "Naomi", "type": "text", "text": "you still awake" },
+    { "time": "11:57 PM", "sender": "Ed", "type": "text", "text": "Always." }
+  ]
+}

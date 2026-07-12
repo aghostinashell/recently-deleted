@@ -1,10 +1,11 @@
 "use strict";
 
 (function createConnectedApps() {
-  const DATA_URL = "data/messages/amber.json";
+  const THREAD_URLS = ["data/messages/amber.json", "data/messages/naomi.json"];
+  const DATA_URL = THREAD_URLS[0];
   const MUSIC_DATA_URL = "data/music/recently-deleted.json";
-  const READ_KEY = "myphone.messages.amber.read";
   let dataPromise = null;
+  let threadsPromise = null;
   let musicPromise = null;
   let mapInstance = null;
   let mapSearchMarker = null;
@@ -26,8 +27,22 @@
     return dataPromise;
   }
 
-  function isUnread() {
-    return localStorage.getItem(READ_KEY) !== "1";
+  function readKey(threadId) {
+    return `myphone.messages.${threadId}.read`;
+  }
+
+  function isUnread(thread) {
+    return thread.initiallyUnread !== false && localStorage.getItem(readKey(thread.threadId)) !== "1";
+  }
+
+  function getThreads() {
+    if (!threadsPromise) {
+      threadsPromise = Promise.all(THREAD_URLS.map((url) => fetch(url).then((response) => {
+        if (!response.ok) throw new Error("Messages could not be loaded.");
+        return response.json();
+      })));
+    }
+    return threadsPromise;
   }
 
   function getMusicData() {
@@ -40,10 +55,12 @@
     return musicPromise;
   }
 
-  function syncUnreadBadge() {
-    document.querySelectorAll("[data-messages-unread]").forEach((badge) => {
-      badge.hidden = !isUnread();
-    });
+  async function syncUnreadBadge() {
+    try {
+      const threads = await getThreads();
+      const hasUnread = threads.some(isUnread);
+      document.querySelectorAll("[data-messages-unread]").forEach((badge) => { badge.hidden = !hasUnread; });
+    } catch { /* The app view will show the loading error if opened. */ }
   }
 
   function photoById(data, id) {
@@ -57,24 +74,25 @@
   async function openMessages(host) {
     host.innerHTML = `<p class="app-loading">Loading Messages…</p>`;
     try {
-      const data = await getData();
-      const last = data.messages[data.messages.length - 1];
+      const threads = await getThreads();
       host.innerHTML = `
         <section class="messages-list-view">
           <div class="messages-list-heading"><h2>Messages</h2><button type="button" aria-label="Compose message">•••</button></div>
-          <button class="message-thread-row" type="button" data-open-amber>
-            <span class="thread-unread-dot" data-messages-unread></span>
-            <img src="${escapeHtml(data.contact.photo)}" alt="">
-            <span class="thread-summary">
-              <strong>${escapeHtml(data.contact.name)}</strong>
-              <small>${escapeHtml(last.time)}</small>
-              <p>${escapeHtml(last.text)}</p>
-            </span>
-            <span class="thread-chevron">›</span>
-          </button>
+          ${threads.map((thread) => {
+            const last = thread.messages[thread.messages.length - 1];
+            return `<button class="message-thread-row" type="button" data-open-thread="${escapeHtml(thread.threadId)}">
+              <span class="thread-unread-dot" ${isUnread(thread) ? "" : "hidden"}></span>
+              <img src="${escapeHtml(thread.contact.photo)}" alt="">
+              <span class="thread-summary"><strong>${escapeHtml(thread.contact.name)}</strong><small>${escapeHtml(last.time)}</small><p>${escapeHtml(last.text)}</p></span>
+              <span class="thread-chevron">›</span>
+            </button>`;
+          }).join("")}
         </section>`;
       syncUnreadBadge();
-      host.querySelector("[data-open-amber]").addEventListener("click", () => openThread(host, data));
+      host.querySelectorAll("[data-open-thread]").forEach((button) => button.addEventListener("click", () => {
+        const thread = threads.find((item) => item.threadId === button.dataset.openThread);
+        if (thread) openThread(host, thread);
+      }));
     } catch (error) {
       host.innerHTML = `<p class="app-error">${escapeHtml(error.message)}</p>`;
     }
@@ -99,7 +117,7 @@
   }
 
   function openThread(host, data) {
-    localStorage.setItem(READ_KEY, "1");
+    localStorage.setItem(readKey(data.threadId), "1");
     syncUnreadBadge();
     host.innerHTML = `
       <section class="message-conversation">
@@ -111,13 +129,14 @@
           </div>
         </header>
         <div class="conversation-stream">
+          ${data.systemNotice ? `<div class="message-system"><strong>${escapeHtml(data.systemNotice.title)}</strong><span>${escapeHtml(data.systemNotice.text)}</span></div>` : ""}
           ${data.messages.map((message) => {
             const outgoing = message.sender === "Ed";
             return `
-              ${message.date ? `<div class="message-date">${escapeHtml(message.date)}</div>` : ""}
+              ${message.date ? `<div class="message-date">${escapeHtml(message.date)}${data.platform === "android" && message.time ? ` · ${escapeHtml(message.time)}` : ""}</div>` : ""}
               ${message.breakBefore ? `<div class="message-gap"></div>` : ""}
-              <article class="message-item ${outgoing ? "outgoing" : "incoming"}">
-                <time>${escapeHtml(message.time)}</time>
+              <article class="message-item ${outgoing ? "outgoing" : "incoming"} ${data.platform === "android" && !outgoing ? "android-message" : ""}">
+                ${data.platform === "android" ? "" : `<time>${escapeHtml(message.time)}</time>`}
                 <div class="message-bubble ${message.type !== "text" ? `has-${message.type}` : ""}">
                   ${renderAttachment(data, message)}
                   ${message.text ? `<p>${escapeHtml(message.text).replace(/\n/g, "<br>")}</p>` : ""}
