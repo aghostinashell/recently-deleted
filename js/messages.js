@@ -1,7 +1,7 @@
 "use strict";
 
 (function createConnectedApps() {
-  const THREAD_URLS = ["data/messages/amber.json", "data/messages/naomi.json"];
+  const THREAD_URLS = ["data/messages/amber.json", "data/messages/naomi.json", "data/messages/chase-bank.json"];
   const DATA_URL = THREAD_URLS[0];
   const MUSIC_DATA_URL = "data/music/recently-deleted.json";
   let dataPromise = null;
@@ -131,12 +131,12 @@
         <div class="conversation-stream">
           ${data.systemNotice ? `<div class="message-system"><strong>${escapeHtml(data.systemNotice.title)}</strong><span>${escapeHtml(data.systemNotice.text)}</span></div>` : ""}
           ${data.messages.map((message) => {
-            const outgoing = message.sender === "Ed";
+            const outgoing = message.sender === "Ed" || message.sender === "You";
             return `
-              ${message.date ? `<div class="message-date">${escapeHtml(message.date)}${data.platform === "android" && message.time ? ` · ${escapeHtml(message.time)}` : ""}</div>` : ""}
+              ${message.date ? `<div class="message-date">${escapeHtml(message.date)}${data.groupedTimestamps && message.time ? ` · ${escapeHtml(message.time)}` : ""}</div>` : ""}
               ${message.breakBefore ? `<div class="message-gap"></div>` : ""}
-              <article class="message-item ${outgoing ? "outgoing" : "incoming"} ${data.platform === "android" && !outgoing ? "android-message" : ""}">
-                ${data.platform === "android" ? "" : `<time>${escapeHtml(message.time)}</time>`}
+              <article class="message-item ${outgoing ? "outgoing" : "incoming"} ${data.platform === "android" && !outgoing ? "android-message" : ""} ${data.threadStyle === "bank-alerts" ? "bank-message" : ""}">
+                ${data.groupedTimestamps ? "" : `<time>${escapeHtml(message.time)}</time>`}
                 <div class="message-bubble ${message.type !== "text" ? `has-${message.type}` : ""}">
                   ${renderAttachment(data, message)}
                   ${message.text ? `<p>${escapeHtml(message.text).replace(/\n/g, "<br>")}</p>` : ""}

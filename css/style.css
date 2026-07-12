@@ -2210,6 +2210,8 @@ That keeps the complete passcode block centered vertically.
 .message-bubble { overflow: hidden; padding: 8px 12px; border-radius: 18px; background: #303034; font-size: 14px; line-height: 1.28; text-align: left; }
 .outgoing .message-bubble { background: #1687f8; }
 .android-message .message-bubble { background: #34c759; color: #fff; }
+.bank-message.incoming .message-bubble { border: 1px solid rgba(50,148,220,.24); background: linear-gradient(145deg,#252a31,#1c2026); color: #f7fbff; }
+.bank-message.incoming .message-bubble::first-line { font-weight: 650; }
 .message-system { margin: 9px auto 25px; display: grid; gap: 3px; color: rgba(255,255,255,.48); font-size: 10px; text-align: center; }
 .message-system strong { color: rgba(255,255,255,.72); font-size: 11px; }
 .message-bubble.has-image, .message-bubble.has-location { padding: 3px; background: #303034; }

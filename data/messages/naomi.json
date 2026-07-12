@@ -1,6 +1,7 @@
 {
   "threadId": "naomi",
   "platform": "android",
+  "groupedTimestamps": true,
   "contact": {
     "name": "Naomi",
     "photo": "media/messages/naomi/IMG_0319.png"

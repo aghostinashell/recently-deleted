@@ -1,0 +1,33 @@
+{
+  "threadId": "chase-bank",
+  "threadStyle": "bank-alerts",
+  "groupedTimestamps": true,
+  "contact": {
+    "name": "Chase Bank",
+    "photo": "media/messages/chase-bank/bank-alert.svg"
+  },
+  "initiallyUnread": true,
+  "locations": [],
+  "photos": [],
+  "messages": [
+    { "date": "February 27, 2026", "time": "9:14 AM", "sender": "Chase", "type": "text", "text": "A deposit of $2,487.16 has been posted to your checking account ending in 1738." },
+    { "date": "March 6, 2026", "time": "11:37 AM", "sender": "Chase", "type": "text", "text": "A deposit of $1,364.82 has been posted to your checking account ending in 1738." },
+    { "date": "March 14, 2026", "time": "4:21 PM", "sender": "Chase", "type": "text", "text": "A deposit of $3,918.40 has been posted to your checking account ending in 1738." },
+    { "date": "March 22, 2026", "time": "9:08 AM", "sender": "Chase", "type": "text", "text": "A deposit of $986.55 has been posted to your checking account ending in 1738." },
+    { "date": "March 31, 2026", "time": "1:52 PM", "sender": "Chase", "type": "text", "text": "A deposit of $1,742.63 has been posted to your checking account ending in 1738." },
+    { "date": "April 8, 2026", "time": "10:11 AM", "sender": "Chase", "type": "text", "text": "A deposit of $4,206.91 has been posted to your checking account ending in 1738." },
+    { "date": "April 17, 2026", "time": "2:46 PM", "sender": "Chase", "type": "text", "text": "A deposit of $1,189.77 has been posted to your checking account ending in 1738." },
+    { "date": "April 24, 2026", "time": "6:18 PM", "sender": "Chase", "type": "text", "text": "Fraud Alert: Did you attempt a purchase of $842.19 at Best Buy using your debit card ending in 4821?\nReply YES or NO." },
+    { "date": "April 24, 2026", "time": "6:23 PM", "sender": "You", "type": "text", "text": "NO" },
+    { "date": "April 24, 2026", "time": "6:24 PM", "sender": "Chase", "type": "text", "text": "Thanks for your response.\nYour debit card ending in 4821 has been locked to help prevent unauthorized transactions.\nA replacement card will be mailed to the address we have on file." },
+    { "date": "May 3, 2026", "time": "9:43 AM", "sender": "Chase", "type": "text", "text": "A deposit of $2,763.08 has been posted to your checking account ending in 1738." },
+    { "date": "May 10, 2026", "time": "4:07 PM", "sender": "Chase", "type": "text", "text": "A deposit of $1,057.44 has been posted to your checking account ending in 1738." },
+    { "date": "May 18, 2026", "time": "12:35 PM", "sender": "Chase", "type": "text", "text": "A deposit of $5,184.27 has been posted to your checking account ending in 1738." },
+    { "date": "May 27, 2026", "time": "3:58 PM", "sender": "Chase", "type": "text", "text": "A deposit of $1,628.90 has been posted to your checking account ending in 1738." },
+    { "date": "June 4, 2026", "time": "11:02 AM", "sender": "Chase", "type": "text", "text": "A deposit of $2,341.66 has been posted to your checking account ending in 1738." },
+    { "date": "June 12, 2026", "time": "5:49 PM", "sender": "Chase", "type": "text", "text": "A deposit of $1,476.38 has been posted to your checking account ending in 1738." },
+    { "date": "June 21, 2026", "time": "8:14 AM", "sender": "Chase", "type": "text", "text": "A deposit of $3,812.59 has been posted to your checking account ending in 1738." },
+    { "date": "June 29, 2026", "time": "1:26 PM", "sender": "Chase", "type": "text", "text": "A deposit of $918.73 has been posted to your checking account ending in 1738." },
+    { "date": "July 8, 2026", "time": "10:19 AM", "sender": "Chase", "type": "text", "text": "A deposit of $2,954.81 has been posted to your checking account ending in 1738." }
+  ]
+}
