@@ -495,7 +495,7 @@ button {
 
   touch-action: none;
 
-  background: #000 url("../media/wallpaper/phone-wallpaper.png") center / contain no-repeat;
+  background: #000 url("../media/wallpaper/phone-wallpaper.png") center / cover no-repeat;
 
   transition:
     transform 0.38s cubic-bezier(0.22, 1, 0.36, 1),
@@ -1090,7 +1090,7 @@ That keeps the complete passcode block centered vertically.
     20px
     calc(132px + env(safe-area-inset-bottom));
 
-  background: #000 url("../media/wallpaper/phone-wallpaper.png") center / contain no-repeat;
+  background: #000 url("../media/wallpaper/phone-wallpaper.png") center / cover no-repeat;
 
   transition:
     opacity 0.35s ease,
@@ -1099,6 +1099,11 @@ That keeps the complete passcode block centered vertically.
 
 .home-screen.screen-hidden {
   transform: scale(1.03);
+}
+
+.device.app-open .home-screen {
+  filter: blur(22px) saturate(.72) brightness(.62);
+  transform: scale(1.09);
 }
 
 .app-grid {
@@ -1717,15 +1722,18 @@ That keeps the complete passcode block centered vertically.
   background:
     radial-gradient(
       circle at top right,
-      rgba(145, 0, 0, 0.2),
+      rgba(145, 0, 0, 0.17),
       transparent 35%
     ),
     linear-gradient(
       180deg,
-      #121212,
-      #070707 45%,
-      #000
+      rgba(18, 18, 18, .9),
+      rgba(7, 7, 7, .92) 45%,
+      rgba(0, 0, 0, .94)
     );
+
+  backdrop-filter: blur(18px) saturate(.8);
+  -webkit-backdrop-filter: blur(18px) saturate(.8);
 
   opacity: 0;
   pointer-events: none;

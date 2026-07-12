@@ -838,6 +838,10 @@ function showAppWindow(app) {
     .getElementById("appWindow")
     .classList.add("open");
 
+  document
+    .getElementById("device")
+    .classList.add("app-open");
+
   showDock();
 }
 
@@ -985,6 +989,10 @@ function returnHome() {
   document
     .getElementById("appWindow")
     .classList.remove("open");
+
+  document
+    .getElementById("device")
+    .classList.remove("app-open");
 
   document
     .getElementById("homeScreen")

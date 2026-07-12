@@ -87,19 +87,35 @@
     return data.locations.find((location) => location.id === id);
   }
 
+  function latestReceived(thread) {
+    let currentDate = "";
+    let latest = { timestamp: 0, time: "", message: thread.messages.at(-1) };
+
+    thread.messages.forEach((message) => {
+      if (message.date) currentDate = message.date;
+      if (message.sender === "Ed" || message.sender === "You" || !currentDate) return;
+      const timestamp = Date.parse(`${currentDate} ${message.time || "12:00 AM"}`);
+      if (!Number.isNaN(timestamp) && timestamp >= latest.timestamp) {
+        latest = { timestamp, time: message.time || latest.time, message };
+      }
+    });
+
+    return latest;
+  }
+
   async function openMessages(host) {
     host.innerHTML = `<p class="app-loading">Loading Messages…</p>`;
     try {
-      const threads = await getThreads();
+      const threads = [...await getThreads()].sort((a, b) => latestReceived(b).timestamp - latestReceived(a).timestamp);
       host.innerHTML = `
         <section class="messages-list-view">
           <div class="messages-list-heading"><h2>Messages</h2><button type="button" aria-label="Compose message">•••</button></div>
           ${threads.map((thread) => {
-            const last = thread.messages[thread.messages.length - 1];
+            const last = latestReceived(thread);
             return `<button class="message-thread-row" type="button" data-open-thread="${escapeHtml(thread.threadId)}">
               <span class="thread-unread-dot" ${isUnread(thread) ? "" : "hidden"}></span>
               ${contactVisual(thread.contact)}
-              <span class="thread-summary"><strong>${escapeHtml(thread.contact.name)}</strong><small>${escapeHtml(last.time)}</small><p>${escapeHtml(last.text || thread.preview || "")}</p></span>
+              <span class="thread-summary"><strong>${escapeHtml(thread.contact.name)}</strong><small>${escapeHtml(last.time)}</small><p>${escapeHtml(last.message?.text || thread.preview || "")}</p></span>
               <span class="thread-chevron">›</span>
             </button>`;
           }).join("")}
