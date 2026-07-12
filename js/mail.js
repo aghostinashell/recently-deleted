@@ -2,9 +2,10 @@
 
 (function createMailApp() {
   const DATA_URL = "data/mail/ads.json";
-  const DELIVERED_KEY = "myphone.mail.delivered.v1";
-  const UNREAD_KEY = "myphone.mail.unread.v1";
-  const CURSOR_KEY = "myphone.mail.cursor.v1";
+  const DELIVERED_KEY = "myphone.mail.deliveries.v2";
+  const UNREAD_KEY = "myphone.mail.unread.v2";
+  const FIRST_CAMPAIGN_ID = "blank-tab-studios";
+  const TIER_WEIGHTS = { Premium: 6, Standard: 3, Basic: 1 };
   let campaignsPromise = null;
   let timer = null;
   let timerStartedAt = 0;
@@ -23,7 +24,7 @@
   }
 
   function writeList(key, value) {
-    localStorage.setItem(key, JSON.stringify([...new Set(value)]));
+    localStorage.setItem(key, JSON.stringify(value));
   }
 
   async function getCampaigns() {
@@ -46,6 +47,26 @@
 
   function nextDelay() {
     return Math.round((5 + Math.random() * 4) * 60 * 1000);
+  }
+
+  function chooseCampaign(campaigns, deliveries) {
+    if (!deliveries.length) {
+      return campaigns.find((campaign) => campaign.id === FIRST_CAMPAIGN_ID) || campaigns[0];
+    }
+
+    const deliveredCampaignIds = new Set(deliveries.map((delivery) => delivery.campaignId));
+    const firstUndeliveredByTier = ["Premium", "Standard", "Basic"]
+      .flatMap((tier) => campaigns.filter((campaign) => campaign.tier === tier))
+      .find((campaign) => !deliveredCampaignIds.has(campaign.id));
+    if (firstUndeliveredByTier) return firstUndeliveredByTier;
+
+    const previousCampaignId = deliveries.at(-1)?.campaignId;
+    const weightedPool = campaigns.flatMap((campaign) =>
+      Array(TIER_WEIGHTS[campaign.tier] || 1).fill(campaign)
+    );
+    const withoutImmediateRepeat = weightedPool.filter((campaign) => campaign.id !== previousCampaignId);
+    const pool = withoutImmediateRepeat.length ? withoutImmediateRepeat : weightedPool;
+    return pool[Math.floor(Math.random() * pool.length)];
   }
 
   function schedule(delay = remainingDelay) {
@@ -72,18 +93,22 @@
       return;
     }
     if (!campaigns.length) return;
-    const cursor = Number(localStorage.getItem(CURSOR_KEY) || 0) % campaigns.length;
-    const campaign = campaigns[cursor];
-    localStorage.setItem(CURSOR_KEY, String((cursor + 1) % campaigns.length));
-    writeList(DELIVERED_KEY, [...readList(DELIVERED_KEY), campaign.id]);
-    writeList(UNREAD_KEY, [...readList(UNREAD_KEY), campaign.id]);
+    const deliveries = readList(DELIVERED_KEY);
+    const campaign = chooseCampaign(campaigns, deliveries);
+    const delivery = {
+      id: `${campaign.id}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      campaignId: campaign.id,
+      deliveredAt: new Date().toISOString()
+    };
+    writeList(DELIVERED_KEY, [...deliveries, delivery]);
+    writeList(UNREAD_KEY, [...readList(UNREAD_KEY), delivery.id]);
     syncUnreadBadge();
-    showNotification(campaign);
+    showNotification(campaign, delivery);
     remainingDelay = nextDelay();
     schedule(remainingDelay);
   }
 
-  function showNotification(campaign) {
+  function showNotification(campaign, delivery) {
     let banner = document.getElementById("mailNotificationBanner");
     if (!banner) {
       banner = document.createElement("button");
@@ -93,7 +118,7 @@
       document.getElementById("device")?.appendChild(banner);
     }
     banner.innerHTML = `<span class="mail-notification-icon">✉</span><span><small>MAIL · NOW</small><strong>${escapeHtml(campaign.subject)}</strong><p>${escapeHtml(campaign.preview)}</p></span>`;
-    banner.onclick = () => openFromNotification(campaign.id);
+    banner.onclick = () => openFromNotification(delivery.id);
     banner.classList.remove("visible", "leaving");
     void banner.offsetWidth;
     banner.classList.add("visible");
@@ -103,8 +128,8 @@
     }, 6500);
   }
 
-  function openFromNotification(id) {
-    pendingCampaignId = id;
+  function openFromNotification(deliveryId) {
+    pendingCampaignId = deliveryId;
     document.querySelector('[data-app-id="mail"]')?.click();
     document.getElementById("mailNotificationBanner")?.classList.remove("visible");
   }
@@ -118,13 +143,18 @@
     `;
   }
 
-  function openEmail(host, campaign, campaigns) {
-    writeList(UNREAD_KEY, readList(UNREAD_KEY).filter((id) => id !== campaign.id));
+  function deliveryTime(delivery) {
+    const date = new Date(delivery.deliveredAt);
+    return Number.isNaN(date.getTime()) ? "Now" : date.toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  }
+
+  function openEmail(host, campaign, delivery, campaigns) {
+    writeList(UNREAD_KEY, readList(UNREAD_KEY).filter((id) => id !== delivery.id));
     syncUnreadBadge();
     host.innerHTML = `
       <article class="sponsored-email">
         <button class="mail-back" type="button" data-mail-back>‹ Inbox</button>
-        <header class="sponsored-email-header"><span>${escapeHtml(campaign.label)}</span><h2>${escapeHtml(campaign.sender)}</h2><h1>${escapeHtml(campaign.headline)}</h1><p>To: Ed</p><time>${new Date().toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</time></header>
+        <header class="sponsored-email-header"><span>${escapeHtml(campaign.label)}</span><h2>${escapeHtml(campaign.sender)}</h2><h1>${escapeHtml(campaign.headline)}</h1><p>To: Ed</p><time>${escapeHtml(deliveryTime(delivery))}</time></header>
         <div class="sponsored-email-body">${renderEmailBody(campaign)}</div>
       </article>`;
     host.querySelector("[data-mail-back]").addEventListener("click", () => renderInbox(host, campaigns));
@@ -132,17 +162,18 @@
   }
 
   function renderInbox(host, campaigns) {
-    const delivered = readList(DELIVERED_KEY);
+    const deliveries = readList(DELIVERED_KEY);
     const unread = readList(UNREAD_KEY);
-    const inbox = delivered.map((id) => campaigns.find((campaign) => campaign.id === id)).filter(Boolean).reverse();
+    const inbox = deliveries.map((delivery) => ({ delivery, campaign: campaigns.find((campaign) => campaign.id === delivery.campaignId) })).filter((item) => item.campaign).reverse();
     host.innerHTML = `
       <section class="mail-inbox">
         <header><button type="button">Edit</button><h2>Inbox</h2><button type="button" aria-label="Compose">□</button></header>
-        <div class="mail-inbox-list">${inbox.length ? inbox.map((campaign) => `<button class="mail-row ${unread.includes(campaign.id) ? "unread" : ""}" type="button" data-mail-id="${escapeHtml(campaign.id)}"><i></i><span><strong>${escapeHtml(campaign.sender)}</strong><time>Now</time><b>${escapeHtml(campaign.subject)}</b><p>${escapeHtml(campaign.preview)}</p><small>${escapeHtml(campaign.label)}</small></span><em>›</em></button>`).join("") : `<p class="empty-state">No sponsored mail yet.<br>The first message arrives after 45 active seconds.</p>`}</div>
+        <div class="mail-inbox-list">${inbox.length ? inbox.map(({ campaign, delivery }) => `<button class="mail-row ${unread.includes(delivery.id) ? "unread" : ""}" type="button" data-delivery-id="${escapeHtml(delivery.id)}"><i></i><span><strong>${escapeHtml(campaign.sender)}</strong><time>${escapeHtml(deliveryTime(delivery))}</time><b>${escapeHtml(campaign.subject)}</b><p>${escapeHtml(campaign.preview)}</p><small>${escapeHtml(campaign.label)} · ${escapeHtml(campaign.tier)}</small></span><em>›</em></button>`).join("") : `<p class="empty-state">No mail yet.<br>New messages arrive while you explore.</p>`}</div>
       </section>`;
-    host.querySelectorAll("[data-mail-id]").forEach((button) => button.addEventListener("click", () => {
-      const campaign = campaigns.find((item) => item.id === button.dataset.mailId);
-      if (campaign) openEmail(host, campaign, campaigns);
+    host.querySelectorAll("[data-delivery-id]").forEach((button) => button.addEventListener("click", () => {
+      const delivery = deliveries.find((item) => item.id === button.dataset.deliveryId);
+      const campaign = campaigns.find((item) => item.id === delivery?.campaignId);
+      if (campaign && delivery) openEmail(host, campaign, delivery, campaigns);
     }));
   }
 
@@ -150,11 +181,12 @@
     host.innerHTML = `<p class="app-loading">Loading Mail…</p>`;
     try {
       const campaigns = await getCampaigns();
-      const requested = pendingCampaignId;
+      const requestedDeliveryId = pendingCampaignId;
       pendingCampaignId = null;
-      if (requested) {
-        const campaign = campaigns.find((item) => item.id === requested);
-        if (campaign) return openEmail(host, campaign, campaigns);
+      if (requestedDeliveryId) {
+        const delivery = readList(DELIVERED_KEY).find((item) => item.id === requestedDeliveryId);
+        const campaign = campaigns.find((item) => item.id === delivery?.campaignId);
+        if (campaign && delivery) return openEmail(host, campaign, delivery, campaigns);
       }
       renderInbox(host, campaigns);
     } catch (error) {
