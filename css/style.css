@@ -2270,6 +2270,91 @@ img,
   user-select: none;
 }
 
+/* =========================================================
+   PREMIUM MUSIC PLAYER
+========================================================= */
+
+.music-player-view {
+  position: relative;
+  isolation: isolate;
+  min-height: 100%;
+  padding-bottom: 130px;
+}
+
+.music-player-view > *:not(.player-backdrop) { position: relative; z-index: 1; }
+
+.player-backdrop {
+  position: absolute;
+  z-index: -1;
+  top: -90px;
+  left: -35px;
+  right: -35px;
+  height: 72%;
+  background-position: center;
+  background-size: cover;
+  filter: blur(60px) saturate(1.35);
+  opacity: .3;
+  transform: scale(1.2);
+  -webkit-mask-image: linear-gradient(#000 0 55%,transparent 100%);
+  mask-image: linear-gradient(#000 0 55%,transparent 100%);
+}
+
+.player-kicker {
+  margin: 2px 0 13px;
+  color: rgba(255,255,255,.47);
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: .19em;
+}
+
+.player-artwork-wrap {
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 24px;
+  box-shadow: 0 30px 55px rgba(0,0,0,.42), inset 0 1px 1px rgba(255,255,255,.12);
+}
+
+.player-artwork-wrap.paused { transform: scale(.88); border-radius: 29px; box-shadow: 0 17px 36px rgba(0,0,0,.36); }
+.player-meta h2 { font-size: 26px; letter-spacing: -.035em; }
+.player-meta p { margin-top: 3px; color: rgba(255,255,255,.58); font-size: 14px; }
+.player-meta small { display: block; margin-top: 5px; color: rgba(255,255,255,.35); font-size: 10px; }
+.music-seek { height: 7px; background: linear-gradient(to right,#fff var(--progress),rgba(255,255,255,.18) var(--progress)); box-shadow: inset 0 1px 2px rgba(0,0,0,.35); }
+.music-seek::-webkit-slider-thumb { width: 15px; height: 15px; box-shadow: 0 2px 7px rgba(0,0,0,.35); }
+.music-controls .music-play-button { width: 68px; height: 68px; box-shadow: 0 12px 28px rgba(0,0,0,.28); transition: transform .15s ease; }
+.music-controls .music-play-button:active { transform: scale(.92); }
+.music-track-row { grid-template-columns: 30px minmax(0,1fr) auto; }
+.music-track-stats { min-width: 58px; display: flex; align-items: center; justify-content: flex-end; gap: 7px; color: rgba(255,255,255,.34); }
+.music-track-stats small { font-size: 9px; white-space: nowrap; }
+.music-track-stats i { font-size: 20px; font-style: normal; }
+.music-track-row.current .music-track-stats { color: rgba(255,84,84,.7); }
+
+/* =========================================================
+   INTERACTIVE SAVED MAPS
+========================================================= */
+
+.maps-view { position: relative; min-height: 100%; padding-bottom: 145px; background: #eef0ed; }
+.maps-toolbar { position: absolute; z-index: 500; top: 12px; left: 12px; right: 12px; height: 42px; padding: 0 8px 0 15px; display: flex; align-items: center; justify-content: space-between; border: 1px solid rgba(255,255,255,.7); border-radius: 14px; background: rgba(248,248,248,.86); box-shadow: 0 7px 24px rgba(0,0,0,.17); color: #171719; backdrop-filter: blur(18px); }
+.maps-toolbar strong { font-size: 15px; letter-spacing: -.02em; }
+.maps-toolbar button { width: 31px; height: 31px; border-radius: 50%; background: #fff; color: #1687f8; font-size: 18px; box-shadow: 0 2px 7px rgba(0,0,0,.12); }
+.maps-canvas { height: min(58vh,480px); min-height: 360px; background: #dfe8dc; }
+.maps-canvas .leaflet-tile-pane { filter: saturate(.78) contrast(.93) brightness(1.04); }
+.maps-canvas .leaflet-control-attribution { max-width: 75%; overflow: hidden; border-radius: 7px 0 0 0; font-size: 8px; white-space: nowrap; }
+.maps-canvas .leaflet-control-zoom { overflow: hidden; border: 0; border-radius: 12px; box-shadow: 0 5px 18px rgba(0,0,0,.2); }
+.maps-canvas .leaflet-control-zoom a { color: #1687f8; border-color: #e5e5e5; }
+.saved-map-pin-wrap { background: transparent; border: 0; }
+.saved-map-pin { position: relative; width: 36px; height: 36px; display: grid; place-items: center; border: 3px solid #fff; border-radius: 50% 50% 50% 5px; background: #ff3b30; box-shadow: 0 5px 13px rgba(0,0,0,.35); transform: rotate(-45deg); }
+.saved-map-pin i { width: 10px; height: 10px; border-radius: 50%; background: #fff; }
+.saved-places-strip { position: relative; z-index: 2; margin: -28px 10px 0; padding: 8px; overflow-x: auto; display: flex; gap: 8px; border-radius: 18px; background: rgba(245,245,245,.9); box-shadow: 0 9px 24px rgba(0,0,0,.2); backdrop-filter: blur(18px); scrollbar-width: none; }
+.saved-places-strip::-webkit-scrollbar { display: none; }
+.saved-places-strip button { flex: 0 0 210px; padding: 10px; display: grid; grid-template-columns: 12px 1fr; column-gap: 7px; border-radius: 12px; background: #fff; color: #151517; text-align: left; }
+.saved-places-strip button.active { box-shadow: inset 0 0 0 2px #1687f8; }
+.saved-places-strip button > span { grid-row: 1 / 3; color: #ff3b30; }
+.saved-places-strip strong { font-size: 12px; }
+.saved-places-strip small { overflow: hidden; color: #777; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.maps-view .map-place-card { margin-top: 12px; }
+.leaflet-popup-content-wrapper { border-radius: 14px; box-shadow: 0 8px 28px rgba(0,0,0,.22); }
+.leaflet-popup-content { margin: 11px 13px; font: 11px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+
 .notes-folder-heading {
   display: flex;
   align-items: baseline;

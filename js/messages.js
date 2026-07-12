@@ -6,6 +6,7 @@
   const READ_KEY = "myphone.messages.amber.read";
   let dataPromise = null;
   let musicPromise = null;
+  let mapInstance = null;
 
   function escapeHtml(value) {
     const node = document.createElement("div");
@@ -163,14 +164,62 @@
     host.innerHTML = `<p class="app-loading">Loading Maps…</p>`;
     const data = await getData();
     const location = locationById(data, selectedId) || data.locations[0];
+    if (!location) {
+      host.innerHTML = `<p class="empty-state">No saved locations yet.</p>`;
+      return;
+    }
     host.innerHTML = `
       <section class="maps-view">
-        <div class="maps-canvas"><span class="map-road road-one"></span><span class="map-road road-two"></span><i class="map-pin"></i></div>
-        <article class="map-place-card">
-          <p>SHARED LOCATION</p><h2>${escapeHtml(location.name)}</h2><span>${escapeHtml(location.address)}</span>
+        <div class="maps-toolbar"><strong>Saved Places</strong><button type="button" data-map-recenter aria-label="Recenter map">⌖</button></div>
+        <div class="maps-canvas" id="savedLocationsMap" aria-label="Interactive map of saved locations"></div>
+        <div class="saved-places-strip">
+          ${data.locations.map((place) => `<button type="button" data-saved-place="${escapeHtml(place.id)}"><span>●</span><strong>${escapeHtml(place.name)}</strong><small>${escapeHtml(place.address)}</small></button>`).join("")}
+        </div>
+        <article class="map-place-card" data-map-place-card>
+          <p>SAVED FROM MESSAGES</p><h2>${escapeHtml(location.name)}</h2><span>${escapeHtml(location.address)}</span>
           <small>${location.latitude.toFixed(5)}, ${location.longitude.toFixed(5)}</small>
         </article>
       </section>`;
+
+    if (!window.L) {
+      host.querySelector(".maps-canvas").innerHTML = `<p class="app-error">The interactive map could not be loaded.</p>`;
+      return;
+    }
+
+    mapInstance?.remove();
+    mapInstance = window.L.map("savedLocationsMap", { zoomControl: false, attributionControl: true }).setView([location.latitude, location.longitude], 15);
+    window.L.control.zoom({ position: "bottomright" }).addTo(mapInstance);
+    window.L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(mapInstance);
+
+    const pinIcon = window.L.divIcon({ className: "saved-map-pin-wrap", html: '<span class="saved-map-pin"><i></i></span>', iconSize: [38, 46], iconAnchor: [19, 43] });
+    const markers = new Map();
+
+    function selectPlace(place, pan = true) {
+      const card = host.querySelector("[data-map-place-card]");
+      card.innerHTML = `<p>SAVED FROM MESSAGES</p><h2>${escapeHtml(place.name)}</h2><span>${escapeHtml(place.address)}</span><small>${place.latitude.toFixed(5)}, ${place.longitude.toFixed(5)}</small>`;
+      host.querySelectorAll("[data-saved-place]").forEach((button) => button.classList.toggle("active", button.dataset.savedPlace === place.id));
+      if (pan) mapInstance.flyTo([place.latitude, place.longitude], 16, { duration: 0.75 });
+      markers.get(place.id)?.openPopup();
+    }
+
+    data.locations.forEach((place) => {
+      const marker = window.L.marker([place.latitude, place.longitude], { icon: pinIcon, title: place.name, alt: place.name })
+        .addTo(mapInstance)
+        .bindPopup(`<strong>${escapeHtml(place.name)}</strong><br><span>${escapeHtml(place.address)}</span>`);
+      marker.on("click", () => selectPlace(place, false));
+      markers.set(place.id, marker);
+    });
+
+    host.querySelectorAll("[data-saved-place]").forEach((button) => button.addEventListener("click", () => {
+      const place = locationById(data, button.dataset.savedPlace);
+      if (place) selectPlace(place);
+    }));
+    host.querySelector("[data-map-recenter]").addEventListener("click", () => selectPlace(location));
+    selectPlace(location, false);
+    window.setTimeout(() => mapInstance?.invalidateSize(), 80);
   }
 
   window.MyMessages = { openMessages, openPhotos, openMaps, syncUnreadBadge };

@@ -15,6 +15,41 @@
   let repeatMode = 0;
   let lyricsText = "";
   let showLyrics = false;
+  let playQualificationTimer = null;
+  let currentPlayQualified = false;
+
+  function playCountKey(track) {
+    return `myphone.play-count.${track.number}-${track.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+  }
+
+  function getPlayCount(track) {
+    const value = Number(localStorage.getItem(playCountKey(track)) || 0);
+    return Number.isFinite(value) && value >= 0 ? value : 0;
+  }
+
+  function formatPlayCount(count) {
+    return `${count.toLocaleString()} ${count === 1 ? "play" : "plays"}`;
+  }
+
+  function cancelPlayQualification() {
+    window.clearTimeout(playQualificationTimer);
+    playQualificationTimer = null;
+  }
+
+  function beginPlayQualification() {
+    cancelPlayQualification();
+    const track = currentTrack();
+    if (!track || currentPlayQualified || audio.paused) return;
+    playQualificationTimer = window.setTimeout(() => {
+      if (audio.paused || track !== currentTrack() || currentPlayQualified) return;
+      currentPlayQualified = true;
+      const count = getPlayCount(track) + 1;
+      localStorage.setItem(playCountKey(track), String(count));
+      host?.querySelectorAll("[data-track-play-count]").forEach((node) => {
+        if (Number(node.dataset.trackPlayCount) === Number(track.number)) node.textContent = formatPlayCount(count);
+      });
+    }, 5000);
+  }
 
   function escapeHtml(value) {
     const node = document.createElement("div");
@@ -68,7 +103,7 @@
           <strong>${escapeHtml(track.title)}</strong>
           <small>${escapeHtml(track.artist || albumData.artist)}</small>
         </span>
-        <span class="music-track-play" aria-hidden="true">▶</span>
+        <span class="music-track-stats"><small data-track-play-count="${track.number}">${formatPlayCount(getPlayCount(track))}</small><i aria-hidden="true">›</i></span>
       </button>`).join("");
 
     return `
@@ -94,12 +129,14 @@
     if (!track) return trackListView();
     return `
       <div class="music-player-view">
+        <div class="player-backdrop" style="background-image:url('${escapeHtml(track.artwork)}')" aria-hidden="true"></div>
         <button class="app-back-button" type="button" data-music-action="track-list">‹ ${escapeHtml(albumData.album)}</button>
+        <p class="player-kicker">NOW PLAYING</p>
         <span class="player-artwork-wrap${audio.paused ? " paused" : ""}">
           <img class="player-artwork" src="${escapeHtml(track.artwork)}" alt="${escapeHtml(track.title)} artwork">
           <span class="player-artwork-fallback" aria-hidden="true">♪</span>
         </span>
-        <div class="player-meta"><div><h2>${escapeHtml(track.title)}</h2><p>${escapeHtml(track.artist || albumData.artist)}</p></div><button type="button" data-music-action="track-list" aria-label="Show track list">•••</button></div>
+        <div class="player-meta"><div><h2>${escapeHtml(track.title)}</h2><p>${escapeHtml(track.artist || albumData.artist)}</p><small data-track-play-count="${track.number}">${formatPlayCount(getPlayCount(track))} on this device</small></div><button type="button" data-music-action="track-list" aria-label="Show track list">•••</button></div>
         <input class="music-seek" data-music-seek type="range" min="0" max="100" value="0" step="0.1" aria-label="Seek through track" style="--progress:0%">
         <div class="music-time"><span data-music-elapsed>0:00</span><span data-music-duration>0:00</span></div>
         <div class="music-controls">
@@ -154,6 +191,8 @@
     const tracks = albumData?.tracks || [];
     if (!tracks.length) return;
     currentIndex = (index + tracks.length) % tracks.length;
+    cancelPlayQualification();
+    currentPlayQualified = false;
     const track = currentTrack();
     loadError = "";
     audio.src = track.audio;
@@ -282,9 +321,12 @@
     });
   }
 
-  ["timeupdate", "loadedmetadata", "play", "pause"].forEach((eventName) => audio.addEventListener(eventName, updatePlayerUI));
+  ["timeupdate", "loadedmetadata"].forEach((eventName) => audio.addEventListener(eventName, updatePlayerUI));
+  audio.addEventListener("play", () => { beginPlayQualification(); updatePlayerUI(); });
+  audio.addEventListener("pause", () => { cancelPlayQualification(); if (!currentPlayQualified) currentPlayQualified = false; updatePlayerUI(); });
   audio.addEventListener("ended", () => {
-    if (repeatMode === 2) { audio.currentTime = 0; audio.play(); }
+    cancelPlayQualification();
+    if (repeatMode === 2) { currentPlayQualified = false; audio.currentTime = 0; audio.play(); }
     else if (albumData?.tracks?.length > 1 && (repeatMode === 1 || currentIndex < albumData.tracks.length - 1 || shuffle)) playTrack(nextIndex());
     else updatePlayerUI();
   });
