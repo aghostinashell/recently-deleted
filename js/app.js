@@ -2,7 +2,7 @@
 
 const root = document.getElementById("site-root");
 
-const CORRECT_PASSCODE = "2001";
+const CORRECT_PASSCODE = "1010";
 
 let enteredPasscode = "";
 
