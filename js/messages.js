@@ -7,6 +7,8 @@
   let dataPromise = null;
   let musicPromise = null;
   let mapInstance = null;
+  let mapSearchMarker = null;
+  let lastGeocodeRequestAt = 0;
 
   function escapeHtml(value) {
     const node = document.createElement("div");
@@ -170,8 +172,15 @@
     }
     host.innerHTML = `
       <section class="maps-view">
-        <div class="maps-toolbar"><strong>Saved Places</strong><button type="button" data-map-recenter aria-label="Recenter map">⌖</button></div>
+        <form class="maps-search" data-map-search>
+          <span aria-hidden="true">⌕</span>
+          <input type="search" name="address" placeholder="Search any address" aria-label="Search any address" autocomplete="street-address">
+          <button type="submit">Search</button>
+        </form>
+        <div class="map-search-results" data-map-search-results hidden></div>
+        <button class="maps-recenter" type="button" data-map-recenter aria-label="Return to saved location">⌖</button>
         <div class="maps-canvas" id="savedLocationsMap" aria-label="Interactive map of saved locations"></div>
+        <h3 class="saved-places-heading">Saved Places</h3>
         <div class="saved-places-strip">
           ${data.locations.map((place) => `<button type="button" data-saved-place="${escapeHtml(place.id)}"><span>●</span><strong>${escapeHtml(place.name)}</strong><small>${escapeHtml(place.address)}</small></button>`).join("")}
         </div>
@@ -195,6 +204,7 @@
     }).addTo(mapInstance);
 
     const pinIcon = window.L.divIcon({ className: "saved-map-pin-wrap", html: '<span class="saved-map-pin"><i></i></span>', iconSize: [38, 46], iconAnchor: [19, 43] });
+    const searchPinIcon = window.L.divIcon({ className: "search-map-pin-wrap", html: '<span class="search-map-pin"><i></i></span>', iconSize: [34, 42], iconAnchor: [17, 39] });
     const markers = new Map();
 
     function selectPlace(place, pan = true) {
@@ -218,6 +228,45 @@
       if (place) selectPlace(place);
     }));
     host.querySelector("[data-map-recenter]").addEventListener("click", () => selectPlace(location));
+    host.querySelector("[data-map-search]").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const query = String(new FormData(event.currentTarget).get("address") || "").trim();
+      if (query.length < 3) return;
+      const resultsNode = host.querySelector("[data-map-search-results]");
+      resultsNode.hidden = false;
+      resultsNode.innerHTML = `<p>Searching…</p>`;
+      try {
+        const cacheKey = `myphone.map-search.${query.toLowerCase()}`;
+        let results = null;
+        try { results = JSON.parse(localStorage.getItem(cacheKey)); } catch { /* Fetch below. */ }
+        if (!Array.isArray(results)) {
+          const wait = Math.max(0, 1100 - (Date.now() - lastGeocodeRequestAt));
+          if (wait) await new Promise((resolve) => window.setTimeout(resolve, wait));
+          lastGeocodeRequestAt = Date.now();
+          const searchUrl = new URL("https://nominatim.openstreetmap.org/search");
+          searchUrl.search = new URLSearchParams({ q: query, format: "jsonv2", addressdetails: "1", limit: "5" });
+          const response = await fetch(searchUrl, { headers: { Accept: "application/json" } });
+          if (!response.ok) throw new Error("Address search is temporarily unavailable.");
+          results = await response.json();
+          localStorage.setItem(cacheKey, JSON.stringify(results));
+        }
+        resultsNode.innerHTML = results.length ? results.map((result, index) => `<button type="button" data-map-result="${index}"><strong>${escapeHtml(result.name || result.display_name.split(",")[0])}</strong><small>${escapeHtml(result.display_name)}</small></button>`).join("") : `<p>No matching addresses found.</p>`;
+        resultsNode.querySelectorAll("[data-map-result]").forEach((button) => button.addEventListener("click", () => {
+          const result = results[Number(button.dataset.mapResult)];
+          const latitude = Number(result.lat);
+          const longitude = Number(result.lon);
+          if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
+          mapSearchMarker?.remove();
+          mapSearchMarker = window.L.marker([latitude, longitude], { icon: searchPinIcon, title: result.display_name }).addTo(mapInstance);
+          mapSearchMarker.bindPopup(`<strong>${escapeHtml(result.name || result.display_name.split(",")[0])}</strong><br><span>${escapeHtml(result.display_name)}</span>`).openPopup();
+          mapInstance.flyTo([latitude, longitude], 16, { duration: .75 });
+          host.querySelector("[data-map-place-card]").innerHTML = `<p>SEARCH RESULT · NOT SAVED</p><h2>${escapeHtml(result.name || result.display_name.split(",")[0])}</h2><span>${escapeHtml(result.display_name)}</span><small>${latitude.toFixed(5)}, ${longitude.toFixed(5)}</small>`;
+          resultsNode.hidden = true;
+        }));
+      } catch (error) {
+        resultsNode.innerHTML = `<p>${escapeHtml(error.message)}</p>`;
+      }
+    });
     selectPlace(location, false);
     window.setTimeout(() => mapInstance?.invalidateSize(), 80);
   }
