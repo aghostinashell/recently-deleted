@@ -2218,6 +2218,10 @@ That keeps the complete passcode block centered vertically.
 .message-bubble.has-image p, .message-bubble.has-location p { padding: 7px 9px 8px; }
 .message-photo { display: block; width: min(224px, 60vw); max-height: 285px; border-radius: 15px; object-fit: cover; }
 .message-receipt { margin: 3px 7px 1px; color: rgba(255,255,255,.42); font-size: 9px; }
+.message-receipt.incoming-status { align-self: flex-start; }
+.message-no-reply { align-self: center; margin: 7px 8px 2px; color: rgba(255,255,255,.3); font-size: 9px; font-style: italic; }
+.message-status-event { margin: 12px auto 24px; display: grid; gap: 4px; color: rgba(255,255,255,.38); font-size: 9px; text-align: center; }
+.message-status-event strong { color: rgba(255,255,255,.55); font-weight: 600; }
 .message-location-card { width: min(225px, 61vw); overflow: hidden; display: grid; background: #efefef; color: #111; border-radius: 15px; text-align: left; }
 .mini-map { position: relative; height: 112px; overflow: hidden; background: linear-gradient(35deg,#d7e8d1 0 26%,#e9e2cb 27% 53%,#caddf1 54%); }
 .mini-map::before, .mini-map::after { content: ""; position: absolute; width: 240px; height: 14px; background: #fff; box-shadow: 0 0 0 2px #c9c4b8; transform: rotate(-24deg) translate(-25px,55px); }

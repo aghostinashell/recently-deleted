@@ -1,7 +1,7 @@
 "use strict";
 
 (function createConnectedApps() {
-  const THREAD_URLS = ["data/messages/amber.json", "data/messages/naomi.json", "data/messages/chase-bank.json"];
+  const THREAD_URLS = ["data/messages/amber.json", "data/messages/naomi.json", "data/messages/chase-bank.json", "data/messages/selina.json"];
   const DATA_URL = THREAD_URLS[0];
   const MUSIC_DATA_URL = "data/music/recently-deleted.json";
   let dataPromise = null;
@@ -83,7 +83,7 @@
             return `<button class="message-thread-row" type="button" data-open-thread="${escapeHtml(thread.threadId)}">
               <span class="thread-unread-dot" ${isUnread(thread) ? "" : "hidden"}></span>
               <img src="${escapeHtml(thread.contact.photo)}" alt="">
-              <span class="thread-summary"><strong>${escapeHtml(thread.contact.name)}</strong><small>${escapeHtml(last.time)}</small><p>${escapeHtml(last.text)}</p></span>
+              <span class="thread-summary"><strong>${escapeHtml(thread.contact.name)}</strong><small>${escapeHtml(last.time)}</small><p>${escapeHtml(last.text || thread.preview || "")}</p></span>
               <span class="thread-chevron">›</span>
             </button>`;
           }).join("")}
@@ -132,6 +132,9 @@
           ${data.systemNotice ? `<div class="message-system"><strong>${escapeHtml(data.systemNotice.title)}</strong><span>${escapeHtml(data.systemNotice.text)}</span></div>` : ""}
           ${data.messages.map((message) => {
             const outgoing = message.sender === "Ed" || message.sender === "You";
+            if (message.type === "status") return `
+              ${message.date ? `<div class="message-date">${escapeHtml(message.date)}${message.time ? ` · ${escapeHtml(message.time)}` : ""}</div>` : ""}
+              <div class="message-status-event"><strong>${escapeHtml(message.status)}</strong>${message.note ? `<span>${escapeHtml(message.note)}</span>` : ""}</div>`;
             return `
               ${message.date ? `<div class="message-date">${escapeHtml(message.date)}${data.groupedTimestamps && message.time ? ` · ${escapeHtml(message.time)}` : ""}</div>` : ""}
               ${message.breakBefore ? `<div class="message-gap"></div>` : ""}
@@ -142,6 +145,8 @@
                   ${message.text ? `<p>${escapeHtml(message.text).replace(/\n/g, "<br>")}</p>` : ""}
                 </div>
                 ${outgoing && message.receipt ? `<small class="message-receipt">${escapeHtml(message.receipt)}</small>` : ""}
+                ${message.status ? `<small class="message-receipt ${outgoing ? "" : "incoming-status"}">${escapeHtml(message.status)}</small>` : ""}
+                ${message.noReply ? `<small class="message-no-reply">No reply.</small>` : ""}
               </article>`;
           }).join("")}
         </div>
