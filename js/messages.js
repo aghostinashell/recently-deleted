@@ -17,6 +17,10 @@
     return node.innerHTML;
   }
 
+  function displayMessageDate(value) {
+    return String(value || "").replace(/^(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday),\s+/i, "");
+  }
+
   function getData() {
     if (!dataPromise) {
       dataPromise = fetch(DATA_URL).then((response) => {
@@ -133,12 +137,12 @@
           ${data.messages.map((message) => {
             const outgoing = message.sender === "Ed" || message.sender === "You";
             if (message.type === "status") return `
-              ${message.date ? `<div class="message-date">${escapeHtml(message.date)}${message.time ? ` · ${escapeHtml(message.time)}` : ""}</div>` : ""}
+              ${message.date ? `<div class="message-date">${escapeHtml(displayMessageDate(message.date))}${message.time ? ` · ${escapeHtml(message.time)}` : ""}</div>` : ""}
               <div class="message-status-event"><strong>${escapeHtml(message.status)}</strong>${message.note ? `<span>${escapeHtml(message.note)}</span>` : ""}</div>`;
             return `
-              ${message.date ? `<div class="message-date">${escapeHtml(message.date)}${data.groupedTimestamps && message.time ? ` · ${escapeHtml(message.time)}` : ""}</div>` : ""}
+              ${message.date ? `<div class="message-date">${escapeHtml(displayMessageDate(message.date))}${data.groupedTimestamps && message.time ? ` · ${escapeHtml(message.time)}` : ""}</div>` : ""}
               ${message.breakBefore ? `<div class="message-gap"></div>` : ""}
-              <article class="message-item ${outgoing ? "outgoing" : "incoming"} ${data.platform === "android" && !outgoing ? "android-message" : ""} ${data.threadStyle === "bank-alerts" ? "bank-message" : ""}">
+              <article class="message-item ${outgoing ? "outgoing" : "incoming"} ${data.platform === "android" && outgoing ? "android-message" : ""} ${data.threadStyle === "bank-alerts" ? "bank-message" : ""}">
                 ${data.groupedTimestamps ? "" : `<time>${escapeHtml(message.time)}</time>`}
                 <div class="message-bubble ${message.type !== "text" ? `has-${message.type}` : ""}">
                   ${renderAttachment(data, message)}
@@ -146,7 +150,6 @@
                 </div>
                 ${outgoing && message.receipt ? `<small class="message-receipt">${escapeHtml(message.receipt)}</small>` : ""}
                 ${message.status ? `<small class="message-receipt ${outgoing ? "" : "incoming-status"}">${escapeHtml(message.status)}</small>` : ""}
-                ${message.noReply ? `<small class="message-no-reply">No reply.</small>` : ""}
               </article>`;
           }).join("")}
         </div>

@@ -12,7 +12,7 @@
     { "date": "Monday, April 6, 2026", "time": "7:08 AM", "sender": "Selina", "type": "text", "text": "Coffee's gone." },
     { "time": "8:31 AM", "sender": "Ed", "type": "text", "text": "I'll grab some." },
     { "time": "8:33 AM", "sender": "Selina", "type": "text", "text": "Thanks." },
-    { "time": "6:17 PM", "sender": "Selina", "type": "text", "text": "Dinner's in the fridge.", "status": "Read 10:41 PM", "noReply": true, "breakBefore": true },
+    { "time": "6:17 PM", "sender": "Selina", "type": "text", "text": "Dinner's in the fridge.", "status": "Read 10:41 PM", "breakBefore": true },
 
     { "date": "Friday, April 17, 2026", "time": "5:46 PM", "sender": "Selina", "type": "text", "text": "Working late?" },
     { "time": "7:58 PM", "sender": "Ed", "type": "text", "text": "Yeah." },
@@ -21,23 +21,22 @@
     { "date": "Saturday, April 25, 2026", "time": "11:42 AM", "sender": "Selina", "type": "text", "text": "Your package came.", "status": "Delivered" },
     { "date": "Sunday, April 26, 2026", "time": "6:19 PM", "sender": "Ed", "type": "text", "text": "Leave it there.", "status": "Seen 6:20 PM" },
 
-    { "date": "Tuesday, May 5, 2026", "time": "7:11 PM", "sender": "Selina", "type": "text", "text": "You coming home tonight?", "status": "Read 10:43 PM", "noReply": true },
+    { "date": "Tuesday, May 5, 2026", "time": "7:11 PM", "sender": "Selina", "type": "text", "text": "You coming home tonight?", "status": "Read 10:43 PM" },
 
     { "date": "Saturday, May 23, 2026", "time": "4:36 PM", "sender": "Selina", "type": "text", "text": "The lease renewal came." },
     { "time": "6:54 PM", "sender": "Ed", "type": "text", "text": "Leave it on the counter." },
     { "time": "6:56 PM", "sender": "Selina", "type": "text", "text": "Okay." },
 
-    { "date": "Monday, June 1, 2026", "time": "8:47 PM", "sender": "Selina", "type": "text", "text": "Did you eat today?", "status": "Read 11:28 PM", "noReply": true },
+    { "date": "Monday, June 1, 2026", "time": "8:47 PM", "sender": "Selina", "type": "text", "text": "Did you eat today?", "status": "Read 11:28 PM" },
 
     { "date": "Friday, June 19, 2026", "time": "6:58 PM", "sender": "Selina", "type": "text", "text": "I watered your plant." },
     { "time": "7:24 PM", "sender": "Ed", "type": "text", "text": "Thanks.", "status": "Seen 7:25 PM" },
 
     { "date": "Monday, June 29, 2026", "time": "10:11 AM", "sender": "Selina", "type": "text", "text": "You still have mail here.", "status": "Delivered" },
 
-    { "date": "Thursday, July 2, 2026", "time": "7:12 PM", "sender": "Selina", "type": "text", "text": "I washed your hoodie.\n\nDidn't realize you weren't coming back for it.", "status": "Read 9:48 PM", "noReply": true },
+    { "date": "Thursday, July 2, 2026", "time": "7:12 PM", "sender": "Selina", "type": "text", "text": "I washed your hoodie.\n\nDidn't realize you weren't coming back for it.", "status": "Read 9:48 PM" },
     { "date": "Friday, July 3, 2026", "time": "8:11 AM", "sender": "Ed", "type": "text", "text": "Keep it.", "status": "Seen 8:12 AM" },
 
-    { "date": "Thursday, July 9, 2026", "time": "8:41 PM", "sender": "Selina", "type": "text", "text": "I changed the spare key code.\n\nJust wanted you to know.", "status": "Delivered" },
-    { "date": "Friday, July 10, 2026", "time": "10:14 PM", "sender": "System", "type": "status", "status": "Read", "note": "No reply." }
+    { "date": "Thursday, July 9, 2026", "time": "8:41 PM", "sender": "Selina", "type": "text", "text": "I changed the spare key code.\n\nJust wanted you to know.", "status": "Read July 10 at 10:14 PM" }
   ]
 }
