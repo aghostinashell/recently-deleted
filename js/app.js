@@ -1024,6 +1024,10 @@ function weatherPresentation(code) {
 
 function returnHome() {
   document
+    .getElementById("device")
+    .classList.remove("keyboard-open");
+
+  document
     .getElementById("appWindow")
     .classList.remove("open");
 

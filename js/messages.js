@@ -86,6 +86,15 @@
       : `<span class="contact-initials ${className}" aria-hidden="true">${escapeHtml(contact.initials || contact.name.charAt(0))}</span>`;
   }
 
+  function renderMessageKeyboard() {
+    const rows = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
+    return `<div class="ios-keyboard" data-ios-keyboard aria-hidden="true">
+      <div class="keyboard-toolbar"><button type="button" data-keyboard-done>Done</button></div>
+      ${rows.map((row, index) => `<div class="keyboard-row">${index === 2 ? `<button class="keyboard-special" type="button" data-keyboard-shift aria-label="Shift">⇧</button>` : ""}${[...row].map((key) => `<button type="button" data-letter="${key}">${key}</button>`).join("")}${index === 2 ? `<button class="keyboard-special" type="button" data-keyboard-delete aria-label="Delete">⌫</button>` : ""}</div>`).join("")}
+      <div class="keyboard-row keyboard-bottom"><button type="button" data-keyboard-numbers>123</button><button class="keyboard-space" type="button" data-keyboard-space>space</button><button type="button" data-keyboard-return>return</button></div>
+    </div>`;
+  }
+
   function getData() {
     if (!dataPromise) {
       dataPromise = fetch(DATA_URL).then((response) => {
@@ -306,23 +315,57 @@
           }).join("")}
         </div>
         <form class="message-composer" data-message-composer>
-          <input name="message" type="text" autocomplete="off" placeholder="Text Message" aria-label="Message" maxlength="500">
+          <input name="message" type="text" inputmode="none" autocomplete="off" placeholder="Text Message" aria-label="Message" maxlength="500" readonly>
           <button type="submit" aria-label="Send message">↑</button>
         </form>
+        ${renderMessageKeyboard()}
       </section>`;
-    host.querySelector("[data-back-messages]").addEventListener("click", () => openMessages(host));
+    host.querySelector("[data-back-messages]").addEventListener("click", () => {
+      document.getElementById("device").classList.remove("keyboard-open");
+      openMessages(host);
+    });
     host.querySelectorAll("[data-message-location]").forEach((button) => {
       button.addEventListener("click", () => openMaps(host, button.dataset.messageLocation));
     });
-    host.querySelector("[data-message-composer]").addEventListener("submit", (event) => {
+    const composer = host.querySelector("[data-message-composer]");
+    const input = composer.elements.message;
+    const keyboard = host.querySelector("[data-ios-keyboard]");
+    let uppercase = false;
+    const syncKeyboardCase = () => keyboard.querySelectorAll("[data-letter]").forEach((key) => { key.textContent = uppercase ? key.dataset.letter.toUpperCase() : key.dataset.letter; });
+    const showKeyboard = () => {
+      keyboard.classList.add("visible");
+      keyboard.setAttribute("aria-hidden", "false");
+      document.getElementById("device").classList.add("keyboard-open");
+    };
+    const hideKeyboard = () => {
+      keyboard.classList.remove("visible");
+      keyboard.setAttribute("aria-hidden", "true");
+      document.getElementById("device").classList.remove("keyboard-open");
+      input.blur();
+    };
+    input.addEventListener("click", showKeyboard);
+    keyboard.querySelectorAll("[data-letter]").forEach((key) => key.addEventListener("click", () => {
+      if (input.value.length >= input.maxLength) return;
+      input.value += uppercase ? key.dataset.letter.toUpperCase() : key.dataset.letter;
+      if (uppercase) { uppercase = false; syncKeyboardCase(); }
+    }));
+    keyboard.querySelector("[data-keyboard-shift]").addEventListener("click", () => { uppercase = !uppercase; syncKeyboardCase(); });
+    keyboard.querySelector("[data-keyboard-delete]").addEventListener("click", () => { input.value = input.value.slice(0, -1); });
+    keyboard.querySelector("[data-keyboard-space]").addEventListener("click", () => { if (input.value.length < input.maxLength) input.value += " "; });
+    keyboard.querySelector("[data-keyboard-return]").addEventListener("click", hideKeyboard);
+    keyboard.querySelector("[data-keyboard-done]").addEventListener("click", hideKeyboard);
+    keyboard.querySelector("[data-keyboard-numbers]").addEventListener("click", () => { if (input.value.length < input.maxLength) input.value += "123"; });
+    composer.addEventListener("submit", (event) => {
       event.preventDefault();
-      const input = event.currentTarget.elements.message;
       const text = input.value.trim();
       if (!text) return;
-      const stored = readStored(customKey(data.threadId));
-      localStorage.setItem(customKey(data.threadId), JSON.stringify([...stored, nowMessage("Ed", text)]));
-      queueReply(host, data, text);
-      openThread(host, data);
+      hideKeyboard();
+      window.setTimeout(() => {
+        const stored = readStored(customKey(data.threadId));
+        localStorage.setItem(customKey(data.threadId), JSON.stringify([...stored, nowMessage("Ed", text)]));
+        queueReply(host, data, text);
+        openThread(host, data);
+      }, 220);
     });
     scheduleReplies(host, data);
     const windowNode = document.getElementById("appWindow");
