@@ -4,7 +4,6 @@
   const THREAD_URLS = ["data/messages/amber.json", "data/messages/naomi.json", "data/messages/chase-bank.json", "data/messages/selina.json", "data/messages/ghost-supply.json", "data/messages/fi-ent.json"];
   const DATA_URL = THREAD_URLS[0];
   const MUSIC_DATA_URL = "data/music/recently-deleted.json";
-  const BADGE_ACKNOWLEDGED_KEY = "myphone.messages.badge-acknowledged";
   let dataPromise = null;
   let threadsPromise = null;
   let musicPromise = null;
@@ -75,7 +74,7 @@
   async function syncUnreadBadge() {
     try {
       const threads = await getThreads();
-      const hasUnread = localStorage.getItem(BADGE_ACKNOWLEDGED_KEY) !== "1" && threads.some(isUnread);
+      const hasUnread = threads.some(isUnread);
       document.querySelectorAll("[data-messages-unread]").forEach((badge) => { badge.hidden = !hasUnread; });
     } catch { /* The app view will show the loading error if opened. */ }
   }
@@ -124,7 +123,10 @@
       syncUnreadBadge();
       host.querySelectorAll("[data-open-thread]").forEach((button) => button.addEventListener("click", () => {
         const thread = threads.find((item) => item.threadId === button.dataset.openThread);
-        if (thread) openThread(host, thread);
+        if (thread) {
+          button.querySelector(".thread-unread-dot")?.setAttribute("hidden", "");
+          openThread(host, thread);
+        }
       }));
     } catch (error) {
       host.innerHTML = `<p class="app-error">${escapeHtml(error.message)}</p>`;
@@ -151,7 +153,6 @@
 
   function openThread(host, data) {
     localStorage.setItem(readKey(data.threadId), "1");
-    localStorage.setItem(BADGE_ACKNOWLEDGED_KEY, "1");
     syncUnreadBadge();
     host.innerHTML = `
       <section class="message-conversation">
