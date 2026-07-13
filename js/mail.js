@@ -139,7 +139,7 @@
       ${campaign.body.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}
       ${campaign.sections.map((section) => `<section class="sponsored-section"><h3>${escapeHtml(section.title)}</h3>${section.price ? `<strong>${escapeHtml(section.price)}</strong>` : ""}${section.description ? `<p>${escapeHtml(section.description)}</p>` : ""}${section.items?.length ? `<ul>${section.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>` : ""}</section>`).join("")}
       <div class="sponsored-closing">${campaign.closing.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}</div>
-      ${campaign.id === "blank-tab-studios" ? `<button class="sponsored-cta" type="button" data-open-project-form>${escapeHtml(campaign.cta)}</button>` : campaign.id === "inkworks-media-group" ? `<button class="sponsored-cta" type="button" data-open-artist-form>${escapeHtml(campaign.cta)}</button>` : campaign.url ? `<a class="sponsored-cta" href="${escapeHtml(campaign.url)}" target="_blank" rel="noopener noreferrer sponsored">${escapeHtml(campaign.cta)}</a>` : `<span class="sponsored-cta disabled" aria-disabled="true">${escapeHtml(campaign.cta)} · LINK COMING SOON</span>`}
+      ${campaign.id === "blank-tab-studios" ? `<button class="sponsored-cta" type="button" data-open-project-form>${escapeHtml(campaign.cta)}</button>` : campaign.id === "inkworks-media-group" ? `<button class="sponsored-cta" type="button" data-open-artist-form>${escapeHtml(campaign.cta)}</button>` : campaign.id === "ghosts-in-shells" ? `<button class="sponsored-cta" type="button" data-open-ghosts-form>START A PROJECT</button>` : campaign.url ? `<a class="sponsored-cta" href="${escapeHtml(campaign.url)}" target="_blank" rel="noopener noreferrer sponsored">${escapeHtml(campaign.cta)}</a>` : `<span class="sponsored-cta disabled" aria-disabled="true">${escapeHtml(campaign.cta)} · LINK COMING SOON</span>`}
     `;
   }
 
@@ -249,6 +249,59 @@
     document.getElementById("appWindow").scrollTop = 0;
   }
 
+  function openGhostsForm(host, campaign, delivery, campaigns) {
+    host.innerHTML = `
+      <article class="project-inquiry ghosts-inquiry">
+        <button class="mail-back" type="button" data-ghosts-back>‹ Back</button>
+        <header><img class="inquiry-brand-logo" src="${escapeHtml(campaign.logo)}" alt="Ghosts In Shells logo"><span>Ghosts In Shells</span><h2>Tell Us About Your Project</h2><p>Describe what you’re building and where you need support.</p></header>
+        <form data-ghosts-form>
+          <label>NAME<input name="name" type="text" autocomplete="name" required></label>
+          <label>EMAIL<input name="email" type="email" autocomplete="email" required></label>
+          <label>PROJECT DESCRIPTION<textarea name="project_description" rows="8" maxlength="5000" required data-project-description></textarea><small class="character-count" data-character-count>0 / 5,000</small></label>
+          <label>ESTIMATED BUDGET <em>OPTIONAL</em><input name="budget" type="text" inputmode="decimal" placeholder="Example: $2,500"></label>
+          <input class="project-honeypot" name="_honey" type="text" tabindex="-1" autocomplete="off">
+          <input name="_subject" type="hidden" value="New Ghosts In Shells project request">
+          <input name="_template" type="hidden" value="table">
+          <p class="project-privacy">By submitting, you agree that Ghosts In Shells may use this information to review your request and contact you about your project.</p>
+          <button class="project-submit" type="submit">SEND PROJECT REQUEST</button>
+          <p class="project-form-status" data-ghosts-status aria-live="polite"></p>
+        </form>
+      </article>`;
+
+    const description = host.querySelector("[data-project-description]");
+    const characterCount = host.querySelector("[data-character-count]");
+    description.addEventListener("input", () => { characterCount.textContent = `${description.value.length.toLocaleString()} / 5,000`; });
+    host.querySelector("[data-ghosts-back]").addEventListener("click", () => openEmail(host, campaign, delivery, campaigns));
+    host.querySelector("[data-ghosts-form]").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const button = form.querySelector(".project-submit");
+      const status = form.querySelector("[data-ghosts-status]");
+      button.disabled = true;
+      button.textContent = "SENDING…";
+      status.textContent = "";
+
+      try {
+        const payload = Object.fromEntries(new FormData(form).entries());
+        const response = await fetch("https://formsubmit.co/ajax/d.wright@ghostsinshells.com", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (!response.ok) throw new Error("Submission failed");
+        form.reset();
+        form.classList.add("submitted");
+        status.textContent = "Your project request has been received. We’ll be in touch.";
+        button.textContent = "REQUEST SENT";
+      } catch {
+        status.textContent = "We couldn’t send your request. Please try again.";
+        button.disabled = false;
+        button.textContent = "SEND PROJECT REQUEST";
+      }
+    });
+    document.getElementById("appWindow").scrollTop = 0;
+  }
+
   function deliveryTime(delivery) {
     const date = new Date(delivery.deliveredAt);
     return Number.isNaN(date.getTime()) ? "Now" : date.toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
@@ -266,6 +319,7 @@
     host.querySelector("[data-mail-back]").addEventListener("click", () => renderInbox(host, campaigns));
     host.querySelector("[data-open-project-form]")?.addEventListener("click", () => openProjectForm(host, campaign, delivery, campaigns));
     host.querySelector("[data-open-artist-form]")?.addEventListener("click", () => openArtistForm(host, campaign, delivery, campaigns));
+    host.querySelector("[data-open-ghosts-form]")?.addEventListener("click", () => openGhostsForm(host, campaign, delivery, campaigns));
     document.getElementById("appWindow").scrollTop = 0;
   }
 
