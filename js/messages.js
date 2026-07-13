@@ -23,6 +23,22 @@
     { match: "good morning", reply: "Morning stranger.", delay: 64 }
   ];
   const AMBER_DEFAULTS = ["You finally decided to text back.", "stranger danger."];
+  const SELINA_REPLIES = [
+    { match: "where are you", reply: "Why?", delay: 35 },
+    { match: "what are you doing", reply: "Getting ready to go to sleep.", delay: 16 },
+    { match: "you up", reply: "Barely.", delay: 85 },
+    { match: "can we talk", reply: "We’ve talked.", delay: 7 },
+    { match: "i miss you", reply: "That doesn’t change anything.", delay: 38 },
+    { match: "my bad", reply: "I know.", delay: 26 },
+    { match: "you mad", reply: "I’m not mad anymore.", delay: 67 },
+    { match: "call me", reply: "I don’t think that’s a good idea.", delay: 18 },
+    { match: "good morning", reply: "Morning.", delay: 6 }
+  ];
+  const SELINA_DEFAULTS = ["What do you want, Ed?", "What Ed?", "I'm busy Edd"];
+  const REPLY_PROFILES = {
+    amber: { rules: AMBER_REPLIES, defaults: AMBER_DEFAULTS },
+    selina: { rules: SELINA_REPLIES, defaults: SELINA_DEFAULTS }
+  };
 
   function escapeHtml(value) {
     const node = document.createElement("div");
@@ -108,16 +124,17 @@
   }
 
   function queueReply(host, thread, text) {
-    if (thread.threadId !== "amber") return;
+    const profile = REPLY_PROFILES[thread.threadId];
+    if (!profile) return;
     const normalized = text.trim().toLowerCase().replace(/[?.!]+$/g, "");
-    const rule = AMBER_REPLIES.find((item) => item.match === normalized);
+    const rule = profile.rules.find((item) => item.match === normalized);
     let reply = rule?.reply;
     let delay = rule?.delay;
     if (!rule) {
-      const countKey = "myphone.messages.amber.default-count";
+      const countKey = `myphone.messages.${thread.threadId}.default-count`;
       const count = Number(localStorage.getItem(countKey) || 0);
-      reply = AMBER_DEFAULTS[count % AMBER_DEFAULTS.length];
-      delay = 4;
+      reply = profile.defaults[count % profile.defaults.length];
+      delay = thread.threadId === "amber" ? 4 : 7;
       localStorage.setItem(countKey, String(count + 1));
     }
     const pending = readStored(pendingKey(thread.threadId));
