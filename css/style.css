@@ -2232,7 +2232,6 @@ That keeps the complete passcode block centered vertically.
 .conversation-contact-glass img, .conversation-contact-glass .contact-initials { position:relative; z-index:1; width:48px; height:48px; border:1px solid rgba(255,255,255,.3); border-radius:50%; object-fit:cover; box-shadow:0 4px 12px rgba(0,0,0,.3); }
 .conversation-contact-glass strong { position:relative; z-index:1; max-width:64px; overflow:hidden; font-size:10px; font-weight:650; text-align:center; text-overflow:ellipsis; white-space:nowrap; }
 .conversation-stream { padding: 8px 10px 18px; }
-.device.message-thread-open .system-dock-wrap { opacity: 0; pointer-events: none; transform: translateY(120%); }
 .message-date { margin: 23px auto 12px; color: rgba(255,255,255,.43); font-size: 10px; font-weight: 650; text-align: center; text-transform: uppercase; }
 .message-gap { height: 19px; }
 .message-item { max-width: 79%; margin: 2px 0; display: flex; flex-direction: column; align-items: flex-start; }
