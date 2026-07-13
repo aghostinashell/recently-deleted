@@ -138,7 +138,18 @@
     const profile = REPLY_PROFILES[thread.threadId];
     if (!profile) return;
     const normalized = text.toLowerCase().replace(/[.,?!]/g, "").replace(/\s+/g, " ").trim();
-    const rule = profile.rules.find((item) => item.match === normalized) || profile.fallback;
+    let rule = profile.rules.find((item) => item.match === normalized);
+    if (!rule) {
+      const fallbackUsedKey = `myphone.messages.${thread.threadId}.fallback-used`;
+      const fallbackAlreadyStored = readStored(customKey(thread.threadId)).some((message) => message.text === profile.fallback.reply)
+        || readStored(pendingKey(thread.threadId)).some((item) => item.reply === profile.fallback.reply);
+      if (localStorage.getItem(fallbackUsedKey) === "1" || fallbackAlreadyStored) {
+        localStorage.setItem(fallbackUsedKey, "1");
+        return;
+      }
+      localStorage.setItem(fallbackUsedKey, "1");
+      rule = profile.fallback;
+    }
     const pending = readStored(pendingKey(thread.threadId));
     localStorage.setItem(pendingKey(thread.threadId), JSON.stringify([...pending, { reply: rule.reply, dueAt: Date.now() + rule.delay * 1000 }]));
     scheduleReplies(host, thread);
