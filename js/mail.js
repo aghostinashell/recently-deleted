@@ -139,8 +139,61 @@
       ${campaign.body.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}
       ${campaign.sections.map((section) => `<section class="sponsored-section"><h3>${escapeHtml(section.title)}</h3>${section.price ? `<strong>${escapeHtml(section.price)}</strong>` : ""}${section.description ? `<p>${escapeHtml(section.description)}</p>` : ""}${section.items?.length ? `<ul>${section.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>` : ""}</section>`).join("")}
       <div class="sponsored-closing">${campaign.closing.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}</div>
-      ${campaign.url ? `<a class="sponsored-cta" href="${escapeHtml(campaign.url)}" target="_blank" rel="noopener noreferrer sponsored">${escapeHtml(campaign.cta)}</a>` : `<span class="sponsored-cta disabled" aria-disabled="true">${escapeHtml(campaign.cta)} · LINK COMING SOON</span>`}
+      ${campaign.id === "blank-tab-studios" ? `<button class="sponsored-cta" type="button" data-open-project-form>${escapeHtml(campaign.cta)}</button>` : campaign.url ? `<a class="sponsored-cta" href="${escapeHtml(campaign.url)}" target="_blank" rel="noopener noreferrer sponsored">${escapeHtml(campaign.cta)}</a>` : `<span class="sponsored-cta disabled" aria-disabled="true">${escapeHtml(campaign.cta)} · LINK COMING SOON</span>`}
     `;
+  }
+
+  function openProjectForm(host, campaign, delivery, campaigns) {
+    host.innerHTML = `
+      <article class="project-inquiry">
+        <button class="mail-back" type="button" data-project-back>‹ Back</button>
+        <header><span>Blank Tab Studios</span><h2>Start Your Project</h2><p>Tell us what you’re building and we’ll follow up with next steps.</p></header>
+        <form data-project-form>
+          <label>NAME<input name="name" type="text" autocomplete="name" required></label>
+          <label>EMAIL<input name="email" type="email" autocomplete="email" required></label>
+          <label>BUSINESS OR PROJECT NAME<input name="business_or_project_name" type="text" required></label>
+          <label>WEBSITE PACKAGE<select name="website_package" required><option value="" selected disabled>Select a package</option><option>Starter Page — $600 launch offer</option><option>Business Site — $1,200 launch offer</option><option>Interactive Experience — starting at $2,400</option></select></label>
+          <label>BUDGET RANGE<select name="budget_range" required><option value="" selected disabled>Select a range</option><option>Under $1,000</option><option>$1,000–$2,499</option><option>$2,500–$4,999</option><option>$5,000–$9,999</option><option>$10,000+</option></select></label>
+          <label>PROJECT DESCRIPTION<textarea name="project_description" rows="5" required></textarea></label>
+          <label>DESIRED LAUNCH DATE<input name="desired_launch_date" type="date" required></label>
+          <input class="project-honeypot" name="_honey" type="text" tabindex="-1" autocomplete="off">
+          <input name="_subject" type="hidden" value="New Blank Tab Studios project inquiry">
+          <input name="_template" type="hidden" value="table">
+          <p class="project-privacy">By submitting, you agree that Blank Tab Studios may use this information to review your request and contact you about your project.</p>
+          <button class="project-submit" type="submit">SEND PROJECT REQUEST</button>
+          <p class="project-form-status" data-project-status aria-live="polite"></p>
+        </form>
+      </article>`;
+
+    host.querySelector("[data-project-back]").addEventListener("click", () => openEmail(host, campaign, delivery, campaigns));
+    host.querySelector("[data-project-form]").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const button = form.querySelector(".project-submit");
+      const status = form.querySelector("[data-project-status]");
+      button.disabled = true;
+      button.textContent = "SENDING…";
+      status.textContent = "";
+
+      try {
+        const payload = Object.fromEntries(new FormData(form).entries());
+        const response = await fetch("https://formsubmit.co/ajax/d.wright@ghostsinshells.com", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (!response.ok) throw new Error("Submission failed");
+        form.reset();
+        form.classList.add("submitted");
+        status.textContent = "Your project request has been submitted. We’ll be in touch.";
+        button.textContent = "REQUEST SENT";
+      } catch {
+        status.textContent = "We couldn’t send your request. Please try again.";
+        button.disabled = false;
+        button.textContent = "SEND PROJECT REQUEST";
+      }
+    });
+    document.getElementById("appWindow").scrollTop = 0;
   }
 
   function deliveryTime(delivery) {
@@ -158,6 +211,7 @@
         <div class="sponsored-email-body">${renderEmailBody(campaign)}</div>
       </article>`;
     host.querySelector("[data-mail-back]").addEventListener("click", () => renderInbox(host, campaigns));
+    host.querySelector("[data-open-project-form]")?.addEventListener("click", () => openProjectForm(host, campaign, delivery, campaigns));
     document.getElementById("appWindow").scrollTop = 0;
   }
 

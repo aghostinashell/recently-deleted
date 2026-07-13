@@ -2469,8 +2469,25 @@ img,
 .sponsored-section li + li { margin-top: 5px; }
 .sponsored-closing { margin-top: 28px; padding: 19px; border: 1px solid #cfc6b4; background: #fff; font-weight: 620; text-align: center; }
 .sponsored-closing p + p { margin-top: 5px; }
-.sponsored-cta { margin-top: 20px; padding: 15px; display: block; border-radius: 3px; background: #171717; color: #fff; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-align: center; }
+.sponsored-cta { width: 100%; margin-top: 20px; padding: 15px; display: block; border-radius: 3px; background: #171717; color: #fff; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-align: center; }
 .sponsored-cta.disabled { background: #817d75; cursor: not-allowed; }
+
+.project-inquiry { min-height: 100%; padding-bottom: 135px; background: #f4f1e9; color: #171717; }
+.project-inquiry > header { padding: 22px 20px; border-block: 1px solid #d6d1c7; background: #fff; }
+.project-inquiry > header span { color: #8b6c30; font-size: 9px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.project-inquiry > header h2 { margin-top: 8px; font-size: 28px; letter-spacing: -.03em; }
+.project-inquiry > header p { margin-top: 8px; color: #666; font-size: 12px; line-height: 1.45; }
+.project-inquiry form { padding: 22px 20px 36px; }
+.project-inquiry label { margin-top: 17px; display: block; color: #6d5a34; font-size: 9px; font-weight: 800; letter-spacing: .1em; }
+.project-inquiry label:first-child { margin-top: 0; }
+.project-inquiry input,.project-inquiry select,.project-inquiry textarea { width: 100%; margin-top: 7px; padding: 12px; border: 1px solid #cfc6b4; border-radius: 4px; background: #fff; color: #171717; font: inherit; font-size: 13px; letter-spacing: 0; }
+.project-inquiry textarea { min-height: 110px; resize: vertical; }
+.project-honeypot { position: absolute !important; left: -9999px !important; opacity: 0 !important; }
+.project-privacy { margin-top: 18px; color: #777; font-size: 9px; line-height: 1.45; }
+.project-submit { width: 100%; margin-top: 18px; padding: 15px; border-radius: 3px; background: #171717; color: #fff; font-size: 11px; font-weight: 800; letter-spacing: .09em; }
+.project-submit:disabled { opacity: .65; }
+.project-form-status { min-height: 34px; margin-top: 12px; color: #44613d; font-size: 11px; font-weight: 700; line-height: 1.4; text-align: center; }
+.project-inquiry form.submitted label,.project-inquiry form.submitted .project-privacy { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .mail-notification-banner { transition-duration: .01ms; }
