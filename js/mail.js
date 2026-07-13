@@ -139,7 +139,7 @@
       ${campaign.body.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}
       ${campaign.sections.map((section) => `<section class="sponsored-section"><h3>${escapeHtml(section.title)}</h3>${section.price ? `<strong>${escapeHtml(section.price)}</strong>` : ""}${section.description ? `<p>${escapeHtml(section.description)}</p>` : ""}${section.items?.length ? `<ul>${section.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>` : ""}</section>`).join("")}
       <div class="sponsored-closing">${campaign.closing.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}</div>
-      ${campaign.id === "blank-tab-studios" ? `<button class="sponsored-cta" type="button" data-open-project-form>${escapeHtml(campaign.cta)}</button>` : campaign.url ? `<a class="sponsored-cta" href="${escapeHtml(campaign.url)}" target="_blank" rel="noopener noreferrer sponsored">${escapeHtml(campaign.cta)}</a>` : `<span class="sponsored-cta disabled" aria-disabled="true">${escapeHtml(campaign.cta)} · LINK COMING SOON</span>`}
+      ${campaign.id === "blank-tab-studios" ? `<button class="sponsored-cta" type="button" data-open-project-form>${escapeHtml(campaign.cta)}</button>` : campaign.id === "inkworks-media-group" ? `<button class="sponsored-cta" type="button" data-open-artist-form>${escapeHtml(campaign.cta)}</button>` : campaign.url ? `<a class="sponsored-cta" href="${escapeHtml(campaign.url)}" target="_blank" rel="noopener noreferrer sponsored">${escapeHtml(campaign.cta)}</a>` : `<span class="sponsored-cta disabled" aria-disabled="true">${escapeHtml(campaign.cta)} · LINK COMING SOON</span>`}
     `;
   }
 
@@ -196,6 +196,59 @@
     document.getElementById("appWindow").scrollTop = 0;
   }
 
+  function openArtistForm(host, campaign, delivery, campaigns) {
+    host.innerHTML = `
+      <article class="project-inquiry artist-inquiry">
+        <button class="mail-back" type="button" data-artist-back>‹ Back</button>
+        <header><span>Inkworks Media Group</span><h2>Submit Your Music</h2><p>Share your artist information and current platforms for consideration.</p></header>
+        <form data-artist-form>
+          <label>NAME<input name="name" type="text" autocomplete="name" required></label>
+          <label>EPK<select name="epk" required><option value="" selected disabled>Select one</option><option>Yes</option><option>No</option></select></label>
+          <label>PRO<select name="pro" required><option value="" selected disabled>Select your PRO</option><option>BMI</option><option>SESAC</option><option>ASCAP</option><option>None</option></select></label>
+          <label>WEBSITE<input name="website" type="url" inputmode="url" placeholder="https://"></label>
+          <label>INSTAGRAM LINK<input name="instagram" type="url" inputmode="url" placeholder="https://instagram.com/"></label>
+          <label>YOUTUBE LINK<input name="youtube" type="url" inputmode="url" placeholder="https://youtube.com/"></label>
+          <label>SOUNDCLOUD LINK<input name="soundcloud" type="url" inputmode="url" placeholder="https://soundcloud.com/"></label>
+          <input class="project-honeypot" name="_honey" type="text" tabindex="-1" autocomplete="off">
+          <input name="_subject" type="hidden" value="New Inkworks Media Group artist submission">
+          <input name="_template" type="hidden" value="table">
+          <p class="project-privacy">By submitting, you agree that Inkworks Media Group may use this information to review your music and contact you about potential opportunities.</p>
+          <button class="project-submit" type="submit">SEND ARTIST SUBMISSION</button>
+          <p class="project-form-status" data-artist-status aria-live="polite"></p>
+        </form>
+      </article>`;
+
+    host.querySelector("[data-artist-back]").addEventListener("click", () => openEmail(host, campaign, delivery, campaigns));
+    host.querySelector("[data-artist-form]").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const button = form.querySelector(".project-submit");
+      const status = form.querySelector("[data-artist-status]");
+      button.disabled = true;
+      button.textContent = "SENDING…";
+      status.textContent = "";
+
+      try {
+        const payload = Object.fromEntries(new FormData(form).entries());
+        const response = await fetch("https://formsubmit.co/ajax/d.wright@ghostsinshells.com", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (!response.ok) throw new Error("Submission failed");
+        form.reset();
+        form.classList.add("submitted");
+        status.textContent = "Your artist submission has been received. We’ll be in touch if it’s a fit.";
+        button.textContent = "SUBMISSION SENT";
+      } catch {
+        status.textContent = "We couldn’t send your submission. Please try again.";
+        button.disabled = false;
+        button.textContent = "SEND ARTIST SUBMISSION";
+      }
+    });
+    document.getElementById("appWindow").scrollTop = 0;
+  }
+
   function deliveryTime(delivery) {
     const date = new Date(delivery.deliveredAt);
     return Number.isNaN(date.getTime()) ? "Now" : date.toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
@@ -212,6 +265,7 @@
       </article>`;
     host.querySelector("[data-mail-back]").addEventListener("click", () => renderInbox(host, campaigns));
     host.querySelector("[data-open-project-form]")?.addEventListener("click", () => openProjectForm(host, campaign, delivery, campaigns));
+    host.querySelector("[data-open-artist-form]")?.addEventListener("click", () => openArtistForm(host, campaign, delivery, campaigns));
     document.getElementById("appWindow").scrollTop = 0;
   }
 
