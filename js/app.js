@@ -101,6 +101,7 @@ function bootSite() {
   initializeMediaProtection();
   window.MyMail?.initialize();
   window.MySettings?.applyPreferences();
+  window.MyPhone?.syncBadge();
 
   window.setInterval(updateDateAndTime, 1000);
 }
@@ -414,6 +415,7 @@ function renderSystemDock() {
           aria-label="Open Phone"
         >
           ${renderGlassIcon("phone", "dock-icon")}
+          <span class="mail-app-badge phone-app-badge" data-phone-unread aria-label="New missed calls"></span>
         </button>
 
         <button
@@ -866,6 +868,9 @@ function showAppWindow(app) {
   } else if (app.id === "settings" && window.MySettings) {
     appContent.classList.add("settings-app-content");
     window.MySettings.open(appContent);
+  } else if (app.id === "phone" && window.MyPhone) {
+    appContent.classList.add("phone-app-content");
+    window.MyPhone.open(appContent);
   } else {
     appContent.innerHTML = `
       <article class="placeholder-card">

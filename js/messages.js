@@ -242,6 +242,13 @@
     }
   }
 
+  async function openThreadById(host, threadId) {
+    const threads = await getThreads();
+    const thread = threads.find((item) => item.threadId === threadId);
+    if (thread) openThread(host, thread);
+    else openMessages(host);
+  }
+
   function renderAttachment(data, message) {
     if (message.type === "image") {
       const photo = photoById(data, message.photoId);
@@ -454,5 +461,5 @@
     window.setTimeout(() => mapInstance?.invalidateSize(), 80);
   }
 
-  window.MyMessages = { openMessages, openPhotos, openMaps, syncUnreadBadge };
+  window.MyMessages = { openMessages, openThreadById, openPhotos, openMaps, syncUnreadBadge };
 })();

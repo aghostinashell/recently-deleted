@@ -24,6 +24,7 @@
     device.classList.toggle("low-power-mode", enabled("lowPower"));
     window.MyMessages?.syncUnreadBadge();
     window.MyMail?.syncUnreadBadge();
+    window.MyPhone?.syncBadge();
   }
 
   function row(label, page, right = "") {

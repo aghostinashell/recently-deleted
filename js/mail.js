@@ -358,6 +358,13 @@
     }
   }
 
+  async function openCampaign(host, campaignId) {
+    const campaigns = await getCampaigns();
+    const campaign = campaigns.find((item) => item.id === campaignId);
+    if (!campaign) return renderInbox(host, campaigns);
+    openEmail(host, campaign, { id: `phone-${campaignId}`, campaignId, deliveredAt: new Date().toISOString() }, campaigns);
+  }
+
   function initialize() {
     syncUnreadBadge();
     schedule(45000);
@@ -367,5 +374,5 @@
     });
   }
 
-  window.MyMail = { initialize, openInbox, syncUnreadBadge };
+  window.MyMail = { initialize, openInbox, openCampaign, syncUnreadBadge };
 })();
