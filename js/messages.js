@@ -4,6 +4,7 @@
   const THREAD_URLS = ["data/messages/amber.json", "data/messages/naomi.json", "data/messages/chase-bank.json", "data/messages/selina.json", "data/messages/ghost-supply.json", "data/messages/fi-ent.json"];
   const DATA_URL = THREAD_URLS[0];
   const MUSIC_DATA_URL = "data/music/recently-deleted.json";
+  const BADGE_ACKNOWLEDGED_KEY = "myphone.messages.badge-acknowledged";
   let dataPromise = null;
   let threadsPromise = null;
   let musicPromise = null;
@@ -74,7 +75,7 @@
   async function syncUnreadBadge() {
     try {
       const threads = await getThreads();
-      const hasUnread = threads.some(isUnread);
+      const hasUnread = localStorage.getItem(BADGE_ACKNOWLEDGED_KEY) !== "1" && threads.some(isUnread);
       document.querySelectorAll("[data-messages-unread]").forEach((badge) => { badge.hidden = !hasUnread; });
     } catch { /* The app view will show the loading error if opened. */ }
   }
@@ -150,6 +151,7 @@
 
   function openThread(host, data) {
     localStorage.setItem(readKey(data.threadId), "1");
+    localStorage.setItem(BADGE_ACKNOWLEDGED_KEY, "1");
     syncUnreadBadge();
     host.innerHTML = `
       <section class="message-conversation">
