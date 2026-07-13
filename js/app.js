@@ -1024,6 +1024,10 @@ function weatherPresentation(code) {
 
 function returnHome() {
   document
+    .getElementById("device")
+    .classList.remove("message-thread-open");
+
+  document
     .getElementById("appWindow")
     .classList.remove("open");
 

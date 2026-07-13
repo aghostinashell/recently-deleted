@@ -202,6 +202,7 @@
   }
 
   async function openMessages(host) {
+    document.getElementById("device")?.classList.remove("message-thread-open");
     host.innerHTML = `<p class="app-loading">Loading Messages…</p>`;
     try {
       const threads = [...await getThreads()].sort((a, b) => latestReceived(b).timestamp - latestReceived(a).timestamp);
@@ -250,6 +251,7 @@
   }
 
   function openThread(host, data) {
+    document.getElementById("device")?.classList.add("message-thread-open");
     localStorage.setItem(readKey(data.threadId), "1");
     syncUnreadBadge();
     host.innerHTML = `
