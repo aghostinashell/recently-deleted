@@ -45,9 +45,9 @@
     { match: "good morning", reply: "Don’t “good morning” me like you didn’t disappear last night.", delay: 14 }
   ];
   const REPLY_PROFILES = {
-    amber: { rules: AMBER_REPLIES },
-    selina: { rules: SELINA_REPLIES },
-    naomi: { rules: NAOMI_REPLIES }
+    amber: { rules: AMBER_REPLIES, fallback: { reply: "You finally decided to text back.", delay: 4 } },
+    selina: { rules: SELINA_REPLIES, fallback: { reply: "What do you want, Ed?", delay: 7 } },
+    naomi: { rules: NAOMI_REPLIES, fallback: { reply: "Here you go starting again.", delay: 3 } }
   };
 
   function escapeHtml(value) {
@@ -137,9 +137,8 @@
   function queueReply(host, thread, text) {
     const profile = REPLY_PROFILES[thread.threadId];
     if (!profile) return;
-    const normalized = text.trim().toLowerCase().replace(/[?.!]+$/g, "");
-    const rule = profile.rules.find((item) => item.match === normalized);
-    if (!rule) return;
+    const normalized = text.toLowerCase().replace(/[.,?!]/g, "").replace(/\s+/g, " ").trim();
+    const rule = profile.rules.find((item) => item.match === normalized) || profile.fallback;
     const pending = readStored(pendingKey(thread.threadId));
     localStorage.setItem(pendingKey(thread.threadId), JSON.stringify([...pending, { reply: rule.reply, dueAt: Date.now() + rule.delay * 1000 }]));
     scheduleReplies(host, thread);
@@ -282,6 +281,7 @@
                 ${message.status ? `<small class="message-receipt ${outgoing ? "" : "incoming-status"}">${escapeHtml(message.status)}</small>` : ""}
               </article>`;
           }).join("")}
+          ${readStored(pendingKey(data.threadId)).length ? `<article class="message-item incoming typing-message" aria-label="${escapeHtml(data.contact.name)} is typing"><div class="message-bubble typing-indicator"><i></i><i></i><i></i></div></article>` : ""}
         </div>
         <form class="message-composer" data-message-composer>
           <input name="message" type="text" autocomplete="off" placeholder="Text Message" aria-label="Message" maxlength="500">

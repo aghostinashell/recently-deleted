@@ -2209,6 +2209,12 @@ That keeps the complete passcode block centered vertically.
 .message-composer input { min-width: 0; padding: 0 7px; background: transparent; color: #fff; font-size: 14px; }
 .message-composer input::placeholder { color: rgba(255,255,255,.42); }
 .message-composer button { width: 34px; height: 34px; border-radius: 50%; background: #1687f8; color: #fff; font-size: 20px; font-weight: 800; }
+.typing-message { margin-top: 6px; }
+.typing-indicator { min-width: 54px; min-height: 34px; display: flex; gap: 4px; align-items: center; justify-content: center; }
+.typing-indicator i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.58); animation: message-typing 1.1s infinite ease-in-out; }
+.typing-indicator i:nth-child(2) { animation-delay: .15s; }
+.typing-indicator i:nth-child(3) { animation-delay: .3s; }
+@keyframes message-typing { 0%,60%,100% { opacity: .35; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-3px); } }
 .message-thread-row > img, .message-thread-row > .contact-initials { width: 54px; height: 54px; border-radius: 50%; object-fit: cover; }
 .contact-initials { display: grid; place-items: center; flex: 0 0 auto; background: linear-gradient(145deg,#85858a,#4c4c50); color: #fff; font-size: 25px; font-weight: 400; text-transform: uppercase; }
 .thread-unread-dot { position: absolute; left: -7px; width: 8px; height: 8px; box-shadow: none; }
