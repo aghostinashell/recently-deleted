@@ -2205,7 +2205,7 @@ That keeps the complete passcode block centered vertically.
 .messages-list-heading h2 { font-size: 30px; letter-spacing: -.04em; }
 .messages-list-heading button { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,.1); color: #178bff; }
 .message-thread-row { position: relative; width: 100%; padding: 11px 4px; display: grid; grid-template-columns: 54px 1fr 10px; gap: 11px; align-items: center; border-top: 1px solid rgba(255,255,255,.12); background: transparent; color: #fff; text-align: left; }
-.message-composer { position: sticky; z-index: 8; bottom: 92px; margin: 18px -4px 0; padding: 9px; display: grid; grid-template-columns: 1fr 34px; gap: 7px; border: 1px solid rgba(255,255,255,.14); border-radius: 24px; background: rgba(18,18,18,.92); backdrop-filter: blur(18px); }
+.message-composer { position: fixed; z-index: 68; right: 10px; bottom: 102px; left: 10px; margin: 0; padding: 9px; display: grid; grid-template-columns: 1fr 34px; gap: 7px; border: 1px solid rgba(255,255,255,.14); border-radius: 24px; background: rgba(18,18,18,.92); box-shadow: 0 8px 24px rgba(0,0,0,.45); backdrop-filter: blur(18px); }
 .message-composer input { min-width: 0; padding: 0 7px; background: transparent; color: #fff; font-size: 14px; }
 .message-composer input::placeholder { color: rgba(255,255,255,.42); }
 .message-composer button { width: 34px; height: 34px; border-radius: 50%; background: #1687f8; color: #fff; font-size: 20px; font-weight: 800; }
@@ -2231,7 +2231,7 @@ That keeps the complete passcode block centered vertically.
 .conversation-contact-glass::before { content:""; position:absolute; inset:1px 8px auto; height:32%; border-radius:999px; background:linear-gradient(180deg,rgba(255,255,255,.3),transparent); opacity:.55; pointer-events:none; }
 .conversation-contact-glass img, .conversation-contact-glass .contact-initials { position:relative; z-index:1; width:48px; height:48px; border:1px solid rgba(255,255,255,.3); border-radius:50%; object-fit:cover; box-shadow:0 4px 12px rgba(0,0,0,.3); }
 .conversation-contact-glass strong { position:relative; z-index:1; max-width:64px; overflow:hidden; font-size:10px; font-weight:650; text-align:center; text-overflow:ellipsis; white-space:nowrap; }
-.conversation-stream { padding: 8px 10px 145px; }
+.conversation-stream { padding: 8px 10px 175px; }
 .message-date { margin: 23px auto 12px; color: rgba(255,255,255,.43); font-size: 10px; font-weight: 650; text-align: center; text-transform: uppercase; }
 .message-gap { height: 19px; }
 .message-item { max-width: 79%; margin: 2px 0; display: flex; flex-direction: column; align-items: flex-start; }
