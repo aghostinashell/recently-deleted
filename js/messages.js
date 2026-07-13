@@ -22,7 +22,10 @@
     { match: "you mad", reply: "No. I just move different once I notice things.", delay: 60 },
     { match: "good morning", reply: "Morning stranger.", delay: 64 }
   ];
-  const AMBER_DEFAULTS = ["You finally decided to text back.", "stranger danger."];
+  const AMBER_DEFAULTS = [
+    { reply: "You finally decided to text back.", delay: 4 },
+    { reply: "stranger danger.", delay: 4 }
+  ];
   const SELINA_REPLIES = [
     { match: "where are you", reply: "Why?", delay: 35 },
     { match: "what are you doing", reply: "Getting ready to go to sleep.", delay: 16 },
@@ -34,10 +37,31 @@
     { match: "call me", reply: "I don’t think that’s a good idea.", delay: 18 },
     { match: "good morning", reply: "Morning.", delay: 6 }
   ];
-  const SELINA_DEFAULTS = ["What do you want, Ed?", "What Ed?", "I'm busy Edd"];
+  const SELINA_DEFAULTS = [
+    { reply: "What do you want, Ed?", delay: 7 },
+    { reply: "What Ed?", delay: 7 },
+    { reply: "I'm busy Edd", delay: 7 }
+  ];
+  const NAOMI_REPLIES = [
+    { match: "where are you", reply: "Why, you coming to get me?", delay: 2 },
+    { match: "what are you doing", reply: "Thinking about minding my business.", delay: 3 },
+    { match: "you up", reply: "You know I am.", delay: 2 },
+    { match: "come over", reply: "Send the address ...", delay: 3 },
+    { match: "i miss you", reply: "Then act like it.", delay: 13 },
+    { match: "call me", reply: "Can't right now, I'm with him", delay: 12 },
+    { match: "my bad", reply: "Your bad always turns into my problem.", delay: 24 },
+    { match: "you mad", reply: "Should I be?", delay: 3 },
+    { match: "good morning", reply: "Don’t “good morning” me like you didn’t disappear last night.", delay: 14 }
+  ];
+  const NAOMI_DEFAULTS = [
+    { reply: "Here you go starting again.", delay: 3 },
+    { reply: "Hey you.", delay: 8 },
+    { reply: "Ed.", delay: 3 }
+  ];
   const REPLY_PROFILES = {
     amber: { rules: AMBER_REPLIES, defaults: AMBER_DEFAULTS },
-    selina: { rules: SELINA_REPLIES, defaults: SELINA_DEFAULTS }
+    selina: { rules: SELINA_REPLIES, defaults: SELINA_DEFAULTS },
+    naomi: { rules: NAOMI_REPLIES, defaults: NAOMI_DEFAULTS }
   };
 
   function escapeHtml(value) {
@@ -133,8 +157,9 @@
     if (!rule) {
       const countKey = `myphone.messages.${thread.threadId}.default-count`;
       const count = Number(localStorage.getItem(countKey) || 0);
-      reply = profile.defaults[count % profile.defaults.length];
-      delay = thread.threadId === "amber" ? 4 : 7;
+      const fallback = profile.defaults[count % profile.defaults.length];
+      reply = fallback.reply;
+      delay = fallback.delay;
       localStorage.setItem(countKey, String(count + 1));
     }
     const pending = readStored(pendingKey(thread.threadId));
