@@ -10,6 +10,19 @@
   let mapInstance = null;
   let mapSearchMarker = null;
   let lastGeocodeRequestAt = 0;
+  const replyTimers = new Map();
+  const AMBER_REPLIES = [
+    { match: "where are you", reply: "At home. Why?", delay: 10 },
+    { match: "what are you doing", reply: "Mindin my business 😂 what are you doing?", delay: 14 },
+    { match: "you up", reply: "I am now.", delay: 3 },
+    { match: "come over", reply: "That’s not how you ask.", delay: 4 },
+    { match: "i miss you", reply: "You miss me or you’re bored?", delay: 15 },
+    { match: "call me", reply: "Give me a minute.", delay: 3 },
+    { match: "my bad", reply: "You say that like it fixes everything.", delay: 25 },
+    { match: "you mad", reply: "No. I just move different once I notice things.", delay: 60 },
+    { match: "good morning", reply: "Morning stranger.", delay: 64 }
+  ];
+  const AMBER_DEFAULTS = ["You finally decided to text back.", "stranger danger."];
 
   function escapeHtml(value) {
     const node = document.createElement("div");
@@ -45,6 +58,71 @@
 
   function readKey(threadId) {
     return `myphone.messages.${threadId}.read`;
+  }
+
+  function customKey(threadId) { return `myphone.messages.${threadId}.custom`; }
+  function pendingKey(threadId) { return `myphone.messages.${threadId}.pending`; }
+
+  function readStored(key) {
+    try { const value = JSON.parse(localStorage.getItem(key)); return Array.isArray(value) ? value : []; }
+    catch { return []; }
+  }
+
+  function messagesForThread(thread) {
+    materializeDueReplies(thread);
+    return [...thread.messages, ...readStored(customKey(thread.threadId))];
+  }
+
+  function nowMessage(sender, text) {
+    const now = new Date();
+    return {
+      date: now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" }),
+      time: now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }),
+      sender,
+      type: "text",
+      text
+    };
+  }
+
+  function materializeDueReplies(thread) {
+    const pending = readStored(pendingKey(thread.threadId));
+    const due = pending.filter((item) => item.dueAt <= Date.now());
+    if (!due.length) return;
+    const stored = readStored(customKey(thread.threadId));
+    localStorage.setItem(customKey(thread.threadId), JSON.stringify([...stored, ...due.map((item) => nowMessage(thread.contact.name, item.reply))]));
+    localStorage.setItem(pendingKey(thread.threadId), JSON.stringify(pending.filter((item) => item.dueAt > Date.now())));
+  }
+
+  function scheduleReplies(host, thread) {
+    const existing = replyTimers.get(thread.threadId);
+    if (existing) window.clearTimeout(existing);
+    const pending = readStored(pendingKey(thread.threadId)).sort((a, b) => a.dueAt - b.dueAt);
+    if (!pending.length) return;
+    const timer = window.setTimeout(() => {
+      materializeDueReplies(thread);
+      replyTimers.delete(thread.threadId);
+      if (host.querySelector(`[data-thread-id="${thread.threadId}"]`)) openThread(host, thread);
+      else scheduleReplies(host, thread);
+    }, Math.max(0, pending[0].dueAt - Date.now()));
+    replyTimers.set(thread.threadId, timer);
+  }
+
+  function queueReply(host, thread, text) {
+    if (thread.threadId !== "amber") return;
+    const normalized = text.trim().toLowerCase().replace(/[?.!]+$/g, "");
+    const rule = AMBER_REPLIES.find((item) => item.match === normalized);
+    let reply = rule?.reply;
+    let delay = rule?.delay;
+    if (!rule) {
+      const countKey = "myphone.messages.amber.default-count";
+      const count = Number(localStorage.getItem(countKey) || 0);
+      reply = AMBER_DEFAULTS[count % AMBER_DEFAULTS.length];
+      delay = 4;
+      localStorage.setItem(countKey, String(count + 1));
+    }
+    const pending = readStored(pendingKey(thread.threadId));
+    localStorage.setItem(pendingKey(thread.threadId), JSON.stringify([...pending, { reply, dueAt: Date.now() + delay * 1000 }]));
+    scheduleReplies(host, thread);
   }
 
   function isUnread(thread) {
@@ -89,9 +167,10 @@
 
   function latestReceived(thread) {
     let currentDate = "";
-    let latest = { timestamp: 0, time: "", message: thread.messages.at(-1) };
+    const messages = messagesForThread(thread);
+    let latest = { timestamp: 0, time: "", message: messages.at(-1) };
 
-    thread.messages.forEach((message) => {
+    messages.forEach((message) => {
       if (message.date) currentDate = message.date;
       if (message.sender === "Ed" || message.sender === "You" || !currentDate) return;
       const timestamp = Date.parse(`${currentDate} ${message.time || "12:00 AM"}`);
@@ -155,7 +234,7 @@
     localStorage.setItem(readKey(data.threadId), "1");
     syncUnreadBadge();
     host.innerHTML = `
-      <section class="message-conversation">
+      <section class="message-conversation" data-thread-id="${escapeHtml(data.threadId)}">
         <header class="conversation-header">
           <button type="button" data-back-messages aria-label="Back to messages">‹</button>
           <div class="conversation-contact-glass">
@@ -165,7 +244,7 @@
         </header>
         <div class="conversation-stream">
           ${data.systemNotice ? `<div class="message-system"><strong>${escapeHtml(data.systemNotice.title)}</strong><span>${escapeHtml(data.systemNotice.text)}</span></div>` : ""}
-          ${data.messages.map((message) => {
+          ${messagesForThread(data).map((message) => {
             const outgoing = message.sender === "Ed" || message.sender === "You";
             if (message.type === "status") return `
               ${message.date ? `<div class="message-date">${escapeHtml(displayMessageDate(message.date))}${message.time ? ` · ${escapeHtml(message.time)}` : ""}</div>` : ""}
@@ -184,11 +263,26 @@
               </article>`;
           }).join("")}
         </div>
+        <form class="message-composer" data-message-composer>
+          <input name="message" type="text" autocomplete="off" placeholder="Text Message" aria-label="Message" maxlength="500">
+          <button type="submit" aria-label="Send message">↑</button>
+        </form>
       </section>`;
     host.querySelector("[data-back-messages]").addEventListener("click", () => openMessages(host));
     host.querySelectorAll("[data-message-location]").forEach((button) => {
       button.addEventListener("click", () => openMaps(host, button.dataset.messageLocation));
     });
+    host.querySelector("[data-message-composer]").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const input = event.currentTarget.elements.message;
+      const text = input.value.trim();
+      if (!text) return;
+      const stored = readStored(customKey(data.threadId));
+      localStorage.setItem(customKey(data.threadId), JSON.stringify([...stored, nowMessage("Ed", text)]));
+      queueReply(host, data, text);
+      openThread(host, data);
+    });
+    scheduleReplies(host, data);
     const windowNode = document.getElementById("appWindow");
     windowNode.scrollTop = windowNode.scrollHeight;
   }
