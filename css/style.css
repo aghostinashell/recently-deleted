@@ -2209,16 +2209,6 @@ That keeps the complete passcode block centered vertically.
 .message-composer input { min-width: 0; padding: 0 7px; background: transparent; color: #fff; font-size: 14px; }
 .message-composer input::placeholder { color: rgba(255,255,255,.42); }
 .message-composer button { width: 34px; height: 34px; border-radius: 50%; background: #1687f8; color: #fff; font-size: 20px; font-weight: 800; }
-.ios-keyboard { position: absolute; z-index: 90; right: 0; bottom: 0; left: 0; padding: 0 4px 9px; background: rgba(202,205,211,.97); box-shadow: 0 -8px 28px rgba(0,0,0,.38); transform: translateY(105%); transition: transform .28s cubic-bezier(.22,.8,.3,1); }
-.ios-keyboard.visible { transform: translateY(0); }
-.keyboard-toolbar { height: 34px; padding: 0 8px; display: flex; justify-content: flex-end; align-items: center; }
-.keyboard-toolbar button { padding: 5px 7px; background: transparent; color: #087ff5; font-size: 13px; font-weight: 650; }
-.keyboard-row { margin-top: 7px; display: flex; justify-content: center; gap: 4px; }
-.keyboard-row button { min-width: 30px; height: 42px; padding: 0 7px; border-radius: 5px; background: #fff; color: #111; box-shadow: 0 1px 0 rgba(0,0,0,.32); font-size: 19px; text-transform: none; }
-.keyboard-row .keyboard-special,.keyboard-bottom button { background: #aab0ba; font-size: 14px; }
-.keyboard-row .keyboard-space { flex: 1; max-width: 230px; background: #fff; }
-.device.keyboard-open .message-composer { bottom: 258px; }
-.device.keyboard-open .system-dock-wrap { opacity: 0; pointer-events: none; transform: translateY(120%); }
 .message-thread-row > img, .message-thread-row > .contact-initials { width: 54px; height: 54px; border-radius: 50%; object-fit: cover; }
 .contact-initials { display: grid; place-items: center; flex: 0 0 auto; background: linear-gradient(145deg,#85858a,#4c4c50); color: #fff; font-size: 25px; font-weight: 400; text-transform: uppercase; }
 .thread-unread-dot { position: absolute; left: -7px; width: 8px; height: 8px; box-shadow: none; }

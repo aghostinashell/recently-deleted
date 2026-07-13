@@ -22,10 +22,6 @@
     { match: "you mad", reply: "No. I just move different once I notice things.", delay: 60 },
     { match: "good morning", reply: "Morning stranger.", delay: 64 }
   ];
-  const AMBER_DEFAULTS = [
-    { reply: "You finally decided to text back.", delay: 4 },
-    { reply: "stranger danger.", delay: 4 }
-  ];
   const SELINA_REPLIES = [
     { match: "where are you", reply: "Why?", delay: 35 },
     { match: "what are you doing", reply: "Getting ready to go to sleep.", delay: 16 },
@@ -36,11 +32,6 @@
     { match: "you mad", reply: "I’m not mad anymore.", delay: 67 },
     { match: "call me", reply: "I don’t think that’s a good idea.", delay: 18 },
     { match: "good morning", reply: "Morning.", delay: 6 }
-  ];
-  const SELINA_DEFAULTS = [
-    { reply: "What do you want, Ed?", delay: 7 },
-    { reply: "What Ed?", delay: 7 },
-    { reply: "I'm busy Edd", delay: 7 }
   ];
   const NAOMI_REPLIES = [
     { match: "where are you", reply: "Why, you coming to get me?", delay: 2 },
@@ -53,15 +44,10 @@
     { match: "you mad", reply: "Should I be?", delay: 3 },
     { match: "good morning", reply: "Don’t “good morning” me like you didn’t disappear last night.", delay: 14 }
   ];
-  const NAOMI_DEFAULTS = [
-    { reply: "Here you go starting again.", delay: 3 },
-    { reply: "Hey you.", delay: 8 },
-    { reply: "Ed.", delay: 3 }
-  ];
   const REPLY_PROFILES = {
-    amber: { rules: AMBER_REPLIES, defaults: AMBER_DEFAULTS },
-    selina: { rules: SELINA_REPLIES, defaults: SELINA_DEFAULTS },
-    naomi: { rules: NAOMI_REPLIES, defaults: NAOMI_DEFAULTS }
+    amber: { rules: AMBER_REPLIES },
+    selina: { rules: SELINA_REPLIES },
+    naomi: { rules: NAOMI_REPLIES }
   };
 
   function escapeHtml(value) {
@@ -84,15 +70,6 @@
     return contact.photo
       ? `<img class="${className}" src="${escapeHtml(contact.photo)}" alt="">`
       : `<span class="contact-initials ${className}" aria-hidden="true">${escapeHtml(contact.initials || contact.name.charAt(0))}</span>`;
-  }
-
-  function renderMessageKeyboard() {
-    const rows = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
-    return `<div class="ios-keyboard" data-ios-keyboard aria-hidden="true">
-      <div class="keyboard-toolbar"><button type="button" data-keyboard-done>Done</button></div>
-      ${rows.map((row, index) => `<div class="keyboard-row">${index === 2 ? `<button class="keyboard-special" type="button" data-keyboard-shift aria-label="Shift">⇧</button>` : ""}${[...row].map((key) => `<button type="button" data-letter="${key}">${key}</button>`).join("")}${index === 2 ? `<button class="keyboard-special" type="button" data-keyboard-delete aria-label="Delete">⌫</button>` : ""}</div>`).join("")}
-      <div class="keyboard-row keyboard-bottom"><button type="button" data-keyboard-numbers>123</button><button class="keyboard-space" type="button" data-keyboard-space>space</button><button type="button" data-keyboard-return>return</button></div>
-    </div>`;
   }
 
   function getData() {
@@ -129,7 +106,8 @@
       time: now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }),
       sender,
       type: "text",
-      text
+      text,
+      ...(sender === "Ed" ? { receipt: "Read" } : {})
     };
   }
 
@@ -161,18 +139,9 @@
     if (!profile) return;
     const normalized = text.trim().toLowerCase().replace(/[?.!]+$/g, "");
     const rule = profile.rules.find((item) => item.match === normalized);
-    let reply = rule?.reply;
-    let delay = rule?.delay;
-    if (!rule) {
-      const countKey = `myphone.messages.${thread.threadId}.default-count`;
-      const count = Number(localStorage.getItem(countKey) || 0);
-      const fallback = profile.defaults[count % profile.defaults.length];
-      reply = fallback.reply;
-      delay = fallback.delay;
-      localStorage.setItem(countKey, String(count + 1));
-    }
+    if (!rule) return;
     const pending = readStored(pendingKey(thread.threadId));
-    localStorage.setItem(pendingKey(thread.threadId), JSON.stringify([...pending, { reply, dueAt: Date.now() + delay * 1000 }]));
+    localStorage.setItem(pendingKey(thread.threadId), JSON.stringify([...pending, { reply: rule.reply, dueAt: Date.now() + rule.delay * 1000 }]));
     scheduleReplies(host, thread);
   }
 
@@ -315,57 +284,23 @@
           }).join("")}
         </div>
         <form class="message-composer" data-message-composer>
-          <input name="message" type="text" inputmode="none" autocomplete="off" placeholder="Text Message" aria-label="Message" maxlength="500" readonly>
+          <input name="message" type="text" autocomplete="off" placeholder="Text Message" aria-label="Message" maxlength="500">
           <button type="submit" aria-label="Send message">↑</button>
         </form>
-        ${renderMessageKeyboard()}
       </section>`;
-    host.querySelector("[data-back-messages]").addEventListener("click", () => {
-      document.getElementById("device").classList.remove("keyboard-open");
-      openMessages(host);
-    });
+    host.querySelector("[data-back-messages]").addEventListener("click", () => openMessages(host));
     host.querySelectorAll("[data-message-location]").forEach((button) => {
       button.addEventListener("click", () => openMaps(host, button.dataset.messageLocation));
     });
-    const composer = host.querySelector("[data-message-composer]");
-    const input = composer.elements.message;
-    const keyboard = host.querySelector("[data-ios-keyboard]");
-    let uppercase = false;
-    const syncKeyboardCase = () => keyboard.querySelectorAll("[data-letter]").forEach((key) => { key.textContent = uppercase ? key.dataset.letter.toUpperCase() : key.dataset.letter; });
-    const showKeyboard = () => {
-      keyboard.classList.add("visible");
-      keyboard.setAttribute("aria-hidden", "false");
-      document.getElementById("device").classList.add("keyboard-open");
-    };
-    const hideKeyboard = () => {
-      keyboard.classList.remove("visible");
-      keyboard.setAttribute("aria-hidden", "true");
-      document.getElementById("device").classList.remove("keyboard-open");
-      input.blur();
-    };
-    input.addEventListener("click", showKeyboard);
-    keyboard.querySelectorAll("[data-letter]").forEach((key) => key.addEventListener("click", () => {
-      if (input.value.length >= input.maxLength) return;
-      input.value += uppercase ? key.dataset.letter.toUpperCase() : key.dataset.letter;
-      if (uppercase) { uppercase = false; syncKeyboardCase(); }
-    }));
-    keyboard.querySelector("[data-keyboard-shift]").addEventListener("click", () => { uppercase = !uppercase; syncKeyboardCase(); });
-    keyboard.querySelector("[data-keyboard-delete]").addEventListener("click", () => { input.value = input.value.slice(0, -1); });
-    keyboard.querySelector("[data-keyboard-space]").addEventListener("click", () => { if (input.value.length < input.maxLength) input.value += " "; });
-    keyboard.querySelector("[data-keyboard-return]").addEventListener("click", hideKeyboard);
-    keyboard.querySelector("[data-keyboard-done]").addEventListener("click", hideKeyboard);
-    keyboard.querySelector("[data-keyboard-numbers]").addEventListener("click", () => { if (input.value.length < input.maxLength) input.value += "123"; });
-    composer.addEventListener("submit", (event) => {
+    host.querySelector("[data-message-composer]").addEventListener("submit", (event) => {
       event.preventDefault();
+      const input = event.currentTarget.elements.message;
       const text = input.value.trim();
       if (!text) return;
-      hideKeyboard();
-      window.setTimeout(() => {
-        const stored = readStored(customKey(data.threadId));
-        localStorage.setItem(customKey(data.threadId), JSON.stringify([...stored, nowMessage("Ed", text)]));
-        queueReply(host, data, text);
-        openThread(host, data);
-      }, 220);
+      const stored = readStored(customKey(data.threadId));
+      localStorage.setItem(customKey(data.threadId), JSON.stringify([...stored, nowMessage("Ed", text)]));
+      queueReply(host, data, text);
+      openThread(host, data);
     });
     scheduleReplies(host, data);
     const windowNode = document.getElementById("appWindow");
