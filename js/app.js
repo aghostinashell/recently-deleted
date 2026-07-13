@@ -100,6 +100,7 @@ function bootSite() {
   window.MyMessages?.syncUnreadBadge();
   initializeMediaProtection();
   window.MyMail?.initialize();
+  window.MySettings?.applyPreferences();
 
   window.setInterval(updateDateAndTime, 1000);
 }
@@ -350,7 +351,7 @@ function renderWeatherWidget() {
   return `
     <article class="weather-widget" aria-label="Local weather">
       <div class="weather-location-row">
-        <strong id="weatherLocation">Local Weather</strong>
+        <strong id="weatherLocation">Ed's Location</strong>
         <span class="weather-location-arrow" aria-hidden="true">◆</span>
       </div>
       <div class="weather-temperature" id="weatherTemperature">--°</div>
@@ -862,6 +863,9 @@ function showAppWindow(app) {
   } else if (app.id === "mail" && window.MyMail) {
     appContent.classList.add("mail-app-content");
     window.MyMail.openInbox(appContent);
+  } else if (app.id === "settings" && window.MySettings) {
+    appContent.classList.add("settings-app-content");
+    window.MySettings.open(appContent);
   } else {
     appContent.innerHTML = `
       <article class="placeholder-card">
@@ -973,7 +977,7 @@ async function initializeWeather() {
   }
 
   const location = activeLocation();
-  locationNode.textContent = location.name;
+  locationNode.textContent = "Ed's Location";
   conditionNode.textContent = "Updating weather…";
 
   try {
@@ -993,20 +997,20 @@ async function initializeWeather() {
     const code = Number(weather.current?.weather_code);
     const presentation = weatherPresentation(code);
 
-    locationNode.textContent = location.name;
+    locationNode.textContent = "Ed's Location";
     temperatureNode.textContent = `${Math.round(weather.current.temperature_2m)}°`;
     conditionNode.textContent = presentation.label;
     symbolNode.textContent = presentation.symbol;
     rangeNode.textContent = `H:${Math.round(weather.daily.temperature_2m_max[0])}° L:${Math.round(weather.daily.temperature_2m_min[0])}°`;
   } catch (error) {
-    locationNode.textContent = location.name;
+    locationNode.textContent = "Ed's Location";
     temperatureNode.textContent = "--°";
     conditionNode.textContent = "Temporarily unavailable";
     rangeNode.textContent = "Refreshing automatically";
     symbolNode.textContent = "◌";
   }
 
-  if (!weatherRefreshTimer) {
+  if (!weatherRefreshTimer && localStorage.getItem("myphone.settings.low-power") !== "1") {
     weatherRefreshTimer = window.setInterval(initializeWeather, 15 * 60 * 1000);
   }
 }

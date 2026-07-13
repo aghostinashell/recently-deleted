@@ -182,7 +182,7 @@
   async function syncUnreadBadge() {
     try {
       const threads = await getThreads();
-      const hasUnread = threads.some(isUnread);
+      const hasUnread = localStorage.getItem("myphone.settings.notifications") !== "0" && threads.some(isUnread);
       document.querySelectorAll("[data-messages-unread]").forEach((badge) => { badge.hidden = !hasUnread; });
     } catch { /* The app view will show the loading error if opened. */ }
   }

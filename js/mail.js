@@ -39,8 +39,9 @@
 
   function syncUnreadBadge() {
     const count = readList(UNREAD_KEY).length;
+    const allowed = localStorage.getItem("myphone.settings.notifications") !== "0";
     document.querySelectorAll("[data-mail-unread]").forEach((badge) => {
-      badge.hidden = count === 0;
+      badge.hidden = !allowed || count === 0;
       badge.textContent = count > 9 ? "9+" : String(count);
     });
   }
@@ -109,6 +110,7 @@
   }
 
   function showNotification(campaign, delivery) {
+    if (localStorage.getItem("myphone.settings.notifications") === "0") return;
     let banner = document.getElementById("mailNotificationBanner");
     if (!banner) {
       banner = document.createElement("button");
