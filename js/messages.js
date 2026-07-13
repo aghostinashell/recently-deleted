@@ -1,7 +1,7 @@
 "use strict";
 
 (function createConnectedApps() {
-  const THREAD_URLS = ["data/messages/amber.json", "data/messages/naomi.json", "data/messages/chase-bank.json", "data/messages/selina.json", "data/messages/ghost-supply.json", "data/messages/fi-ent.json"];
+  const THREAD_URLS = ["data/messages/amber.json", "data/messages/naomi.json", "data/messages/chase-bank.json", "data/messages/selina.json", "data/messages/ghost-supply.json", "data/messages/fi-ent.json", "data/messages/tracey.json"];
   const DATA_URL = THREAD_URLS[0];
   const MUSIC_DATA_URL = "data/music/recently-deleted.json";
   let dataPromise = null;
@@ -197,15 +197,17 @@
 
   function latestReceived(thread) {
     let currentDate = "";
+    let currentTime = "12:00 AM";
     const messages = messagesForThread(thread);
     let latest = { timestamp: 0, time: "", message: messages.at(-1) };
 
     messages.forEach((message) => {
       if (message.date) currentDate = message.date;
+      if (message.time) currentTime = message.time;
       if (message.sender === "Ed" || message.sender === "You" || !currentDate) return;
-      const timestamp = Date.parse(`${currentDate} ${message.time || "12:00 AM"}`);
+      const timestamp = Date.parse(`${currentDate} ${currentTime}`);
       if (!Number.isNaN(timestamp) && timestamp >= latest.timestamp) {
-        latest = { timestamp, time: message.time || latest.time, message };
+        latest = { timestamp, time: currentTime, message };
       }
     });
 
