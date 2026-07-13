@@ -889,6 +889,17 @@ button {
   transform: scale(1.025);
 }
 
+.lost-phone-screen { z-index: 58; display: grid; place-items: center; padding: 38px; background: #000; color: #fff; text-align: center; }
+.lost-phone-screen.screen-hidden { display: none; }
+.lost-phone-message { max-width: 290px; }
+.lost-phone-message h1 { font-size: 25px; line-height: 1.08; letter-spacing: -.02em; }
+.lost-phone-message > p { margin-top: 18px; color: rgba(255,255,255,.7); font-size: 14px; line-height: 1.45; }
+.lost-access-code { margin-top: 34px; display: grid; gap: 4px; }
+.lost-access-code span { color: rgba(255,255,255,.55); font-size: 12px; }
+.lost-access-code strong { font-size: 42px; letter-spacing: .18em; text-indent: .18em; }
+.lost-phone-message button { margin-top: 30px; padding: 14px 18px; border: 1px solid rgba(255,255,255,.45); border-radius: 999px; background: #fff; color: #000; font-size: 11px; font-weight: 850; letter-spacing: .1em; }
+.device.lost-mode .dynamic-island { opacity: 0; pointer-events: none; }
+
 .passcode-layout {
   position: absolute;
   inset: 0;

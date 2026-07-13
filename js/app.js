@@ -84,6 +84,7 @@ function bootSite() {
     <main class="device" id="device">
       ${renderHomeScreen()}
       ${renderPasscodeScreen()}
+      ${renderLostPhoneScreen()}
       ${renderFaceIdScreen()}
       ${renderLockScreen()}
       ${renderAppWindow()}
@@ -300,7 +301,7 @@ function renderPasscodeScreen() {
       </div>
 
       <div class="passcode-actions">
-        <button class="passcode-action" type="button">
+        <button class="passcode-action" id="emergencyButton" type="button">
           Emergency
         </button>
 
@@ -314,6 +315,19 @@ function renderPasscodeScreen() {
       </div>
     </section>
   `;
+}
+
+function renderLostPhoneScreen() {
+  return `
+    <section class="screen lost-phone-screen screen-hidden" id="lostPhoneScreen">
+      <div class="lost-phone-message">
+        <h1>THIS PHONE HAS BEEN MARKED AS LOST</h1>
+        <p>If found, please return it to its owner.</p>
+        <p>Limited access has been enabled to help identify the owner.</p>
+        <div class="lost-access-code"><span>Access Code:</span><strong>1010</strong></div>
+        <button type="button" id="enterAccessCode">ENTER ACCESS CODE</button>
+      </div>
+    </section>`;
 }
 
 function renderHomeScreen() {
@@ -484,7 +498,30 @@ function bindEvents() {
     .getElementById("cancelPasscode")
     .addEventListener("click", returnToLockScreen);
 
+  document
+    .getElementById("emergencyButton")
+    .addEventListener("click", openLostPhoneScreen);
+
+  document
+    .getElementById("enterAccessCode")
+    .addEventListener("click", returnToPasscodeFromLostScreen);
+
   window.addEventListener("keydown", handleKeyboardInput);
+}
+
+function openLostPhoneScreen() {
+  enteredPasscode = "";
+  updatePasscodeDots();
+  hidePasscodeError();
+  document.getElementById("passcodeScreen").classList.add("screen-hidden");
+  document.getElementById("lostPhoneScreen").classList.remove("screen-hidden");
+  document.getElementById("device").classList.add("lost-mode");
+}
+
+function returnToPasscodeFromLostScreen() {
+  document.getElementById("lostPhoneScreen").classList.add("screen-hidden");
+  document.getElementById("passcodeScreen").classList.remove("screen-hidden");
+  document.getElementById("device").classList.remove("lost-mode");
 }
 
 function startSwipe(event) {
