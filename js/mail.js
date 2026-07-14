@@ -4,6 +4,7 @@
   const DATA_URL = "data/mail/ads.json";
   const DELIVERED_KEY = "myphone.mail.deliveries.v2";
   const UNREAD_KEY = "myphone.mail.unread.v2";
+  const SENT_KEY = "myphone.mail.sent.v1";
   const FIRST_CAMPAIGN_ID = "blank-tab-studios";
   const TIER_WEIGHTS = { Premium: 6, Standard: 3, Basic: 1 };
   let campaignsPromise = null;
@@ -11,6 +12,8 @@
   let timerStartedAt = 0;
   let remainingDelay = 45000;
   let pendingCampaignId = null;
+  let editMode = false;
+  let selectedDeliveryIds = new Set();
 
   function escapeHtml(value) {
     const node = document.createElement("div");
@@ -371,7 +374,7 @@
     host.innerHTML = `
       <article class="sponsored-email">
         <button class="mail-back" type="button" data-mail-back>‹ Inbox</button>
-        <header class="sponsored-email-header"><span>${escapeHtml(campaign.label)}</span>${campaign.logo ? `<img class="sponsored-email-logo" src="${escapeHtml(campaign.logo)}" alt="${escapeHtml(campaign.sender)} logo">` : ""}<h2>${escapeHtml(campaign.sender)}</h2><h1>${escapeHtml(campaign.headline)}</h1><p>To: Ed</p><time>${escapeHtml(deliveryTime(delivery))}</time></header>
+        <header class="sponsored-email-header">${campaign.logo ? `<img class="sponsored-email-logo" src="${escapeHtml(campaign.logo)}" alt="${escapeHtml(campaign.sender)} logo">` : ""}<h2>${escapeHtml(campaign.sender)}</h2><h1>${escapeHtml(campaign.headline)}</h1><p>To: Ed</p><time>${escapeHtml(deliveryTime(delivery))}</time></header>
         <div class="sponsored-email-body">${renderEmailBody(campaign)}</div>
       </article>`;
     host.querySelector("[data-mail-back]").addEventListener("click", () => renderInbox(host, campaigns));
@@ -382,15 +385,65 @@
     document.getElementById("appWindow").scrollTop = 0;
   }
 
+  function openComposer(host, campaigns) {
+    host.innerHTML = `
+      <section class="mail-compose">
+        <header><button type="button" data-compose-cancel>Cancel</button><h2>New Message</h2><button type="submit" form="edMailComposer">Send</button></header>
+        <form id="edMailComposer" data-mail-compose>
+          <label><span>To:</span><input value="Ed X" aria-label="To" disabled></label>
+          <label><span>From:</span><input name="from" type="text" placeholder="Name or Email" aria-label="Name or Email" required></label>
+          <label><span>Subject:</span><input name="subject" type="text" aria-label="Subject" required></label>
+          <textarea name="message" placeholder="Leave a comment or review" aria-label="Message" required></textarea>
+          <p data-compose-status aria-live="polite"></p>
+        </form>
+      </section>`;
+    host.querySelector("[data-compose-cancel]").addEventListener("click", () => renderInbox(host, campaigns));
+    host.querySelector("[data-mail-compose]").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const values = Object.fromEntries(new FormData(form).entries());
+      const sent = readList(SENT_KEY);
+      writeList(SENT_KEY, [...sent, { ...values, to: "Ed X", sentAt: new Date().toISOString() }]);
+      form.reset();
+      form.querySelector("[data-compose-status]").textContent = "Message sent to Ed X.";
+      window.setTimeout(() => renderInbox(host, campaigns), 900);
+    });
+    document.getElementById("appWindow").scrollTop = 0;
+  }
+
   function renderInbox(host, campaigns) {
     const deliveries = readList(DELIVERED_KEY);
     const unread = readList(UNREAD_KEY);
     const inbox = deliveries.map((delivery) => ({ delivery, campaign: campaigns.find((campaign) => campaign.id === delivery.campaignId) })).filter((item) => item.campaign).reverse();
     host.innerHTML = `
-      <section class="mail-inbox">
-        <header><button type="button">Edit</button><h2>Inbox</h2><button type="button" aria-label="Compose">□</button></header>
-        <div class="mail-inbox-list">${inbox.length ? inbox.map(({ campaign, delivery }) => `<button class="mail-row ${unread.includes(delivery.id) ? "unread" : ""}" type="button" data-delivery-id="${escapeHtml(delivery.id)}"><i></i><span><strong>${escapeHtml(campaign.sender)}</strong><time>${escapeHtml(deliveryTime(delivery))}</time><b>${escapeHtml(campaign.subject)}</b><p>${escapeHtml(campaign.preview)}</p><small>${escapeHtml(campaign.label)} · ${escapeHtml(campaign.tier)}</small></span><em>›</em></button>`).join("") : `<p class="empty-state">No mail yet.<br>New messages arrive while you explore.</p>`}</div>
+      <section class="mail-inbox ${editMode ? "editing" : ""}">
+        <header><button type="button" data-mail-edit>${editMode ? "Done" : "Edit"}</button><h2>Inbox</h2><button type="button" data-mail-compose-new aria-label="Compose new message">□</button></header>
+        <div class="mail-inbox-list">${inbox.length ? inbox.map(({ campaign, delivery }) => {
+          const premium = campaign.tier === "Premium";
+          const selected = selectedDeliveryIds.has(delivery.id);
+          return `<div class="mail-row-wrap ${premium ? "premium" : ""} ${selected ? "selected" : ""}">${editMode ? `<button class="mail-select" type="button" ${premium ? "disabled" : `data-select-delivery="${escapeHtml(delivery.id)}"`} aria-label="${premium ? "Favorite mail cannot be deleted" : `Select email from ${escapeHtml(campaign.sender)}`}">${premium ? "★" : selected ? "✓" : ""}</button>` : ""}<button class="mail-row ${unread.includes(delivery.id) ? "unread" : ""}" type="button" ${editMode && !premium ? `data-select-delivery="${escapeHtml(delivery.id)}"` : `data-delivery-id="${escapeHtml(delivery.id)}"`}><i></i><span><strong>${premium ? `<b class="mail-favorite-star" aria-label="Favorite">★</b>` : ""}${escapeHtml(campaign.sender)}</strong><time>${escapeHtml(deliveryTime(delivery))}</time><b>${escapeHtml(campaign.subject)}</b><p>${escapeHtml(campaign.preview)}</p></span><em>${editMode ? premium ? "★" : "" : "›"}</em></button></div>`;
+        }).join("") : `<p class="empty-state">No mail yet.<br>New messages arrive while you explore.</p>`}</div>
+        ${editMode ? `<div class="mail-edit-toolbar"><button type="button" data-delete-mail ${selectedDeliveryIds.size ? "" : "disabled"}>Delete${selectedDeliveryIds.size ? ` (${selectedDeliveryIds.size})` : ""}</button><small>Favorite mail cannot be removed.</small></div>` : ""}
       </section>`;
+    host.querySelector("[data-mail-edit]").addEventListener("click", () => {
+      editMode = !editMode;
+      selectedDeliveryIds = new Set();
+      renderInbox(host, campaigns);
+    });
+    host.querySelector("[data-mail-compose-new]").addEventListener("click", () => openComposer(host, campaigns));
+    host.querySelectorAll("[data-select-delivery]").forEach((button) => button.addEventListener("click", () => {
+      const id = button.dataset.selectDelivery;
+      if (selectedDeliveryIds.has(id)) selectedDeliveryIds.delete(id); else selectedDeliveryIds.add(id);
+      renderInbox(host, campaigns);
+    }));
+    host.querySelector("[data-delete-mail]")?.addEventListener("click", () => {
+      writeList(DELIVERED_KEY, deliveries.filter((delivery) => !selectedDeliveryIds.has(delivery.id)));
+      writeList(UNREAD_KEY, unread.filter((id) => !selectedDeliveryIds.has(id)));
+      selectedDeliveryIds = new Set();
+      editMode = false;
+      syncUnreadBadge();
+      renderInbox(host, campaigns);
+    });
     host.querySelectorAll("[data-delivery-id]").forEach((button) => button.addEventListener("click", () => {
       const delivery = deliveries.find((item) => item.id === button.dataset.deliveryId);
       const campaign = campaigns.find((item) => item.id === delivery?.campaignId);
