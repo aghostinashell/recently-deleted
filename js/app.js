@@ -925,7 +925,7 @@ function renderSupplyApp() {
       <div class="supply-grid">
         <button class="supply-shelf product" type="button" data-supply-product="heavy-white-tee">
           <img src="media/supply/every-day-experience-heavy-white-tee/main.png" alt="Every Day Experience Heavy White Tee">
-          <span><small>FOUNDER'S COLLECTION · 01</small><strong>Every Day. Experience™ Heavy White Tee</strong><b>$85</b><em>10 MADE · AVAILABILITY PENDING</em></span>
+          <span><small>FOUNDER'S COLLECTION · 01</small><strong>Every Day. Experience™ Heavy White Tee</strong><b>$85</b><em>09/10 AVAILABLE</em></span>
         </button>
         ${emptyShelves}
       </div>
@@ -942,16 +942,15 @@ function renderSupplyProduct() {
     <article class="supply-detail">
       <header><button type="button" data-supply-back>‹ Supply</button><span>FOUNDER'S COLLECTION · 01/20</span></header>
       <div class="supply-gallery">
-        <img data-supply-main-image src="media/supply/every-day-experience-heavy-white-tee/main.png" alt="Every Day Experience Heavy White Tee front view">
+        <img data-supply-main-image src="media/supply/every-day-experience-heavy-white-tee/edition-detail.jpg" alt="Numbered edition embroidery detail">
         <div>${[
-          ["media/supply/every-day-experience-heavy-white-tee/main.png", "Tee front view"],
-          ["media/supply/every-day-experience-heavy-white-tee/edition-detail.png", "Numbered edition detail"],
+          ["media/supply/every-day-experience-heavy-white-tee/edition-detail.jpg", "Numbered edition embroidery detail"],
           ["media/supply/every-day-experience-heavy-white-tee/authentication-card.png", "Authentication card"]
         ].map(([src,alt],index)=>`<button class="${index===0?"active":""}" type="button" data-supply-image="${src}" data-supply-alt="${alt}"><img src="${src}" alt="${alt}"></button>`).join("")}</div>
       </div>
       <section class="supply-product-intro">
         <p>FOUNDER'S COLLECTION</p><h2>Every Day. Experience™ Heavy White Tee</h2><strong>$85</strong>
-        <div class="supply-edition-status"><span></span><b>ONLY 10 PRODUCED</b><small>Current availability will be added by size.</small></div>
+        <div class="supply-edition-status"><span></span><b>09/10 AVAILABLE</b><small>Only 10 pieces produced for the inaugural release.</small></div>
         <p class="supply-lead">Built for everyday wear, designed to last.</p>
         <p>The Every Day. Experience™ Heavy White Tee is constructed from premium heavyweight 100% cotton with an oversized silhouette that offers a structured drape and substantial feel. Every piece is produced in limited quantities and finished with carefully selected details that elevate it beyond a standard graphic tee.</p>
       </section>
