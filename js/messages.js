@@ -49,6 +49,11 @@
     selina: { rules: SELINA_REPLIES, fallback: { reply: "What do you want, Ed?", delay: 7 } },
     naomi: { rules: NAOMI_REPLIES, fallback: { reply: "Here you go starting again.", delay: 3 } }
   };
+  const TRACEY_SEQUENCE = [
+    { reply: "...Ed?", minDelay: 3, maxDelay: 8 },
+    { reply: "Oh...\n\nThis definitely isn't Ed.\n\nHe lost his phone a little while ago.", minDelay: 6, maxDelay: 12 },
+    { reply: "😂 He's actually been looking everywhere for it.\n\nI'll let him know someone found his phone.", minDelay: 8, maxDelay: 15 }
+  ];
 
   function escapeHtml(value) {
     const node = document.createElement("div");
@@ -99,6 +104,8 @@
     return [...thread.messages, ...readStored(customKey(thread.threadId))];
   }
 
+  function randomSeconds(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
   function nowMessage(sender, text) {
     const now = new Date();
     return {
@@ -112,11 +119,15 @@
   }
 
   function materializeDueReplies(thread) {
+    const stored = readStored(customKey(thread.threadId));
+    const updated = stored.map((message) => message.readAt && message.readAt <= Date.now()
+      ? { ...message, receipt: "Read", readAt: undefined }
+      : message);
+    if (JSON.stringify(updated) !== JSON.stringify(stored)) localStorage.setItem(customKey(thread.threadId), JSON.stringify(updated));
     const pending = readStored(pendingKey(thread.threadId));
     const due = pending.filter((item) => item.dueAt <= Date.now());
     if (!due.length) return;
-    const stored = readStored(customKey(thread.threadId));
-    localStorage.setItem(customKey(thread.threadId), JSON.stringify([...stored, ...due.map((item) => nowMessage(thread.contact.name, item.reply))]));
+    localStorage.setItem(customKey(thread.threadId), JSON.stringify([...updated, ...due.map((item) => nowMessage(thread.contact.name, item.reply))]));
     localStorage.setItem(pendingKey(thread.threadId), JSON.stringify(pending.filter((item) => item.dueAt > Date.now())));
   }
 
@@ -124,17 +135,31 @@
     const existing = replyTimers.get(thread.threadId);
     if (existing) window.clearTimeout(existing);
     const pending = readStored(pendingKey(thread.threadId)).sort((a, b) => a.dueAt - b.dueAt);
-    if (!pending.length) return;
+    const receiptDue = readStored(customKey(thread.threadId)).filter((message) => message.readAt).map((message) => message.readAt);
+    const nextDue = Math.min(...pending.map((item) => item.dueAt), ...receiptDue);
+    if (!Number.isFinite(nextDue)) return;
     const timer = window.setTimeout(() => {
       materializeDueReplies(thread);
       replyTimers.delete(thread.threadId);
       if (host.querySelector(`[data-thread-id="${thread.threadId}"]`)) openThread(host, thread);
       else scheduleReplies(host, thread);
-    }, Math.max(0, pending[0].dueAt - Date.now()));
+    }, Math.max(0, nextDue - Date.now()));
     replyTimers.set(thread.threadId, timer);
   }
 
   function queueReply(host, thread, text) {
+    if (thread.threadId === "tracey") {
+      const storedReplies = readStored(customKey(thread.threadId)).filter((message) => message.sender === thread.contact.name && TRACEY_SEQUENCE.some((step) => step.reply === message.text)).length;
+      const pending = readStored(pendingKey(thread.threadId));
+      const stage = storedReplies + pending.filter((item) => TRACEY_SEQUENCE.some((step) => step.reply === item.reply)).length;
+      if (stage >= TRACEY_SEQUENCE.length) return;
+      const step = TRACEY_SEQUENCE[stage];
+      const naturalDueAt = Date.now() + randomSeconds(step.minDelay, step.maxDelay) * 1000;
+      const previousDueAt = pending.reduce((latest, item) => Math.max(latest, item.dueAt || 0), 0);
+      localStorage.setItem(pendingKey(thread.threadId), JSON.stringify([...pending, { reply: step.reply, dueAt: Math.max(naturalDueAt, previousDueAt + 1000) }]));
+      scheduleReplies(host, thread);
+      return;
+    }
     const profile = REPLY_PROFILES[thread.threadId];
     if (!profile) return;
     const normalized = text.toLowerCase().replace(/[.,?!]/g, "").replace(/\s+/g, " ").trim();
@@ -318,7 +343,12 @@
       const text = input.value.trim();
       if (!text) return;
       const stored = readStored(customKey(data.threadId));
-      localStorage.setItem(customKey(data.threadId), JSON.stringify([...stored, nowMessage("Ed", text)]));
+      const outgoing = nowMessage("Ed", text);
+      if (data.threadId === "tracey") {
+        outgoing.receipt = "Delivered";
+        outgoing.readAt = Date.now() + randomSeconds(2, 5) * 1000;
+      }
+      localStorage.setItem(customKey(data.threadId), JSON.stringify([...stored, outgoing]));
       queueReply(host, data, text);
       openThread(host, data);
     });
