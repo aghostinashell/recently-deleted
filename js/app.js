@@ -942,8 +942,9 @@ function renderSupplyProduct() {
     <article class="supply-detail">
       <header><button type="button" data-supply-back>‹ Supply</button><span>FOUNDER'S COLLECTION · 01/20</span></header>
       <div class="supply-gallery">
-        <img data-supply-main-image src="media/supply/every-day-experience-heavy-white-tee/edition-detail.jpg" alt="Numbered edition embroidery detail">
+        <img data-supply-main-image src="media/supply/every-day-experience-heavy-white-tee/main.png" alt="Every Day Experience Heavy White Tee front view">
         <div>${[
+          ["media/supply/every-day-experience-heavy-white-tee/main.png", "Every Day Experience Heavy White Tee front view"],
           ["media/supply/every-day-experience-heavy-white-tee/edition-detail.jpg", "Numbered edition embroidery detail"],
           ["media/supply/every-day-experience-heavy-white-tee/authentication-card.png", "Authentication card"]
         ].map(([src,alt],index)=>`<button class="${index===0?"active":""}" type="button" data-supply-image="${src}" data-supply-alt="${alt}"><img src="${src}" alt="${alt}"></button>`).join("")}</div>
