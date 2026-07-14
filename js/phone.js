@@ -22,16 +22,33 @@
   };
   const calls=[
     {id:"mom",direction:"Incoming",time:"9:18 AM",result:"Answered",date:"Today",duration:"4 minutes, 21 seconds"},
+    {id:"noelle",direction:"Incoming",time:"2:43 AM",result:"Missed",date:"Today",missed:true},
+    {id:"naomi",direction:"Incoming",time:"1:18 AM",result:"Answered",date:"Today",duration:"6 minutes, 7 seconds"},
+    {id:"noelle",direction:"Incoming",time:"12:36 AM",result:"Missed",date:"Today",missed:true},
     {id:"jimmy",direction:"Outgoing",time:"7:46 PM",result:"Answered",date:"Yesterday",duration:"2 minutes, 48 seconds"},
+    {id:"selina",direction:"Incoming",time:"2:12 AM",result:"Missed",date:"Yesterday",missed:true},
+    {id:"amber",direction:"Incoming",time:"12:48 AM",result:"Answered",date:"Yesterday",duration:"9 minutes, 31 seconds"},
+    {id:"noelle",direction:"Incoming",time:"2:26 AM",result:"Missed",date:"Jul 11",missed:true},
     {id:"twin",direction:"Incoming",time:"12:41 AM",result:"Missed",date:"Jul 11",missed:true},
     {id:"amber",direction:"Outgoing",time:"3:27 PM",result:"No Answer",date:"Jul 10"},
+    {id:"naomi",direction:"Incoming",time:"1:54 AM",result:"Missed",date:"Jul 10",missed:true},
+    {id:"noelle",direction:"Outgoing",time:"12:22 AM",result:"No Answer",date:"Jul 10"},
+    {id:"selina",direction:"Incoming",time:"2:37 AM",result:"Answered",date:"Jul 9",duration:"4 minutes, 52 seconds"},
     {id:"kalix",direction:"Outgoing",time:"11:38 PM",result:"Answered",date:"Jul 8",duration:"8 minutes, 13 seconds"},
+    {id:"noelle",direction:"Incoming",time:"2:08 AM",result:"Missed",date:"Jul 8",missed:true},
+    {id:"amber",direction:"Outgoing",time:"12:31 AM",result:"Answered",date:"Jul 8",duration:"7 minutes, 16 seconds"},
     {id:"d",direction:"Incoming",time:"1:06 PM",result:"Answered",date:"Jul 6",duration:"1 minute, 55 seconds"},
+    {id:"naomi",direction:"Incoming",time:"1:47 AM",result:"Missed",date:"Jul 6",missed:true},
     {id:"dad",direction:"Outgoing",time:"10:34 AM",result:"Answered",date:"Jul 4",duration:"5 minutes, 2 seconds"},
+    {id:"noelle",direction:"Incoming",time:"12:58 AM",result:"Answered",date:"Jul 3",duration:"12 minutes, 4 seconds"},
     {id:"yt",direction:"Incoming",time:"6:22 PM",result:"Missed",date:"Jul 1",missed:true},
+    {id:"selina",direction:"Incoming",time:"2:21 AM",result:"Missed",date:"Jun 30",missed:true},
     {id:"junior",direction:"Outgoing",time:"4:11 PM",result:"Canceled",date:"Jun 28"},
+    {id:"amber",direction:"Incoming",time:"1:33 AM",result:"Missed",date:"Jun 28",missed:true},
     {id:"naomi",direction:"Incoming",time:"2:32 PM",result:"Answered",date:"Jun 25",duration:"3 minutes, 12 seconds"},
+    {id:"noelle",direction:"Incoming",time:"2:49 AM",result:"Missed",date:"Jun 25",missed:true},
     {id:"jimmy",direction:"Incoming",time:"8:05 PM",result:"Missed",date:"Jun 21",missed:true},
+    {id:"naomi",direction:"Outgoing",time:"12:44 AM",result:"Answered",date:"Jun 20",duration:"5 minutes, 38 seconds"},
     {id:"mom",direction:"Outgoing",time:"11:24 AM",result:"Answered",date:"Jun 18",duration:"6 minutes, 17 seconds"},
     {id:"fi",direction:"Incoming",time:"4:18 PM",result:"Answered",date:"Jun 11",duration:"6 minutes, 44 seconds"},
     {id:"twin",direction:"Outgoing",time:"1:14 AM",result:"Answered",date:"Jun 7",duration:"11 minutes, 26 seconds"},
@@ -70,7 +87,7 @@
   function recentRow(call){const c=contacts[call.id],index=calls.indexOf(call),danger=call.missed||call.id==="unknown";return `<div class="recent-call ${danger?"missed":""}"><button type="button" data-contact-info="${call.id}" data-call-index="${index}">${avatar(c)}<span><strong>${esc(c.name)}</strong><small>${call.direction==="Outgoing"?"↗":"↙"} ${call.result}</small></span><time>${call.date==="Today"?call.time:call.date}</time></button><button class="call-info-button" type="button" data-contact-info="${call.id}" data-call-index="${index}" aria-label="Information for ${esc(c.name)}">ⓘ</button></div>`;}
   function recents(){const filter=localStorage.getItem(FILTER_KEY)||"all";const list=filter==="missed"?calls.filter((c)=>c.missed):calls;return shell("Recents",`<div class="phone-segment"><button class="${filter==="all"?"active":""}" data-recents-filter="all">All</button><button class="${filter==="missed"?"active":""}" data-recents-filter="missed">Missed</button></div><div class="recent-list">${list.map(recentRow).join("")}</div>`);}
   function favoriteRow(id){const c=contacts[id];return `<article class="favorite-card">${avatar(c)}<span><strong>${c.name}</strong><small>${c.label}</small></span><button type="button" data-call="${id}" aria-label="Call ${c.name}">☎</button>${c.message?`<button type="button" data-message="${c.message}" aria-label="Message ${c.name}">●</button>`:""}</article>`;}
-  function favorites(){return shell("Favorites",["ghosts","fi","amber"].map(favoriteRow).join(""));}
+  function favorites(){return shell("Favorites",["ghosts","fi","mom"].map(favoriteRow).join(""));}
   function contactsPage(){const ids=["amber","chase","d","dad","fi","ghosts","jimmy","junior","kalix","mom","naomi","noelle","selina","twin","yt"];let letter="";return shell("Contacts",ids.map((id)=>{const c=contacts[id],next=c.name[0];const heading=next!==letter?(letter=next,`<h3 class="contact-letter">${next}</h3>`):"";return `${heading}<button class="contact-row" type="button" data-contact-info="${id}">${avatar(c)}<span><strong>${c.name}</strong><small>${c.label}</small></span><b>›</b></button>`;}).join(""));}
   function formatNumber(value){const n=value.replace(/\D/g,"").slice(0,10);if(n.length>6)return`(${n.slice(0,3)}) ${n.slice(3,6)}-${n.slice(6)}`;if(n.length>3)return`(${n.slice(0,3)}) ${n.slice(3)}`;return n;}
   function keypad(){const keys=[["1",""],["2","ABC"],["3","DEF"],["4","GHI"],["5","JKL"],["6","MNO"],["7","PQRS"],["8","TUV"],["9","WXYZ"],["*",""],["0","+"],["#",""]];return shell("Keypad",`<div class="dial-display"><strong>${formatNumber(dialed)||" "}</strong><small>${dialed?"Unknown Number":"Enter a number"}</small></div><div class="phone-keypad">${keys.map(([n,l])=>`<button type="button" data-dial-key="${n}"><strong>${n}</strong><small>${l}</small></button>`).join("")}</div><div class="dial-actions"><button class="dial-delete" data-dial-delete aria-label="Delete digit">⌫</button><button class="dial-call" data-dial-call ${dialed?"":"disabled"} aria-label="Call number">☎</button><span></span></div>`);}
