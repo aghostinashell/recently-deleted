@@ -2143,6 +2143,7 @@ That keeps the complete passcode block centered vertically.
 .message-thread-row > img, .message-thread-row > .contact-initials { width: 54px; height: 54px; border-radius: 50%; object-fit: cover; }
 .contact-initials { display: grid; place-items: center; flex: 0 0 auto; background: linear-gradient(145deg,#85858a,#4c4c50); color: #fff; font-size: 25px; font-weight: 400; text-transform: uppercase; }
 .thread-unread-dot { position: absolute; left: -7px; width: 8px; height: 8px; box-shadow: none; }
+.thread-unread-dot[hidden] { display: none; }
 .thread-summary { min-width: 0; display: grid; grid-template-columns: 1fr auto; }
 .thread-summary strong { font-size: 15px; }
 .thread-summary small { color: rgba(255,255,255,.42); font-size: 11px; }
