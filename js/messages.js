@@ -91,6 +91,7 @@
     return `myphone.messages.${threadId}.read`;
   }
 
+  function unreadKey(threadId) { return `myphone.messages.${threadId}.unread`; }
   function customKey(threadId) { return `myphone.messages.${threadId}.custom`; }
   function pendingKey(threadId) { return `myphone.messages.${threadId}.pending`; }
 
@@ -126,9 +127,11 @@
     if (JSON.stringify(updated) !== JSON.stringify(stored)) localStorage.setItem(customKey(thread.threadId), JSON.stringify(updated));
     const pending = readStored(pendingKey(thread.threadId));
     const due = pending.filter((item) => item.dueAt <= Date.now());
-    if (!due.length) return;
+    if (!due.length) return false;
     localStorage.setItem(customKey(thread.threadId), JSON.stringify([...updated, ...due.map((item) => nowMessage(thread.contact.name, item.reply))]));
     localStorage.setItem(pendingKey(thread.threadId), JSON.stringify(pending.filter((item) => item.dueAt > Date.now())));
+    localStorage.setItem(unreadKey(thread.threadId), "1");
+    return true;
   }
 
   function scheduleReplies(host, thread) {
@@ -139,10 +142,13 @@
     const nextDue = Math.min(...pending.map((item) => item.dueAt), ...receiptDue);
     if (!Number.isFinite(nextDue)) return;
     const timer = window.setTimeout(() => {
-      materializeDueReplies(thread);
+      const receivedNewMessage = materializeDueReplies(thread);
       replyTimers.delete(thread.threadId);
       if (host.querySelector(`[data-thread-id="${thread.threadId}"]`)) openThread(host, thread);
-      else scheduleReplies(host, thread);
+      else {
+        if (receivedNewMessage) syncUnreadBadge();
+        scheduleReplies(host, thread);
+      }
     }, Math.max(0, nextDue - Date.now()));
     replyTimers.set(thread.threadId, timer);
   }
@@ -181,7 +187,8 @@
   }
 
   function isUnread(thread) {
-    return thread.initiallyUnread !== false && localStorage.getItem(readKey(thread.threadId)) !== "1";
+    return localStorage.getItem(unreadKey(thread.threadId)) === "1"
+      || (thread.initiallyUnread !== false && localStorage.getItem(readKey(thread.threadId)) !== "1");
   }
 
   function getThreads() {
@@ -295,7 +302,9 @@
   }
 
   function openThread(host, data) {
+    const threadMessages = messagesForThread(data);
     localStorage.setItem(readKey(data.threadId), "1");
+    localStorage.removeItem(unreadKey(data.threadId));
     syncUnreadBadge();
     host.innerHTML = `
       <section class="message-conversation" data-thread-id="${escapeHtml(data.threadId)}">
@@ -308,7 +317,7 @@
         </header>
         <div class="conversation-stream">
           ${data.systemNotice ? `<div class="message-system"><strong>${escapeHtml(data.systemNotice.title)}</strong><span>${escapeHtml(data.systemNotice.text)}</span></div>` : ""}
-          ${messagesForThread(data).map((message) => {
+          ${threadMessages.map((message) => {
             const outgoing = message.sender === "Ed" || message.sender === "You";
             if (message.type === "status") return `
               ${message.date ? `<div class="message-date">${escapeHtml(displayMessageDate(message.date))}${message.time ? ` · ${escapeHtml(message.time)}` : ""}</div>` : ""}
