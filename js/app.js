@@ -850,6 +850,7 @@ function showAppWindow(app) {
   } else if (app.id === "supply") {
     appContent.classList.add("supply-app-content");
     appContent.innerHTML = renderSupplyApp();
+    bindSupplyApp(appContent);
   } else if (app.id === "messages" && window.MyMessages) {
     appContent.classList.add("connected-app-content");
     window.MyMessages.openMessages(appContent);
@@ -910,29 +911,90 @@ function renderInstagramApp() {
 }
 
 function renderSupplyApp() {
+  const emptyShelves = Array.from({ length: 19 }, (_, index) => `
+    <article class="supply-shelf empty" aria-label="Product shelf ${String(index + 2).padStart(2, "0")}, awaiting release">
+      <span>${String(index + 2).padStart(2, "0")}</span>
+      <p>AWAITING RELEASE</p>
+    </article>`).join("");
   return `
     <section class="supply-store">
       <header class="supply-header">
-        <span>SUPPLY / 001</span>
-        <span>AVAILABLE OBJECTS</span>
+        <span>SUPPLY / 20</span>
+        <span>LIMITED OBJECTS</span>
       </header>
-      <article class="supply-product">
-        <div class="supply-product-visual" aria-hidden="true">
-          <span>S</span>
-        </div>
-        <div class="supply-product-copy">
-          <p class="supply-kicker">FIRST RELEASE</p>
-          <h2>Object 001</h2>
-          <p class="supply-description">Product details, photography, sizing and fulfillment information will live here.</p>
-          <div class="supply-inventory">
-            <span class="inventory-light"></span>
-            <strong>15 items remaining</strong>
-          </div>
-          <button class="supply-acquire" type="button">Acquire</button>
-        </div>
-      </article>
+      <div class="supply-grid">
+        <button class="supply-shelf product" type="button" data-supply-product="heavy-white-tee">
+          <img src="media/supply/every-day-experience-heavy-white-tee/main.png" alt="Every Day Experience Heavy White Tee">
+          <span><small>FOUNDER'S COLLECTION · 01</small><strong>Every Day. Experience™ Heavy White Tee</strong><b>$85</b><em>10 MADE · AVAILABILITY PENDING</em></span>
+        </button>
+        ${emptyShelves}
+      </div>
     </section>
   `;
+}
+
+function renderSupplyProduct() {
+  const details = ["Premium heavyweight 100% combed cotton", "Oversized, relaxed fit", "Structured shoulder construction", "Reinforced double-needle stitching throughout", "Ribbed crew neckline", "Soft pre-shrunk finish", "Breathable natural cotton fabric", "Designed for everyday wear"];
+  const cardDetails = ["Individual serial number", "Edition number", "Collection name", "Production date", "Ghosts In Shells authentication"];
+  const materials = ["100% Premium Combed Cotton", "Heavyweight jersey construction", "Rib-knit cotton collar", "Premium DTF printed chest graphic", "Gold rayon embroidery thread", "Matte black archival cardstock Edition Card", "Metallic gold foil stamping", "Blind embossed Ghosts In Shells authenticity mark"];
+  const care = ["Machine wash cold", "Wash inside out", "Do not bleach", "Tumble dry low or hang dry", "Do not iron directly over the printed graphic", "Iron inside out if necessary"];
+  return `
+    <article class="supply-detail">
+      <header><button type="button" data-supply-back>‹ Supply</button><span>FOUNDER'S COLLECTION · 01/20</span></header>
+      <div class="supply-gallery">
+        <img data-supply-main-image src="media/supply/every-day-experience-heavy-white-tee/main.png" alt="Every Day Experience Heavy White Tee front view">
+        <div>${[
+          ["media/supply/every-day-experience-heavy-white-tee/main.png", "Tee front view"],
+          ["media/supply/every-day-experience-heavy-white-tee/edition-detail.png", "Numbered edition detail"],
+          ["media/supply/every-day-experience-heavy-white-tee/authentication-card.png", "Authentication card"]
+        ].map(([src,alt],index)=>`<button class="${index===0?"active":""}" type="button" data-supply-image="${src}" data-supply-alt="${alt}"><img src="${src}" alt="${alt}"></button>`).join("")}</div>
+      </div>
+      <section class="supply-product-intro">
+        <p>FOUNDER'S COLLECTION</p><h2>Every Day. Experience™ Heavy White Tee</h2><strong>$85</strong>
+        <div class="supply-edition-status"><span></span><b>ONLY 10 PRODUCED</b><small>Current availability will be added by size.</small></div>
+        <p class="supply-lead">Built for everyday wear, designed to last.</p>
+        <p>The Every Day. Experience™ Heavy White Tee is constructed from premium heavyweight 100% cotton with an oversized silhouette that offers a structured drape and substantial feel. Every piece is produced in limited quantities and finished with carefully selected details that elevate it beyond a standard graphic tee.</p>
+      </section>
+      <form class="supply-order" data-supply-order>
+        <label>SELECT SIZE<select name="size" required><option value="" selected disabled>Choose a size</option><option value="SM">SM</option><option value="MD">MD</option><option value="LG">LG</option><option value="XL">XL</option><option value="XXL">XXL</option></select></label>
+        <p><span>Product</span><strong>$85.00</strong></p><p><span>Shipping</span><strong>Calculated at cost</strong></p>
+        <button type="submit" disabled>PLACE ORDER · $85</button><small data-supply-order-status aria-live="polite"></small>
+      </form>
+      <section class="supply-information"><h3>Product Details</h3><ul>${details.map(item=>`<li>${item}</li>`).join("")}</ul></section>
+      <section class="supply-information"><h3>Front Logo</h3><p>The left chest features the signature <b>Every Day. Experience</b> wordmark applied using premium <b>Direct-to-Film (DTF)</b> printing.</p><p>DTF technology produces exceptionally crisp lettering while maintaining a smooth, flexible finish that moves naturally with the garment. Unlike traditional heat-transfer vinyl, the print preserves the sharp edges and fine spacing of the logo while offering excellent durability through repeated wear and washing.</p></section>
+      <section class="supply-information"><h3>Signature Detail</h3><p>Hidden inside the lower front hem is a <b>gold embroidered edition mark</b> identifying each shirt individually.</p><p>Each Founder's Collection shirt is embroidered with its unique edition number, creating a subtle detail visible only to its owner.</p><blockquote>Edition 01/10</blockquote></section>
+      <section class="supply-information"><h3>Authentication Card</h3><p>Every shirt includes a premium Edition Card printed on ultra-thick matte black cardstock with gold foil detailing.</p><ul>${cardDetails.map(item=>`<li>${item}</li>`).join("")}</ul><p>The reverse side features the Every Day. Experience wordmark along with a blind-embossed Ghosts In Shells “X” as a discreet mark of authenticity.</p></section>
+      <section class="supply-information"><h3>Founder's Collection</h3><p>Only <b>10 pieces</b> will be produced for this inaugural release. Each shirt is individually numbered and paired with its matching Edition Card, making every garment part of the original Every Day. Experience collection.</p></section>
+      <section class="supply-information"><h3>Materials</h3><ul>${materials.map(item=>`<li>${item}</li>`).join("")}</ul></section>
+      <section class="supply-information"><h3>Care Instructions</h3><ul>${care.map(item=>`<li>${item}</li>`).join("")}</ul></section>
+      <footer><p><span>COLLECTION</span>Founder's Collection</p><p><span>EDITION</span>Individually Numbered</p><p><span>PRODUCED BY</span>Ghosts In Shells</p></footer>
+    </article>`;
+}
+
+function bindSupplyApp(host) {
+  host.querySelector("[data-supply-product]")?.addEventListener("click", () => {
+    host.innerHTML = renderSupplyProduct();
+    bindSupplyApp(host);
+    document.getElementById("appWindow").scrollTop = 0;
+  });
+  host.querySelector("[data-supply-back]")?.addEventListener("click", () => {
+    host.innerHTML = renderSupplyApp();
+    bindSupplyApp(host);
+    document.getElementById("appWindow").scrollTop = 0;
+  });
+  host.querySelectorAll("[data-supply-image]").forEach((button) => button.addEventListener("click", () => {
+    const image = host.querySelector("[data-supply-main-image]");
+    image.src = button.dataset.supplyImage;
+    image.alt = button.dataset.supplyAlt;
+    host.querySelectorAll("[data-supply-image]").forEach((item) => item.classList.toggle("active", item === button));
+  }));
+  const form = host.querySelector("[data-supply-order]");
+  form?.elements.size.addEventListener("change", () => { form.querySelector("button").disabled = !form.elements.size.value; });
+  form?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    localStorage.setItem("myphone.supply.heavy-white-tee.size", form.elements.size.value);
+    form.querySelector("[data-supply-order-status]").textContent = `Size ${form.elements.size.value} selected. Checkout will be connected when live inventory and payment are ready.`;
+  });
 }
 
 async function initializeWeather() {
