@@ -141,7 +141,7 @@
       ${campaign.body.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}
       ${campaign.sections.map((section) => `<section class="sponsored-section"><h3>${escapeHtml(section.title)}</h3>${section.price ? `<strong>${escapeHtml(section.price)}</strong>` : ""}${section.description ? `<p>${escapeHtml(section.description)}</p>` : ""}${section.items?.length ? `<ul>${section.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>` : ""}</section>`).join("")}
       <div class="sponsored-closing">${campaign.closing.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}</div>
-      ${campaign.id === "blank-tab-studios" ? `<button class="sponsored-cta" type="button" data-open-project-form>${escapeHtml(campaign.cta)}</button>` : campaign.id === "inkworks-media-group" ? `<button class="sponsored-cta" type="button" data-open-artist-form>${escapeHtml(campaign.cta)}</button>` : campaign.id === "ghosts-in-shells" ? `<button class="sponsored-cta" type="button" data-open-ghosts-form>START A PROJECT</button>` : campaign.url ? `<a class="sponsored-cta" href="${escapeHtml(campaign.url)}" target="_blank" rel="noopener noreferrer sponsored">${escapeHtml(campaign.cta)}</a>` : `<span class="sponsored-cta disabled" aria-disabled="true">${escapeHtml(campaign.cta)} · LINK COMING SOON</span>`}
+      ${campaign.id === "blank-tab-studios" ? `<button class="sponsored-cta" type="button" data-open-project-form>${escapeHtml(campaign.cta)}</button>` : campaign.id === "inkworks-media-group" ? `<button class="sponsored-cta" type="button" data-open-artist-form>${escapeHtml(campaign.cta)}</button>` : campaign.id === "ghosts-in-shells" ? `<button class="sponsored-cta" type="button" data-open-ghosts-form>START A PROJECT</button>` : campaign.id === "fi-entertainment" ? `<button class="sponsored-cta" type="button" data-open-fi-form>${escapeHtml(campaign.cta)}</button>` : campaign.url ? `<a class="sponsored-cta" href="${escapeHtml(campaign.url)}" target="_blank" rel="noopener noreferrer sponsored">${escapeHtml(campaign.cta)}</a>` : `<span class="sponsored-cta disabled" aria-disabled="true">${escapeHtml(campaign.cta)} · LINK COMING SOON</span>`}
     `;
   }
 
@@ -304,6 +304,62 @@
     document.getElementById("appWindow").scrollTop = 0;
   }
 
+  function openFiForm(host, campaign, delivery, campaigns) {
+    host.innerHTML = `
+      <article class="project-inquiry fi-inquiry">
+        <button class="mail-back" type="button" data-fi-back>‹ Back</button>
+        <header><span>Fi Entertainment</span><h2>Apply for Management</h2><p>Share your artist information and current platforms for consideration.</p></header>
+        <form data-fi-form>
+          <label>NAME<input name="name" type="text" autocomplete="name" required></label>
+          <label>ARTIST NAME<input name="artist_name" type="text" required></label>
+          <label>PHONE NUMBER<input name="phone_number" type="tel" autocomplete="tel" inputmode="tel" required></label>
+          <label>EMAIL<input name="email" type="email" autocomplete="email" required></label>
+          <label>EPK<select name="epk" required><option value="" selected disabled>Select one</option><option>Yes</option><option>No</option></select></label>
+          <label>PRO<select name="pro" required><option value="" selected disabled>Select your PRO</option><option>BMI</option><option>SESAC</option><option>ASCAP</option><option>None</option></select></label>
+          <label>INSTAGRAM LINK<input name="instagram" type="url" inputmode="url" placeholder="https://instagram.com/"></label>
+          <label>YOUTUBE LINK<input name="youtube" type="url" inputmode="url" placeholder="https://youtube.com/"></label>
+          <label>SOUNDCLOUD LINK<input name="soundcloud" type="url" inputmode="url" placeholder="https://soundcloud.com/"></label>
+          <label>SPOTIFY LINK<input name="spotify" type="url" inputmode="url" placeholder="https://open.spotify.com/"></label>
+          <input class="project-honeypot" name="_honey" type="text" tabindex="-1" autocomplete="off">
+          <input name="_subject" type="hidden" value="New Fi Entertainment management application">
+          <input name="_cc" type="hidden" value="d.wright@ghostsinshells.com">
+          <input name="_template" type="hidden" value="table">
+          <p class="project-privacy">By submitting, you agree that Fi Entertainment may use this information to review your application and contact you about potential management opportunities.</p>
+          <button class="project-submit" type="submit">SEND APPLICATION</button>
+          <p class="project-form-status" data-fi-status aria-live="polite"></p>
+        </form>
+      </article>`;
+
+    host.querySelector("[data-fi-back]").addEventListener("click", () => openEmail(host, campaign, delivery, campaigns));
+    host.querySelector("[data-fi-form]").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const button = form.querySelector(".project-submit");
+      const status = form.querySelector("[data-fi-status]");
+      button.disabled = true;
+      button.textContent = "SENDING…";
+      status.textContent = "";
+      try {
+        const payload = Object.fromEntries(new FormData(form).entries());
+        const response = await fetch("https://formsubmit.co/ajax/fi.ent@outlook.com", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (!response.ok) throw new Error("Submission failed");
+        form.reset();
+        form.classList.add("submitted");
+        status.textContent = "Your management application has been received. We’ll be in touch if it’s a fit.";
+        button.textContent = "APPLICATION SENT";
+      } catch {
+        status.textContent = "We couldn’t send your application. Please try again.";
+        button.disabled = false;
+        button.textContent = "SEND APPLICATION";
+      }
+    });
+    document.getElementById("appWindow").scrollTop = 0;
+  }
+
   function deliveryTime(delivery) {
     const date = new Date(delivery.deliveredAt);
     return Number.isNaN(date.getTime()) ? "Now" : date.toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
@@ -322,6 +378,7 @@
     host.querySelector("[data-open-project-form]")?.addEventListener("click", () => openProjectForm(host, campaign, delivery, campaigns));
     host.querySelector("[data-open-artist-form]")?.addEventListener("click", () => openArtistForm(host, campaign, delivery, campaigns));
     host.querySelector("[data-open-ghosts-form]")?.addEventListener("click", () => openGhostsForm(host, campaign, delivery, campaigns));
+    host.querySelector("[data-open-fi-form]")?.addEventListener("click", () => openFiForm(host, campaign, delivery, campaigns));
     document.getElementById("appWindow").scrollTop = 0;
   }
 
