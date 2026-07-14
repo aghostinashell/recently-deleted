@@ -1,6 +1,30 @@
 {
   "campaigns": [
     {
+      "id": "recently-deleted-streaming",
+      "tier": "Premium",
+      "sender": "Ed X",
+      "subject": "Recently Deleted — Now Streaming",
+      "preview": "Stream Recently Deleted now in the myPhone Music app and on your favorite platform.",
+      "label": "Release",
+      "headline": "RECENTLY DELETED. NOW STREAMING.",
+      "cta": "OPEN THE MUSIC APP",
+      "url": null,
+      "body": [
+        "Recently Deleted is available now.",
+        "Open the myPhone Music app to step inside the album and stream the full project without leaving this experience.",
+        "You can also listen on Apple Music, Spotify, YouTube, and Amazon Music."
+      ],
+      "sections": [],
+      "closing": ["THE ALBUM IS LIVE.", "PRESS PLAY WHEN YOU’RE READY."],
+      "streaming": {
+        "appleMusic": null,
+        "spotify": null,
+        "youtube": null,
+        "amazonMusic": null
+      }
+    },
+    {
       "id": "blank-tab-studios",
       "tier": "Premium",
       "sender": "Blank Tab Studios",

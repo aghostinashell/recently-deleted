@@ -6,6 +6,7 @@
   const UNREAD_KEY = "myphone.mail.unread.v2";
   const SENT_KEY = "myphone.mail.sent.v1";
   const FIRST_CAMPAIGN_ID = "blank-tab-studios";
+  const STREAMING_CAMPAIGN_ID = "recently-deleted-streaming";
   const TIER_WEIGHTS = { Premium: 6, Standard: 3, Basic: 1 };
   let campaignsPromise = null;
   let timer = null;
@@ -112,6 +113,26 @@
     schedule(remainingDelay);
   }
 
+  async function deliverStreamingCampaign() {
+    const deliveries = readList(DELIVERED_KEY);
+    if (deliveries.some((delivery) => delivery.campaignId === STREAMING_CAMPAIGN_ID)) return;
+    let campaigns = [];
+    try { campaigns = await getCampaigns(); } catch { return; }
+    const campaign = campaigns.find((item) => item.id === STREAMING_CAMPAIGN_ID);
+    if (!campaign) return;
+    const delivery = {
+      id: `${campaign.id}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      campaignId: campaign.id,
+      deliveredAt: new Date().toISOString()
+    };
+    writeList(DELIVERED_KEY, [...readList(DELIVERED_KEY), delivery]);
+    writeList(UNREAD_KEY, [...readList(UNREAD_KEY), delivery.id]);
+    syncUnreadBadge();
+    showNotification(campaign, delivery);
+    const openMailHost = document.getElementById("appContent");
+    if (openMailHost?.classList.contains("mail-app-content") && openMailHost.querySelector(".mail-inbox")) renderInbox(openMailHost, campaigns);
+  }
+
   function showNotification(campaign, delivery) {
     if (localStorage.getItem("myphone.settings.notifications") === "0") return;
     let banner = document.getElementById("mailNotificationBanner");
@@ -144,7 +165,7 @@
       ${campaign.body.map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`).join("")}
       ${campaign.sections.map((section) => `<section class="sponsored-section"><h3>${escapeHtml(section.title)}</h3>${section.price ? `<strong>${escapeHtml(section.price)}</strong>` : ""}${section.description ? `<p>${escapeHtml(section.description)}</p>` : ""}${section.items?.length ? `<ul>${section.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>` : ""}</section>`).join("")}
       <div class="sponsored-closing">${campaign.closing.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}</div>
-      ${campaign.id === "blank-tab-studios" ? `<button class="sponsored-cta" type="button" data-open-project-form>${escapeHtml(campaign.cta)}</button>` : campaign.id === "inkworks-media-group" ? `<button class="sponsored-cta" type="button" data-open-artist-form>${escapeHtml(campaign.cta)}</button>` : campaign.id === "ghosts-in-shells" ? `<button class="sponsored-cta" type="button" data-open-ghosts-form>START A PROJECT</button>` : campaign.id === "fi-entertainment" ? `<button class="sponsored-cta" type="button" data-open-fi-form>${escapeHtml(campaign.cta)}</button>` : campaign.url ? `<a class="sponsored-cta" href="${escapeHtml(campaign.url)}" target="_blank" rel="noopener noreferrer sponsored">${escapeHtml(campaign.cta)}</a>` : `<span class="sponsored-cta disabled" aria-disabled="true">${escapeHtml(campaign.cta)} · LINK COMING SOON</span>`}
+      ${campaign.id === STREAMING_CAMPAIGN_ID ? `<div class="streaming-actions"><button class="sponsored-cta" type="button" data-open-music-app>${escapeHtml(campaign.cta)}</button>${[["Apple Music",campaign.streaming?.appleMusic],["Spotify",campaign.streaming?.spotify],["YouTube",campaign.streaming?.youtube],["Amazon Music",campaign.streaming?.amazonMusic]].map(([name,url])=>url?`<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(name)}</a>`:`<span>${escapeHtml(name)}<small>LINK COMING SOON</small></span>`).join("")}</div>` : campaign.id === "blank-tab-studios" ? `<button class="sponsored-cta" type="button" data-open-project-form>${escapeHtml(campaign.cta)}</button>` : campaign.id === "inkworks-media-group" ? `<button class="sponsored-cta" type="button" data-open-artist-form>${escapeHtml(campaign.cta)}</button>` : campaign.id === "ghosts-in-shells" ? `<button class="sponsored-cta" type="button" data-open-ghosts-form>START A PROJECT</button>` : campaign.id === "fi-entertainment" ? `<button class="sponsored-cta" type="button" data-open-fi-form>${escapeHtml(campaign.cta)}</button>` : campaign.url ? `<a class="sponsored-cta" href="${escapeHtml(campaign.url)}" target="_blank" rel="noopener noreferrer sponsored">${escapeHtml(campaign.cta)}</a>` : `<span class="sponsored-cta disabled" aria-disabled="true">${escapeHtml(campaign.cta)} · LINK COMING SOON</span>`}
     `;
   }
 
@@ -382,6 +403,7 @@
     host.querySelector("[data-open-artist-form]")?.addEventListener("click", () => openArtistForm(host, campaign, delivery, campaigns));
     host.querySelector("[data-open-ghosts-form]")?.addEventListener("click", () => openGhostsForm(host, campaign, delivery, campaigns));
     host.querySelector("[data-open-fi-form]")?.addEventListener("click", () => openFiForm(host, campaign, delivery, campaigns));
+    host.querySelector("[data-open-music-app]")?.addEventListener("click", () => document.querySelector('[data-app-id="music"]')?.click());
     document.getElementById("appWindow").scrollTop = 0;
   }
 
@@ -477,6 +499,7 @@
 
   function initialize() {
     syncUnreadBadge();
+    window.setTimeout(deliverStreamingCampaign, 5000);
     schedule(45000);
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) pauseTimer();
