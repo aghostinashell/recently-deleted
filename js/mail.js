@@ -5,6 +5,15 @@
   const DELIVERED_KEY = "myphone.mail.deliveries.v2";
   const UNREAD_KEY = "myphone.mail.unread.v2";
   const SENT_KEY = "myphone.mail.sent.v1";
+  const ORDER_KEY = "myphone.supply.orders.v1";
+  const DESKTOP_NOTIFICATION_KEY = "myphone.settings.desktop-notifications";
+  const PREMIUM_PROTECTION_MS = 7 * 24 * 60 * 60 * 1000;
+  const ORDER_STAGES = [
+    ["confirmation", 0],
+    ["shipping", 2 * 60 * 1000],
+    ["delivered", 5 * 60 * 1000],
+    ["followup", 8 * 60 * 1000]
+  ];
   const FIRST_CAMPAIGN_ID = "blank-tab-studios";
   const STREAMING_CAMPAIGN_ID = "recently-deleted-streaming";
   const TIER_WEIGHTS = { Premium: 6, Standard: 3, Basic: 1 };
@@ -29,6 +38,27 @@
 
   function writeList(key, value) {
     localStorage.setItem(key, JSON.stringify(value));
+  }
+
+  function orderEmail(delivery) {
+    const order = readList(ORDER_KEY).find((item) => item.id === delivery.orderId);
+    if (!order) return null;
+    const copy = {
+      confirmation: ["We've got your order.", "Your order has been received and is now being prepared by our fulfillment team."],
+      shipping: ["Your Ghost Supply order is on the way.", "Your order has been packaged and handed off to the carrier."],
+      delivered: ["Your package has arrived.", "According to the carrier, your Ghost Supply order was successfully delivered today."],
+      followup: ["How did we do?", "It's been a few days since your order was delivered, and I just wanted to check in."]
+    }[delivery.stage];
+    return copy ? { id: `order-${delivery.stage}`, sender: "Tracey", subject: copy[0], preview: copy[1], tier: "Basic", order, stage: delivery.stage } : null;
+  }
+
+  function mailForDelivery(delivery, campaigns) {
+    return delivery.type === "order" ? orderEmail(delivery) : campaigns.find((item) => item.id === delivery.campaignId);
+  }
+
+  function showDesktopNotification(mail, delivery) {
+    if (localStorage.getItem(DESKTOP_NOTIFICATION_KEY) !== "1" || !("Notification" in window) || Notification.permission !== "granted") return;
+    new Notification(mail.subject, { body: mail.preview, tag: delivery.id });
   }
 
   async function getCampaigns() {
@@ -142,9 +172,33 @@
       banner.className = "mail-notification-banner";
       banner.type = "button";
       document.getElementById("device")?.appendChild(banner);
+      let startY = 0;
+      let offsetY = 0;
+      let moved = false;
+      banner.addEventListener("pointerdown", (event) => {
+        startY = event.clientY; offsetY = 0; moved = false;
+        banner.setPointerCapture(event.pointerId);
+        banner.classList.add("dragging");
+      });
+      banner.addEventListener("pointermove", (event) => {
+        if (!banner.hasPointerCapture(event.pointerId)) return;
+        offsetY = Math.min(0, event.clientY - startY);
+        moved = moved || Math.abs(offsetY) > 6;
+        banner.style.transform = `translateY(${offsetY}px)`;
+        banner.style.opacity = String(Math.max(.15, 1 - Math.abs(offsetY) / 120));
+      });
+      banner.addEventListener("pointerup", (event) => {
+        banner.releasePointerCapture(event.pointerId);
+        banner.classList.remove("dragging");
+        banner.style.transform = ""; banner.style.opacity = "";
+        if (offsetY < -42) {
+          banner.classList.add("leaving"); banner.classList.remove("visible");
+        } else if (!moved) openFromNotification(banner.dataset.deliveryId);
+      });
     }
     banner.innerHTML = `<span class="mail-notification-icon">✉</span><span><small>MAIL · NOW</small><strong>${escapeHtml(campaign.subject)}</strong><p>${escapeHtml(campaign.preview)}</p></span>`;
-    banner.onclick = () => openFromNotification(delivery.id);
+    banner.dataset.deliveryId = delivery.id;
+    banner.onclick = null;
     banner.classList.remove("visible", "leaving");
     void banner.offsetWidth;
     banner.classList.add("visible");
@@ -152,6 +206,7 @@
       banner.classList.add("leaving");
       banner.classList.remove("visible");
     }, 6500);
+    showDesktopNotification(campaign, delivery);
   }
 
   function openFromNotification(deliveryId) {
@@ -433,19 +488,61 @@
     document.getElementById("appWindow").scrollTop = 0;
   }
 
+  function openOrderEmail(host, mail, delivery, campaigns) {
+    const order = mail.order;
+    const first = escapeHtml(order.firstName || "there");
+    const facts = (rows) => `<div class="order-email-facts">${rows.map(([label,value]) => `<p><b>${label}</b><span>${escapeHtml(value)}</span></p>`).join("")}</div>`;
+    let body = "";
+    if (mail.stage === "confirmation") body = `<p>Hey, ${first},</p><p>Thanks for shopping with Ghost Supply.</p><p>Your order has been received and is now being prepared by our fulfillment team. We'll send another email as soon as your package is on the way with tracking information so you can follow every step of the delivery.</p>${facts([["Order Number",order.id],["Order Date",new Date(order.createdAt).toLocaleDateString()],["Payment Method",order.paymentMethod],["Shipping To",`${order.firstName}\n${order.shippingAddress}`]])}<p>If you need to make changes before your order ships, simply reply to this email and we'll do our best to help.</p><p>Thank you for supporting Ghost Supply.</p>`;
+    if (mail.stage === "shipping") body = `<p>Hey, ${first},</p><p>Good news.</p><p>Your order has been packaged and handed off to the carrier.</p>${facts([["Tracking Number",order.trackingNumber],["Carrier",order.carrier],["Estimated Delivery",order.estimatedDelivery]])}<p>Track your shipment anytime:</p><p>${escapeHtml(order.trackingLink)}</p><p>We'll continue working behind the scenes to make sure everything arrives safely.</p><p>Thanks again for choosing Ghost Supply.</p>`;
+    if (mail.stage === "delivered") body = `<p>Hey, ${first},</p><p>According to the carrier, your Ghost Supply order was successfully delivered today.</p><p>We hope everything arrived safely and exactly as expected.</p><p>If you have any questions about your order or notice an issue with your delivery, just reply to this email and we'll be happy to help.</p><p>Thank you for supporting Ghost Supply.</p><p>Enjoy your gear.</p>`;
+    if (mail.stage === "followup") body = `<p>Hey, ${first},</p><p>It's been a few days since your order was delivered, and I just wanted to check in.</p><p>Hopefully you're enjoying everything you received.</p><p>If there's anything we can improve, or if you have questions about your order, simply reply to this email. We read every message and appreciate your feedback.</p><p>If you loved your experience, we'd also appreciate you sharing your thoughts with the community.</p><p>Thank you for supporting Ghost Supply. We truly appreciate every order.</p><p>See you again soon.</p>`;
+    host.innerHTML = `<article class="sponsored-email order-email"><button class="mail-back" type="button" data-mail-back>‹ Inbox</button><header><span class="sponsored-sender-mark">GS</span><div><strong>Tracey</strong><small>Operations Manager · Ghost Supply</small></div></header><h1>${escapeHtml(mail.subject)}</h1><div class="sponsored-copy">${body}<div class="sponsored-closing"><p>— Tracey</p><p>Operations Manager</p><p>Ghost Supply</p></div></div></article>`;
+    writeList(UNREAD_KEY, readList(UNREAD_KEY).filter((id) => id !== delivery.id));
+    syncUnreadBadge();
+    host.querySelector("[data-mail-back]").addEventListener("click", () => renderInbox(host, campaigns));
+    document.getElementById("appWindow").scrollTop = 0;
+  }
+
+  function processOrderMail() {
+    const orders = readList(ORDER_KEY);
+    if (!orders.length) return;
+    let deliveries = readList(DELIVERED_KEY);
+    orders.forEach((order) => ORDER_STAGES.forEach(([stage, delay]) => {
+      if (Date.now() < new Date(order.createdAt).getTime() + delay || deliveries.some((item) => item.type === "order" && item.orderId === order.id && item.stage === stage)) return;
+      const delivery = { id: `order-${order.id}-${stage}`, type: "order", orderId: order.id, stage, deliveredAt: new Date().toISOString() };
+      deliveries.push(delivery);
+      writeList(UNREAD_KEY, [...readList(UNREAD_KEY), delivery.id]);
+      const mail = orderEmail(delivery);
+      if (mail) showNotification(mail, delivery);
+    }));
+    writeList(DELIVERED_KEY, deliveries);
+    syncUnreadBadge();
+  }
+
+  function createSupplyOrder(order) {
+    const deliveryDate = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    const saved = { ...order, carrier: "Ghost Supply Ground", trackingNumber: `GSX${Date.now().toString().slice(-9)}`, estimatedDelivery: deliveryDate, trackingLink: "Tracking available inside myPhone Mail" };
+    writeList(ORDER_KEY, [...readList(ORDER_KEY), saved]);
+    processOrderMail();
+    const host = document.getElementById("appContent");
+    if (host?.querySelector(".mail-inbox")) getCampaigns().then((campaigns) => renderInbox(host, campaigns));
+  }
+
   function renderInbox(host, campaigns) {
     const deliveries = readList(DELIVERED_KEY);
     const unread = readList(UNREAD_KEY);
-    const inbox = deliveries.map((delivery) => ({ delivery, campaign: campaigns.find((campaign) => campaign.id === delivery.campaignId) })).filter((item) => item.campaign).reverse();
+    const inbox = deliveries.map((delivery) => ({ delivery, campaign: mailForDelivery(delivery, campaigns) })).filter((item) => item.campaign).reverse();
     host.innerHTML = `
       <section class="mail-inbox ${editMode ? "editing" : ""}">
         <header><button type="button" data-mail-edit>${editMode ? "Done" : "Edit"}</button><h2>Inbox</h2><button type="button" data-mail-compose-new aria-label="Compose new message">□</button></header>
         <div class="mail-inbox-list">${inbox.length ? inbox.map(({ campaign, delivery }) => {
           const premium = campaign.tier === "Premium";
+          const protectedPremium = premium && Date.now() - new Date(delivery.deliveredAt).getTime() < PREMIUM_PROTECTION_MS;
           const selected = selectedDeliveryIds.has(delivery.id);
-          return `<div class="mail-row-wrap ${premium ? "premium" : ""} ${selected ? "selected" : ""}">${editMode ? `<button class="mail-select" type="button" ${premium ? "disabled" : `data-select-delivery="${escapeHtml(delivery.id)}"`} aria-label="${premium ? "Favorite mail cannot be deleted" : `Select email from ${escapeHtml(campaign.sender)}`}">${premium ? "★" : selected ? "✓" : ""}</button>` : ""}<button class="mail-row ${unread.includes(delivery.id) ? "unread" : ""}" type="button" ${editMode && !premium ? `data-select-delivery="${escapeHtml(delivery.id)}"` : `data-delivery-id="${escapeHtml(delivery.id)}"`}><i></i><span><strong>${premium ? `<b class="mail-favorite-star" aria-label="Favorite">★</b>` : ""}${escapeHtml(campaign.sender)}</strong><time>${escapeHtml(deliveryTime(delivery))}</time><b>${escapeHtml(campaign.subject)}</b><p>${escapeHtml(campaign.preview)}</p></span><em>${editMode ? premium ? "★" : "" : "›"}</em></button></div>`;
+          return `<div class="mail-row-wrap ${premium ? "premium" : ""} ${selected ? "selected" : ""}">${editMode ? `<button class="mail-select" type="button" ${protectedPremium ? "disabled" : `data-select-delivery="${escapeHtml(delivery.id)}"`} aria-label="${protectedPremium ? "Premium mail is protected for seven days" : `Select email from ${escapeHtml(campaign.sender)}`}">${protectedPremium ? "★" : selected ? "✓" : ""}</button>` : ""}<button class="mail-row ${unread.includes(delivery.id) ? "unread" : ""}" type="button" ${editMode && !protectedPremium ? `data-select-delivery="${escapeHtml(delivery.id)}"` : `data-delivery-id="${escapeHtml(delivery.id)}"`}><i></i><span><strong>${premium ? `<b class="mail-favorite-star" aria-label="Favorite">★</b>` : ""}${escapeHtml(campaign.sender)}</strong><time>${escapeHtml(deliveryTime(delivery))}</time><b>${escapeHtml(campaign.subject)}</b><p>${escapeHtml(campaign.preview)}</p></span><em>${editMode ? protectedPremium ? "★" : "" : "›"}</em></button></div>`;
         }).join("") : `<p class="empty-state">No mail yet.<br>New messages arrive while you explore.</p>`}</div>
-        ${editMode ? `<div class="mail-edit-toolbar"><button type="button" data-delete-mail ${selectedDeliveryIds.size ? "" : "disabled"}>Delete${selectedDeliveryIds.size ? ` (${selectedDeliveryIds.size})` : ""}</button><small>Favorite mail cannot be removed.</small></div>` : ""}
+        ${editMode ? `<div class="mail-edit-toolbar"><button type="button" data-delete-mail ${selectedDeliveryIds.size ? "" : "disabled"}>Delete${selectedDeliveryIds.size ? ` (${selectedDeliveryIds.size})` : ""}</button><small>Premium mail is protected for seven days.</small></div>` : ""}
       </section>`;
     host.querySelector("[data-mail-edit]").addEventListener("click", () => {
       editMode = !editMode;
@@ -468,8 +565,9 @@
     });
     host.querySelectorAll("[data-delivery-id]").forEach((button) => button.addEventListener("click", () => {
       const delivery = deliveries.find((item) => item.id === button.dataset.deliveryId);
-      const campaign = campaigns.find((item) => item.id === delivery?.campaignId);
-      if (campaign && delivery) openEmail(host, campaign, delivery, campaigns);
+      const campaign = delivery && mailForDelivery(delivery, campaigns);
+      if (campaign?.order && delivery) openOrderEmail(host, campaign, delivery, campaigns);
+      else if (campaign && delivery) openEmail(host, campaign, delivery, campaigns);
     }));
   }
 
@@ -481,7 +579,8 @@
       pendingCampaignId = null;
       if (requestedDeliveryId) {
         const delivery = readList(DELIVERED_KEY).find((item) => item.id === requestedDeliveryId);
-        const campaign = campaigns.find((item) => item.id === delivery?.campaignId);
+        const campaign = delivery && mailForDelivery(delivery, campaigns);
+        if (campaign?.order && delivery) return openOrderEmail(host, campaign, delivery, campaigns);
         if (campaign && delivery) return openEmail(host, campaign, delivery, campaigns);
       }
       renderInbox(host, campaigns);
@@ -499,6 +598,8 @@
 
   function initialize() {
     syncUnreadBadge();
+    processOrderMail();
+    window.setInterval(processOrderMail, 30000);
     window.setTimeout(deliverStreamingCampaign, 5000);
     schedule(45000);
     document.addEventListener("visibilitychange", () => {
@@ -507,5 +608,5 @@
     });
   }
 
-  window.MyMail = { initialize, openInbox, openCampaign, syncUnreadBadge };
+  window.MyMail = { initialize, openInbox, openCampaign, syncUnreadBadge, createSupplyOrder };
 })();

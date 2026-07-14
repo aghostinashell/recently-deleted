@@ -957,8 +957,13 @@ function renderSupplyProduct() {
       </section>
       <form class="supply-order" data-supply-order>
         <label>SELECT SIZE<select name="size" required><option value="" selected disabled>Choose a size</option><option value="SM">SM</option><option value="MD">MD</option><option value="LG">LG</option><option value="XL">XL</option><option value="XXL">XXL</option></select></label>
+        <label>FIRST NAME<input name="first_name" type="text" autocomplete="given-name" required></label>
+        <label>EMAIL<input name="email" type="email" autocomplete="email" required></label>
+        <label>SHIPPING ADDRESS<textarea name="shipping_address" rows="3" autocomplete="street-address" required></textarea></label>
+        <label>PAYMENT METHOD<select name="payment_method" required><option value="" selected disabled>Select a method</option><option>Apple Pay</option><option>Credit or Debit Card</option><option>PayPal</option></select></label>
+        <label class="supply-desktop-alert"><input name="desktop_updates" type="checkbox"> Enable desktop order updates</label>
         <p><span>Product</span><strong>$85.00</strong></p><p><span>Shipping</span><strong>Calculated at cost</strong></p>
-        <button type="submit" disabled>PLACE ORDER · $85</button><small data-supply-order-status aria-live="polite"></small>
+        <button type="submit">PLACE ORDER · $85</button><small data-supply-order-status aria-live="polite"></small>
       </form>
       <section class="supply-information"><h3>Product Details</h3><ul>${details.map(item=>`<li>${item}</li>`).join("")}</ul></section>
       <section class="supply-information"><h3>Front Logo</h3><p>The left chest features the signature <b>Every Day. Experience</b> wordmark applied using premium <b>Direct-to-Film (DTF)</b> printing.</p><p>DTF technology produces exceptionally crisp lettering while maintaining a smooth, flexible finish that moves naturally with the garment. Unlike traditional heat-transfer vinyl, the print preserves the sharp edges and fine spacing of the logo while offering excellent durability through repeated wear and washing.</p></section>
@@ -989,11 +994,28 @@ function bindSupplyApp(host) {
     host.querySelectorAll("[data-supply-image]").forEach((item) => item.classList.toggle("active", item === button));
   }));
   const form = host.querySelector("[data-supply-order]");
-  form?.elements.size.addEventListener("change", () => { form.querySelector("button").disabled = !form.elements.size.value; });
   form?.addEventListener("submit", (event) => {
     event.preventDefault();
-    localStorage.setItem("myphone.supply.heavy-white-tee.size", form.elements.size.value);
-    form.querySelector("[data-supply-order-status]").textContent = `Size ${form.elements.size.value} selected. Checkout will be connected when live inventory and payment are ready.`;
+    const order = {
+      id: `GS-${Date.now().toString(36).toUpperCase()}`,
+      createdAt: new Date().toISOString(),
+      firstName: form.elements.first_name.value.trim(),
+      email: form.elements.email.value.trim(),
+      shippingAddress: form.elements.shipping_address.value.trim(),
+      paymentMethod: form.elements.payment_method.value,
+      size: form.elements.size.value,
+      product: "Every Day. Experience™ Heavy White Tee",
+      total: "$85.00 + shipping"
+    };
+    if (form.elements.desktop_updates.checked && "Notification" in window) {
+      Notification.requestPermission().then((permission) => {
+        localStorage.setItem("myphone.settings.desktop-notifications", permission === "granted" ? "1" : "0");
+      });
+    }
+    window.MyMail?.createSupplyOrder(order);
+    localStorage.setItem("myphone.supply.heavy-white-tee.size", order.size);
+    form.querySelector("[data-supply-order-status]").textContent = `Order ${order.id} received. Check Mail for confirmation and updates from Tracey.`;
+    form.querySelector("button[type=submit]").disabled = true;
   });
 }
 
@@ -1172,43 +1194,9 @@ function updateDateAndTime() {
 }
 
 async function initializeBattery() {
-  if (
-    typeof navigator.getBattery !== "function"
-  ) {
-    updateBatteryDisplay(33, false, false);
-    return;
-  }
-
-  try {
-    const battery =
-      await navigator.getBattery();
-
-    const refreshBattery = () => {
-      const percentage = Math.round(
-        battery.level * 100
-      );
-
-      updateBatteryDisplay(
-        percentage,
-        true,
-        battery.charging
-      );
-    };
-
-    refreshBattery();
-
-    battery.addEventListener(
-      "levelchange",
-      refreshBattery
-    );
-
-    battery.addEventListener(
-      "chargingchange",
-      refreshBattery
-    );
-  } catch (error) {
-    updateBatteryDisplay(33, false, false);
-  }
+  localStorage.setItem("myphone.settings.low-power", "1");
+  document.getElementById("device")?.classList.add("low-power-mode");
+  updateBatteryDisplay(19, true, false);
 }
 
 function updateBatteryDisplay(

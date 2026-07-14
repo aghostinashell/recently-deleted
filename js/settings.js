@@ -6,11 +6,12 @@
     reduceMotion: "myphone.settings.reduce-motion",
     lowPower: "myphone.settings.low-power",
     notifications: "myphone.settings.notifications",
-    sounds: "myphone.settings.sounds"
+    sounds: "myphone.settings.sounds",
+    desktopNotifications: "myphone.settings.desktop-notifications"
   };
-  const defaults = { brightness: "100", reduceMotion: "0", lowPower: "0", notifications: "1", sounds: "1" };
+  const defaults = { brightness: "100", reduceMotion: "0", lowPower: "1", notifications: "1", sounds: "1", desktopNotifications: "0" };
   let host = null;
-  let battery = { level: 33, charging: false, supported: false };
+  let battery = { level: 19, charging: false, supported: true };
 
   const value = (name) => localStorage.getItem(KEYS[name]) ?? defaults[name];
   const enabled = (name) => value(name) === "1";
@@ -21,7 +22,8 @@
     if (!device) return;
     device.style.filter = `brightness(${Math.max(35, Number(value("brightness")) || 100)}%)`;
     device.classList.toggle("reduce-motion", enabled("reduceMotion"));
-    device.classList.toggle("low-power-mode", enabled("lowPower"));
+    localStorage.setItem(KEYS.lowPower, "1");
+    device.classList.add("low-power-mode");
     window.MyMessages?.syncUnreadBadge();
     window.MyMail?.syncUnreadBadge();
     window.MyPhone?.syncBadge();
@@ -53,11 +55,11 @@
   function appearancePage() { return `<section class="settings-screen">${header("Appearance", "Display and visual preferences")}
     ${group(`<div class="dark-preview"><div><span>1:59</span><b>×</b></div><p><strong>Dark Mode</strong><small>Always On</small><em>Locked</em></p></div><p class="settings-note inside">Dark Mode cannot be disabled on this device.</p>`, "DARK MODE")}
     ${group(`<label class="brightness-control"><span>Brightness</span><output>${value("brightness")}%</output><input type="range" min="35" max="100" value="${value("brightness")}" data-brightness></label>`, "BRIGHTNESS")}
-    ${group(toggle("reduceMotion", "Reduce Motion", "Limit movement and transition effects.") + toggle("lowPower", "Low Power Mode", "Reduce background effects and activity."))}
+    ${group(toggle("reduceMotion", "Reduce Motion", "Limit movement and transition effects.") + infoRow("Low Power Mode", "On · Locked"))}
     </section>`; }
   function notificationsPage() {
     const state = enabled("notifications") ? { messages: "Banners, Badges", mail: "Banners, Badges" } : { messages: "Off", mail: "Off" };
-    return `<section class="settings-screen">${header("Notifications", "Control alerts inside myPhone")}${group(toggle("notifications", "Allow Notifications", "Show Messages and Mail alerts."))}${group(infoRow("Messages", state.messages)+infoRow("Mail",state.mail)+infoRow("Music","Lock Screen")+infoRow("Weather","Current City")+infoRow("Supply","Off"),"NOTIFICATION STYLE")}${group(toggle("sounds","System Sounds","Allow interface and notification sounds."),"SYSTEM SOUNDS")}</section>`;
+    return `<section class="settings-screen">${header("Notifications", "Control alerts inside myPhone")}${group(toggle("notifications", "Allow Notifications", "Show Messages and Mail alerts.")+toggle("desktopNotifications", "Desktop Order Updates", "Show Ghost Supply updates outside myPhone."))}${group(infoRow("Messages", state.messages)+infoRow("Mail",state.mail)+infoRow("Music","Lock Screen")+infoRow("Weather","Current City")+infoRow("Supply",enabled("desktopNotifications")?"Banners":"Mail Only"),"NOTIFICATION STYLE")}${group(toggle("sounds","System Sounds","Allow interface and notification sounds."),"SYSTEM SOUNDS")}</section>`;
   }
 
   function privacyPage() { return `<section class="settings-screen">${header("Privacy & Security", "Security and data stored by myPhone")}
@@ -75,7 +77,7 @@
     ${group(infoRow("Music","45.8 MB")+infoRow("Photos","12.4 MB")+infoRow("Messages",`${messages} local records`)+infoRow("Mail","Campaign Data")+infoRow("Maps",`${maps} local records`)+infoRow("myOS","System"))}
     <div class="album-storage-card"><span class="settings-x-avatar">×</span><div><strong>Recently Deleted</strong><small>Saint Ed X<br>12 songs · ${plays} saved play-count records</small></div><button type="button" data-settings-page="album-remove">Remove</button></div></section>`; }
 
-  function batteryPage() { return `<section class="settings-screen">${header("Battery")}<div class="battery-settings-hero"><div><strong>${battery.level}%</strong></div><p><b>${battery.charging ? "Charging" : "Battery Level"}</b><span>${battery.supported ? "Connected to your device battery." : "Browser battery access is unavailable. Battery level is estimated."}</span></p></div>${group(toggle("lowPower","Low Power Mode","Reduce background effects and activity."))}${group(infoRow("Maximum Capacity","87%")+infoRow("Peak Performance","Normal")+infoRow("Optimized Charging","On"),"BATTERY HEALTH")}<div class="privacy-card"><strong>Peak Performance Capability</strong><p>This myPhone currently supports normal peak performance.</p></div></section>`; }
+  function batteryPage() { return `<section class="settings-screen">${header("Battery")}<div class="battery-settings-hero"><div><strong>19%</strong></div><p><b>Low Power Mode Active</b><span>This story phone remains at 19%.</span></p></div>${group(infoRow("Low Power Mode","On · Locked"))}${group(infoRow("Maximum Capacity","87%")+infoRow("Peak Performance","Normal")+infoRow("Optimized Charging","On"),"BATTERY HEALTH")}<div class="privacy-card"><strong>Peak Performance Capability</strong><p>This myPhone currently supports normal peak performance.</p></div></section>`; }
   function creditsPage() { const credits=[["Artist","Saint Ed X"],["Written By","D. Wright"],["Executive Producer","D. Wright"],["Producer","Ed Xachari"],["Production Company","Ghosts In Shells"],["Record Label","Inkworks Media Group"],["Creative Direction","D. Wright"],["myPhone Development","Ghosts In Shells"]]; return `<section class="settings-screen">${header("Credits","Recently Deleted")}<div class="credits-hero"><span class="settings-x-avatar">×</span><strong>Recently Deleted</strong><small>Saint Ed X</small></div>${group(credits.map((item)=>infoRow(...item)).join(""))}<p class="settings-rights">Created independently. All original music, artwork, recordings and story content are owned or used with permission by their respective rights holders.<br><br>© 2026 Ghosts In Shells.<br>All rights reserved.</p></section>`; }
   function updatePage() { return `<section class="settings-screen">${header("Software Update","Automatic Updates: On")}<div class="update-hero"><strong>myOS 1.0</strong><span>Recently Deleted</span><p>This update introduces the complete Recently Deleted listening experience, expanded Messages, lyrics in Notes, shared locations, sponsored Mail and system performance improvements.</p></div><div class="update-status"><b>✓</b><span><strong>myOS is up to date</strong><small>Installed successfully</small></span></div>${group(["Recently Deleted — 12-track album","Interactive Messages and automated replies","Lyrics and track notes","Photos collected from conversations","Shared locations and Maps support","Sponsored Mail and business inquiries","Improved performance and stability"].map((text)=>`<p class="release-note">• ${text}</p>`).join(""),"RELEASE NOTES")}</section>`; }
 
@@ -107,12 +109,11 @@
   function bind() {
     host.querySelectorAll("[data-settings-page]").forEach((button)=>button.addEventListener("click",()=>render(button.dataset.settingsPage)));
     host.querySelector("[data-settings-back]")?.addEventListener("click",()=>render("main"));
-    host.querySelectorAll("[data-setting]").forEach((input)=>input.addEventListener("change",()=>{ localStorage.setItem(KEYS[input.dataset.setting],input.checked?"1":"0"); applyPreferences(); render(input.dataset.setting === "notifications" || input.dataset.setting === "sounds" ? "notifications" : input.dataset.setting === "lowPower" && host.querySelector(".battery-settings-hero") ? "battery" : "appearance"); }));
+    host.querySelectorAll("[data-setting]").forEach((input)=>input.addEventListener("change",async()=>{ const name=input.dataset.setting; if(name==="desktopNotifications"&&input.checked){ const permission="Notification" in window?await Notification.requestPermission():"denied"; input.checked=permission==="granted"; } localStorage.setItem(KEYS[name],input.checked?"1":"0"); applyPreferences(); render(name === "notifications" || name === "sounds" || name === "desktopNotifications" ? "notifications" : "appearance"); }));
     host.querySelector("[data-brightness]")?.addEventListener("input",(event)=>{ localStorage.setItem(KEYS.brightness,event.target.value); event.target.previousElementSibling.textContent=`${event.target.value}%`; applyPreferences(); });
     host.querySelector("[data-confirm-action]")?.addEventListener("click",(event)=>runReset(event.currentTarget.dataset.confirmAction));
   }
-  async function updateBattery() { if (!navigator.getBattery) return; try { const source=await navigator.getBattery(); const sync=()=>{ battery={level:Math.round(source.level*100),charging:source.charging,supported:true}; }; sync(); source.addEventListener("levelchange",sync); source.addEventListener("chargingchange",sync); } catch { /* fallback */ } }
-  async function open(node) { host=node; await updateBattery(); render("main"); }
+  async function open(node) { host=node; battery={level:19,charging:false,supported:true}; render("main"); }
   applyPreferences();
   window.MySettings={open,applyPreferences};
 })();
