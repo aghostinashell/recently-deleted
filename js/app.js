@@ -12,6 +12,9 @@ let swipeTracking = false;
 
 let faceIdSequenceRunning = false;
 let weatherRefreshTimer = null;
+let homePage = 0;
+let homeSwipeStartX = 0;
+let homeSwipeStartY = 0;
 
 const apps = [
   {
@@ -63,6 +66,13 @@ const apps = [
     description: "Shared locations will live here."
   }
 ];
+
+const moreApps = [
+  { id: "stage", name: "myStage", icon: "▶", description: "Live events and notifications." },
+  { id: "calendar", name: "myCalendar", icon: "17", description: "Events, releases and reservations." }
+];
+
+const allApps = [...apps, ...moreApps];
 
 const dockApps = [
   {
@@ -340,9 +350,22 @@ function renderHomeScreen() {
     >
       ${renderStatusBar()}
 
-      <div class="app-grid">
-        ${renderWeatherWidget()}
-        ${apps.map(renderAppButton).join("")}
+      <div class="home-pages" id="homePages">
+        <div class="home-page" aria-label="Apps page 1">
+          <div class="app-grid">
+            ${renderWeatherWidget()}
+            ${apps.map(renderAppButton).join("")}
+          </div>
+        </div>
+        <div class="home-page" aria-label="Apps page 2">
+          <div class="app-grid">
+            ${moreApps.map(renderAppButton).join("")}
+          </div>
+        </div>
+      </div>
+      <div class="home-page-dots" aria-label="Home screen pages">
+        <button class="home-page-dot active" type="button" data-home-page="0" aria-label="Show apps page 1"></button>
+        <button class="home-page-dot" type="button" data-home-page="1" aria-label="Show apps page 2"></button>
       </div>
     </section>
   `;
@@ -395,7 +418,9 @@ function renderGlassIcon(iconId, className) {
     supply: `<span class="supply-symbol"><i class="supply-handle"></i><i class="supply-basket"></i><i class="supply-wheel left"></i><i class="supply-wheel right"></i><b></b></span>`,
     maps: `<span class="maps-symbol"><i></i><b></b></span>`,
     phone: `<span class="icon-symbol phone-symbol">☎</span>`,
-    messages: `<span class="messages-symbol"><i></i></span>`
+    messages: `<span class="messages-symbol"><i></i></span>`,
+    stage: `<span class="stage-symbol"><i></i></span>`,
+    calendar: `<span class="calendar-symbol"><b>JUL</b><i>17</i></span>`
   };
 
   return `<span class="${className} glass-icon glass-icon-${iconId}" aria-hidden="true">${iconDetails[iconId] || ""}</span>`;
@@ -493,6 +518,17 @@ function bindEvents() {
     });
   });
 
+  const homeScreen = document.getElementById("homeScreen");
+  homeScreen.addEventListener("pointerdown", startHomeSwipe);
+  homeScreen.addEventListener("pointerup", endHomeSwipe);
+  homeScreen.addEventListener("pointercancel", cancelHomeSwipe);
+  document.querySelectorAll("[data-home-page]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      setHomePage(Number(button.dataset.homePage));
+    });
+  });
+
   document
     .getElementById("homeButton")
     .addEventListener("click", returnHome);
@@ -510,6 +546,28 @@ function bindEvents() {
     .addEventListener("click", returnToPasscodeFromLostScreen);
 
   window.addEventListener("keydown", handleKeyboardInput);
+}
+
+function startHomeSwipe(event) {
+  homeSwipeStartX = event.clientX;
+  homeSwipeStartY = event.clientY;
+  event.currentTarget.setPointerCapture?.(event.pointerId);
+}
+
+function endHomeSwipe(event) {
+  if (!homeSwipeStartX) return;
+  const deltaX = event.clientX - homeSwipeStartX;
+  const deltaY = event.clientY - homeSwipeStartY;
+  homeSwipeStartX = 0;
+  if (Math.abs(deltaX) >= 45 && Math.abs(deltaX) > Math.abs(deltaY)) setHomePage(homePage === 0 ? 1 : 0);
+}
+
+function cancelHomeSwipe() { homeSwipeStartX = 0; homeSwipeStartY = 0; }
+
+function setHomePage(page) {
+  homePage = Math.max(0, Math.min(1, page));
+  document.getElementById("homePages").style.transform = `translateX(-${homePage * 50}%)`;
+  document.querySelectorAll("[data-home-page]").forEach((dot, index) => dot.classList.toggle("active", index === homePage));
 }
 
 function openLostPhoneScreen() {
@@ -801,6 +859,9 @@ function unlockSite() {
     .getElementById("homeScreen")
     .classList.remove("screen-hidden");
 
+  document.getElementById("device").scrollTop = 0;
+  document.getElementById("homeScreen").scrollTop = 0;
+
   document
     .getElementById("device")
     .classList.add("unlocked");
@@ -809,7 +870,7 @@ function unlockSite() {
 }
 
 function openApp(appId) {
-  const app = apps.find(
+  const app = allApps.find(
     (item) => item.id === appId
   );
 
@@ -872,6 +933,12 @@ function showAppWindow(app) {
   } else if (app.id === "phone" && window.MyPhone) {
     appContent.classList.add("phone-app-content");
     window.MyPhone.open(appContent);
+  } else if (app.id === "stage" && window.MyStage) {
+    appContent.classList.add("stage-app-content");
+    window.MyStage.open(appContent);
+  } else if (app.id === "calendar" && window.MyCalendar) {
+    appContent.classList.add("calendar-app-content");
+    window.MyCalendar.open(appContent);
   } else {
     appContent.innerHTML = `
       <article class="placeholder-card">
