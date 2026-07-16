@@ -88,7 +88,7 @@
       <button class="rsvp-close" type="button" aria-label="Close RSVP">×</button>
       <span>RESERVE YOUR PLACE</span><h2 id="rsvpTitle">RSVP</h2>
       <p>Enter your details and we’ll email the ticket purchase link when tickets go on sale September 10.</p>
-      <form class="rsvp-form"><input type="hidden" name="_subject" value="New myStage Concert RSVP"><input type="hidden" name="_template" value="table"><input class="project-honeypot" name="_honey" type="text" tabindex="-1" autocomplete="off"><input type="hidden" name="Event" value="Recently Deleted: Live at myStage Concert Venue"><input type="hidden" name="Event_Date" value="Saturday, October 10, 2026"><input type="hidden" name="Event_Time" value="8:00 PM ET"><input type="hidden" name="Tickets_On_Sale" value="September 10, 2026"><input type="hidden" name="Confirmation_Message" value="Tracey, Ed’s Assistant: RSVP confirmed for October 10, 2026 at 8:00 PM ET. Questions: d.wright@ghostsinshells.com"><label>Name<input name="name" type="text" autocomplete="name" required></label><label>Email address<input name="email" type="email" autocomplete="email" required></label><button type="submit">Join the RSVP list</button></form>
+      <form class="rsvp-form"><input type="hidden" name="_subject" value="New myStage Concert RSVP"><input type="hidden" name="_template" value="table"><input type="hidden" name="_captcha" value="false"><input class="project-honeypot" name="_honey" type="text" tabindex="-1" autocomplete="off"><input type="hidden" name="Event" value="Recently Deleted: Live at myStage Concert Venue"><input type="hidden" name="Event_Date" value="Saturday, October 10, 2026"><input type="hidden" name="Event_Time" value="8:00 PM ET"><input type="hidden" name="Tickets_On_Sale" value="September 10, 2026"><input type="hidden" name="Confirmation_Message" value="Tracey, Ed’s Assistant: RSVP confirmed for October 10, 2026 at 8:00 PM ET. Questions: d.wright@ghostsinshells.com"><label>Name<input name="name" type="text" autocomplete="name" required></label><label>Email address<input name="email" type="email" autocomplete="email" required></label><button type="submit">Join the RSVP list</button></form>
       <p class="rsvp-status" aria-live="polite"></p>
     </div>`;
     host.appendChild(modal);
@@ -119,7 +119,7 @@
         localStorage.setItem("myphone:rsvps", JSON.stringify(saved));
         window.dispatchEvent(new CustomEvent("myphone:rsvp", { detail: rsvp }));
         form.hidden = true;
-        status.textContent = "Your RSVP has been received. Tracey will follow up with event and ticket details.";
+        status.innerHTML = `<strong>RSVP received</strong><br>Thank you. I’ve added you to the list for October 10 at 8:00 PM ET. Ticket details will follow.<br><small>— Tracey, Ed’s Assistant</small>`;
         status.classList.add("success");
       } catch {
         status.textContent = "We couldn’t send your RSVP. Please try again.";
