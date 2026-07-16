@@ -82,7 +82,7 @@
       <button class="rsvp-close" type="button" aria-label="Close RSVP">×</button>
       <span>RESERVE YOUR PLACE</span><h2 id="rsvpTitle">RSVP</h2>
       <p>Enter your details and we’ll email the ticket purchase link when tickets go on sale September 10.</p>
-      <form class="rsvp-form"><label>Name<input name="name" type="text" autocomplete="name" required></label><label>Email address<input name="email" type="email" autocomplete="email" required></label><button type="submit">Join the RSVP list</button></form>
+      <form class="rsvp-form"><input type="hidden" name="_subject" value="New myStage Concert RSVP"><input type="hidden" name="Event" value="Recently Deleted: Live at myStage Concert Venue"><input type="hidden" name="Tickets_On_Sale" value="September 10, 2026"><label>Name<input name="Name" type="text" autocomplete="name" required></label><label>Email address<input name="Email" type="email" autocomplete="email" required></label><button type="submit">Join the RSVP list</button></form>
       <p class="rsvp-status" aria-live="polite"></p>
     </div>`;
     host.appendChild(modal);
@@ -90,17 +90,36 @@
     modal.querySelector(".rsvp-close").addEventListener("click", close);
     modal.addEventListener("click", (clickEvent) => { if (clickEvent.target === modal) close(); });
     modal.querySelector("input").focus();
-    modal.querySelector("form").addEventListener("submit", (submitEvent) => {
+    modal.querySelector("form").addEventListener("submit", async (submitEvent) => {
       submitEvent.preventDefault();
       const form = submitEvent.currentTarget;
-      const rsvp = { eventId: event.id, name: form.elements.name.value.trim(), email: form.elements.email.value.trim(), createdAt: new Date().toISOString() };
-      const saved = JSON.parse(localStorage.getItem("myphone:rsvps") || "[]");
-      saved.push(rsvp);
-      localStorage.setItem("myphone:rsvps", JSON.stringify(saved));
-      window.dispatchEvent(new CustomEvent("myphone:rsvp", { detail: rsvp }));
-      form.hidden = true;
-      modal.querySelector(".rsvp-status").textContent = "You’re on the list. Watch your inbox for ticket access.";
-      modal.querySelector(".rsvp-status").classList.add("success");
+      const submitButton = form.querySelector("button[type='submit']");
+      const status = modal.querySelector(".rsvp-status");
+      const rsvp = { eventId: event.id, name: form.elements.Name.value.trim(), email: form.elements.Email.value.trim(), createdAt: new Date().toISOString() };
+      submitButton.disabled = true;
+      submitButton.textContent = "Sending RSVP…";
+      status.textContent = "";
+      status.className = "rsvp-status";
+      try {
+        const response = await fetch("https://formsubmit.co/ajax/d.wright@ghostsinshells.com", {
+          method: "POST",
+          headers: { Accept: "application/json" },
+          body: new FormData(form)
+        });
+        if (!response.ok) throw new Error("RSVP delivery failed");
+        const saved = JSON.parse(localStorage.getItem("myphone:rsvps") || "[]");
+        saved.push(rsvp);
+        localStorage.setItem("myphone:rsvps", JSON.stringify(saved));
+        window.dispatchEvent(new CustomEvent("myphone:rsvp", { detail: rsvp }));
+        form.hidden = true;
+        status.textContent = "You’re on the list. Watch your inbox for ticket access.";
+        status.classList.add("success");
+      } catch (error) {
+        status.textContent = "We couldn’t send your RSVP. Please check your connection and try again.";
+        status.classList.add("error");
+        submitButton.disabled = false;
+        submitButton.textContent = "Try again";
+      }
     });
   }
 
