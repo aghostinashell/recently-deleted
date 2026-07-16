@@ -42,10 +42,16 @@
       <header class="planner-header"><div><span>PLANNER</span><h2>${visibleMonth.toLocaleDateString([], { month: "long", year: "numeric" })}</h2></div><div class="planner-nav"><button type="button" data-calendar-nav="-1" aria-label="Previous month">‹</button><button type="button" data-calendar-nav="1" aria-label="Next month">›</button></div></header>
       <div class="planner-weekdays">${["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => `<span>${day}</span>`).join("")}</div>
       <div class="planner-grid">${cells.join("")}</div>
-      <section class="planner-agenda"><h3>Upcoming</h3><p>${events.length ? `${events.length} scheduled event${events.length === 1 ? "" : "s"}` : "No events scheduled yet."}</p></section>
+      <section class="planner-agenda"><h3>Upcoming Events</h3>${events.length ? `<div class="upcoming-event-list">${events.filter((event) => new Date(event.startsAt) >= new Date()).map((event) => `<button type="button" class="upcoming-event-row" data-upcoming-event="${event.id}"><span>${new Date(event.startsAt).toLocaleDateString([], { month: "short", day: "numeric" })}</span><div><strong>${event.title}</strong><small>${event.subtitle || "Upcoming event"}</small></div><i>›</i></button>`).join("")}</div>` : `<p>No events scheduled yet.</p>`}</section>
     </div>`;
     host.querySelectorAll("[data-calendar-nav]").forEach((button) => button.addEventListener("click", () => { visibleMonth = new Date(year, month + Number(button.dataset.calendarNav), 1); render(); }));
     host.querySelectorAll("[data-calendar-date]").forEach((button) => button.addEventListener("click", () => openDate(new Date(button.dataset.calendarDate))));
+    host.querySelectorAll("[data-upcoming-event]").forEach((button) => button.addEventListener("click", () => openEvent(button.dataset.upcomingEvent)));
+  }
+
+  function openEvent(eventId) {
+    const event = events.find((item) => item.id === eventId);
+    if (event) openDate(new Date(event.startsAt));
   }
 
   function openDate(date) {
@@ -82,7 +88,7 @@
       <button class="rsvp-close" type="button" aria-label="Close RSVP">×</button>
       <span>RESERVE YOUR PLACE</span><h2 id="rsvpTitle">RSVP</h2>
       <p>Enter your details and we’ll email the ticket purchase link when tickets go on sale September 10.</p>
-      <form class="rsvp-form"><input type="hidden" name="_subject" value="New myStage Concert RSVP"><input type="hidden" name="Event" value="Recently Deleted: Live at myStage Concert Venue"><input type="hidden" name="Tickets_On_Sale" value="September 10, 2026"><label>Name<input name="Name" type="text" autocomplete="name" required></label><label>Email address<input name="Email" type="email" autocomplete="email" required></label><button type="submit">Join the RSVP list</button></form>
+      <form class="rsvp-form" action="https://formsubmit.co/d.wright@ghostsinshells.com" method="POST" target="_blank"><input type="hidden" name="_subject" value="New myStage Concert RSVP"><input type="hidden" name="_next" value="https://ghostsinshells.com/"><input type="hidden" name="_url" value="https://ghostsinshells.com/"><input type="hidden" name="_template" value="table"><input type="hidden" name="_autoresponse" value="Hello, your RSVP for Recently Deleted: Live at myStage Concert Venue is confirmed for Saturday, October 10, 2026 at 8:00 PM ET. Tickets go on sale September 10, 2026, and purchase information will be sent as it becomes available. We look forward to welcoming you. Warmly, Tracey — Ed’s Assistant. For questions or replies, please contact d.wright@ghostsinshells.com."><input type="hidden" name="Event" value="Recently Deleted: Live at myStage Concert Venue"><input type="hidden" name="Event_Date" value="Saturday, October 10, 2026"><input type="hidden" name="Event_Time" value="8:00 PM ET"><input type="hidden" name="Tickets_On_Sale" value="September 10, 2026"><label>Name<input name="name" type="text" autocomplete="name" required></label><label>Email address<input name="email" type="email" autocomplete="email" required></label><button type="submit">Join the RSVP list</button></form>
       <p class="rsvp-status" aria-live="polite"></p>
     </div>`;
     host.appendChild(modal);
@@ -90,40 +96,26 @@
     modal.querySelector(".rsvp-close").addEventListener("click", close);
     modal.addEventListener("click", (clickEvent) => { if (clickEvent.target === modal) close(); });
     modal.querySelector("input").focus();
-    modal.querySelector("form").addEventListener("submit", async (submitEvent) => {
-      submitEvent.preventDefault();
+    modal.querySelector("form").addEventListener("submit", (submitEvent) => {
       const form = submitEvent.currentTarget;
       const submitButton = form.querySelector("button[type='submit']");
       const status = modal.querySelector(".rsvp-status");
-      const rsvp = { eventId: event.id, name: form.elements.Name.value.trim(), email: form.elements.Email.value.trim(), createdAt: new Date().toISOString() };
+      const rsvp = { eventId: event.id, name: form.elements.name.value.trim(), email: form.elements.email.value.trim(), createdAt: new Date().toISOString() };
       submitButton.disabled = true;
-      submitButton.textContent = "Sending RSVP…";
-      status.textContent = "";
-      status.className = "rsvp-status";
-      try {
-        const response = await fetch("https://formsubmit.co/ajax/d.wright@ghostsinshells.com", {
-          method: "POST",
-          headers: { Accept: "application/json" },
-          body: new FormData(form)
-        });
-        if (!response.ok) throw new Error("RSVP delivery failed");
+      submitButton.textContent = "RSVP opened";
+      window.setTimeout(() => {
         const saved = JSON.parse(localStorage.getItem("myphone:rsvps") || "[]");
         saved.push(rsvp);
         localStorage.setItem("myphone:rsvps", JSON.stringify(saved));
         window.dispatchEvent(new CustomEvent("myphone:rsvp", { detail: rsvp }));
         form.hidden = true;
-        status.textContent = "You’re on the list. Watch your inbox for ticket access.";
+        status.textContent = "Complete the secure confirmation in the new tab. Tracey will email your RSVP details.";
         status.classList.add("success");
-      } catch (error) {
-        status.textContent = "We couldn’t send your RSVP. Please check your connection and try again.";
-        status.classList.add("error");
-        submitButton.disabled = false;
-        submitButton.textContent = "Try again";
-      }
+      }, 150);
     });
   }
 
   function open(element) { host = element; render(); }
   function addEvent(event) { events.push(event); events.sort((a, b) => new Date(a.startsAt) - new Date(b.startsAt)); render(); }
-  window.MyCalendar = { open, addEvent, events };
+  window.MyCalendar = { open, addEvent, openEvent, events };
 }());
