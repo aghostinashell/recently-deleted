@@ -88,7 +88,7 @@
       <button class="rsvp-close" type="button" aria-label="Close RSVP">×</button>
       <span>RESERVE YOUR PLACE</span><h2 id="rsvpTitle">RSVP</h2>
       <p>Enter your details and we’ll email the ticket purchase link when tickets go on sale September 10.</p>
-      <form class="rsvp-form" action="https://formsubmit.co/d.wright@ghostsinshells.com" method="POST" target="_blank"><input type="hidden" name="_subject" value="New myStage Concert RSVP"><input type="hidden" name="_next" value="https://ghostsinshells.com/"><input type="hidden" name="_url" value="https://ghostsinshells.com/"><input type="hidden" name="_template" value="table"><input type="hidden" name="_autoresponse" value="Hello, your RSVP for Recently Deleted: Live at myStage Concert Venue is confirmed for Saturday, October 10, 2026 at 8:00 PM ET. Tickets go on sale September 10, 2026, and purchase information will be sent as it becomes available. We look forward to welcoming you. Warmly, Tracey — Ed’s Assistant. For questions or replies, please contact d.wright@ghostsinshells.com."><input type="hidden" name="Event" value="Recently Deleted: Live at myStage Concert Venue"><input type="hidden" name="Event_Date" value="Saturday, October 10, 2026"><input type="hidden" name="Event_Time" value="8:00 PM ET"><input type="hidden" name="Tickets_On_Sale" value="September 10, 2026"><label>Name<input name="name" type="text" autocomplete="name" required></label><label>Email address<input name="email" type="email" autocomplete="email" required></label><button type="submit">Join the RSVP list</button></form>
+      <form class="rsvp-form"><input type="hidden" name="_subject" value="New myStage Concert RSVP"><input type="hidden" name="_template" value="table"><input class="project-honeypot" name="_honey" type="text" tabindex="-1" autocomplete="off"><input type="hidden" name="Event" value="Recently Deleted: Live at myStage Concert Venue"><input type="hidden" name="Event_Date" value="Saturday, October 10, 2026"><input type="hidden" name="Event_Time" value="8:00 PM ET"><input type="hidden" name="Tickets_On_Sale" value="September 10, 2026"><input type="hidden" name="Confirmation_Message" value="Tracey, Ed’s Assistant: RSVP confirmed for October 10, 2026 at 8:00 PM ET. Questions: d.wright@ghostsinshells.com"><label>Name<input name="name" type="text" autocomplete="name" required></label><label>Email address<input name="email" type="email" autocomplete="email" required></label><button type="submit">Join the RSVP list</button></form>
       <p class="rsvp-status" aria-live="polite"></p>
     </div>`;
     host.appendChild(modal);
@@ -96,22 +96,37 @@
     modal.querySelector(".rsvp-close").addEventListener("click", close);
     modal.addEventListener("click", (clickEvent) => { if (clickEvent.target === modal) close(); });
     modal.querySelector("input").focus();
-    modal.querySelector("form").addEventListener("submit", (submitEvent) => {
+    modal.querySelector("form").addEventListener("submit", async (submitEvent) => {
+      submitEvent.preventDefault();
       const form = submitEvent.currentTarget;
       const submitButton = form.querySelector("button[type='submit']");
       const status = modal.querySelector(".rsvp-status");
       const rsvp = { eventId: event.id, name: form.elements.name.value.trim(), email: form.elements.email.value.trim(), createdAt: new Date().toISOString() };
       submitButton.disabled = true;
-      submitButton.textContent = "RSVP opened";
-      window.setTimeout(() => {
+      submitButton.textContent = "SENDING…";
+      status.textContent = "";
+      status.className = "rsvp-status";
+      try {
+        const payload = Object.fromEntries(new FormData(form).entries());
+        const response = await fetch("https://formsubmit.co/ajax/d.wright@ghostsinshells.com", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (!response.ok) throw new Error("Submission failed");
         const saved = JSON.parse(localStorage.getItem("myphone:rsvps") || "[]");
         saved.push(rsvp);
         localStorage.setItem("myphone:rsvps", JSON.stringify(saved));
         window.dispatchEvent(new CustomEvent("myphone:rsvp", { detail: rsvp }));
         form.hidden = true;
-        status.textContent = "Complete the secure confirmation in the new tab. Tracey will email your RSVP details.";
+        status.textContent = "Your RSVP has been received. Tracey will follow up with event and ticket details.";
         status.classList.add("success");
-      }, 150);
+      } catch {
+        status.textContent = "We couldn’t send your RSVP. Please try again.";
+        status.classList.add("error");
+        submitButton.disabled = false;
+        submitButton.textContent = "TRY AGAIN";
+      }
     });
   }
 
