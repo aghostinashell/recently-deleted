@@ -1,7 +1,25 @@
 "use strict";
 
 (function () {
-  const events = [];
+  const events = [
+    {
+      id: "recently-deleted-release",
+      type: "release",
+      title: "Recently Deleted",
+      subtitle: "Official album release",
+      startsAt: "2026-08-04T00:00:00-04:00",
+      platforms: ["Apple Music", "Spotify", "YouTube", "Amazon Music"]
+    },
+    {
+      id: "eds-25th-birthday-concert",
+      type: "concert",
+      title: "Recently Deleted: Live at myStage Concert Venue",
+      subtitle: "Ed’s 25th Birthday Concert",
+      startsAt: "2026-10-10T20:00:00-04:00",
+      ticketSaleStartsAt: "2026-09-10T10:00:00-04:00",
+      durationMinutes: 120
+    }
+  ];
   let host = null;
   let visibleMonth = new Date();
   const sameDay = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
@@ -40,9 +58,50 @@
       document.querySelector('[data-app-id="stage"]')?.click();
       return;
     }
-    host.innerHTML = `<article class="event-detail"><button type="button" class="event-back" id="eventBack">‹ Calendar</button><span>UPCOMING EVENT</span><h2>${event.title}</h2><p>${new Date(event.startsAt).toLocaleString([], { dateStyle: "full", timeStyle: "short" })}</p><button type="button" class="event-reserve" id="eventReserve">${event.ticketUrl ? "Purchase tickets" : "Reserve"}</button></article>`;
+    const eventDate = new Date(event.startsAt);
+    const dateLabel = event.type === "release"
+      ? eventDate.toLocaleDateString([], { dateStyle: "full" })
+      : eventDate.toLocaleString([], { dateStyle: "full", timeStyle: "short" });
+    const eventActions = event.type === "release"
+      ? `<div class="release-platforms">
+          <button type="button" class="platform-button apple-button" disabled><span>Apple Music</span><small>Link coming soon</small></button>
+          <button type="button" class="platform-button spotify-button" disabled><span>Spotify</span><small>Link coming soon</small></button>
+          <div class="release-more"><span>YouTube</span><span>Amazon Music</span></div>
+        </div>`
+      : `<div class="concert-ticket-note"><span>Tickets on sale</span><strong>${new Date(event.ticketSaleStartsAt).toLocaleDateString([], { month: "long", day: "numeric", year: "numeric" })}</strong></div>
+        <button type="button" class="event-reserve" id="eventReserve">RSVP for ticket access</button>`;
+    host.innerHTML = `<article class="event-detail"><button type="button" class="event-back" id="eventBack">‹ Calendar</button><span>${event.type === "release" ? "ALBUM RELEASE" : "BIRTHDAY CONCERT"}</span><h2>${event.title}</h2>${event.subtitle ? `<h3>${event.subtitle}</h3>` : ""}<p>${dateLabel}</p>${eventActions}</article>`;
     document.getElementById("eventBack").addEventListener("click", render);
-    document.getElementById("eventReserve").addEventListener("click", () => event.ticketUrl ? window.open(event.ticketUrl, "_blank", "noopener") : window.dispatchEvent(new CustomEvent("myphone:reserve", { detail: event })));
+    document.getElementById("eventReserve")?.addEventListener("click", () => openRsvp(event));
+  }
+
+  function openRsvp(event) {
+    const modal = document.createElement("div");
+    modal.className = "rsvp-modal";
+    modal.innerHTML = `<div class="rsvp-card" role="dialog" aria-modal="true" aria-labelledby="rsvpTitle">
+      <button class="rsvp-close" type="button" aria-label="Close RSVP">×</button>
+      <span>RESERVE YOUR PLACE</span><h2 id="rsvpTitle">RSVP</h2>
+      <p>Enter your details and we’ll email the ticket purchase link when tickets go on sale September 10.</p>
+      <form class="rsvp-form"><label>Name<input name="name" type="text" autocomplete="name" required></label><label>Email address<input name="email" type="email" autocomplete="email" required></label><button type="submit">Join the RSVP list</button></form>
+      <p class="rsvp-status" aria-live="polite"></p>
+    </div>`;
+    host.appendChild(modal);
+    const close = () => modal.remove();
+    modal.querySelector(".rsvp-close").addEventListener("click", close);
+    modal.addEventListener("click", (clickEvent) => { if (clickEvent.target === modal) close(); });
+    modal.querySelector("input").focus();
+    modal.querySelector("form").addEventListener("submit", (submitEvent) => {
+      submitEvent.preventDefault();
+      const form = submitEvent.currentTarget;
+      const rsvp = { eventId: event.id, name: form.elements.name.value.trim(), email: form.elements.email.value.trim(), createdAt: new Date().toISOString() };
+      const saved = JSON.parse(localStorage.getItem("myphone:rsvps") || "[]");
+      saved.push(rsvp);
+      localStorage.setItem("myphone:rsvps", JSON.stringify(saved));
+      window.dispatchEvent(new CustomEvent("myphone:rsvp", { detail: rsvp }));
+      form.hidden = true;
+      modal.querySelector(".rsvp-status").textContent = "You’re on the list. Watch your inbox for ticket access.";
+      modal.querySelector(".rsvp-status").classList.add("success");
+    });
   }
 
   function open(element) { host = element; render(); }
