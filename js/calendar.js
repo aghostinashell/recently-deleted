@@ -114,6 +114,26 @@
           body: JSON.stringify(payload)
         });
         if (!response.ok) throw new Error("Submission failed");
+        const confirmationResponse = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            service_id: "service_o3xvvh6",
+            template_id: "template_hwqooap",
+            user_id: "2zOnKbOtUID6Y3edt",
+            template_params: {
+              name: rsvp.name,
+              email: rsvp.email,
+              to_email: rsvp.email,
+              event_name: "Recently Deleted: Live at myStage Concert Venue",
+              event_date: "Saturday, October 10, 2026",
+              event_time: "8:00 PM ET",
+              tickets_on_sale: "September 10, 2026",
+              reply_to: "d.wright@ghostsinshells.com"
+            }
+          })
+        });
+        if (!confirmationResponse.ok) throw new Error("Confirmation email failed");
         const saved = JSON.parse(localStorage.getItem("myphone:rsvps") || "[]");
         saved.push(rsvp);
         localStorage.setItem("myphone:rsvps", JSON.stringify(saved));
