@@ -68,7 +68,7 @@ const apps = [
 ];
 
 const moreApps = [
-  { id: "stage", name: "myStage", icon: "▶", description: "Live events and notifications." },
+  { id: "stage", name: "Camera", icon: "●", description: "Live performances and archived events from Exposure." },
   { id: "calendar", name: "myCalendar", icon: "17", description: "Events, releases and reservations." }
 ];
 
@@ -419,7 +419,7 @@ function renderGlassIcon(iconId, className) {
     maps: `<span class="maps-symbol"><i></i><b></b></span>`,
     phone: `<span class="icon-symbol phone-symbol">☎</span>`,
     messages: `<span class="messages-symbol"><i></i></span>`,
-    stage: `<span class="stage-symbol"><i></i></span>`,
+    stage: `<span class="camera-symbol"><i></i><b></b></span>`,
     calendar: `<span class="calendar-symbol"><b>JUL</b><i>17</i></span>`
   };
 

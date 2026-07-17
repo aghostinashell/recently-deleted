@@ -13,7 +13,7 @@
     {
       id: "eds-25th-birthday-concert",
       type: "concert",
-      title: "Recently Deleted: Live at myStage Concert Venue",
+      title: "Recently Deleted: Live at Exposure",
       subtitle: "Ed’s 25th Birthday Concert",
       startsAt: "2026-10-10T20:00:00-04:00",
       ticketSaleStartsAt: "2026-09-10T10:00:00-04:00",
@@ -60,7 +60,7 @@
     const event = dayEvents[0];
     const until = new Date(event.startsAt).getTime() - Date.now();
     if (until <= 600000 && until > -Math.max(event.durationMinutes || 120, 10) * 60000) {
-      window.MyStage?.setEvent(event);
+      window.MyStage?.setEvent({ ...event, isLive: true });
       document.querySelector('[data-app-id="stage"]')?.click();
       return;
     }
@@ -88,7 +88,7 @@
       <button class="rsvp-close" type="button" aria-label="Close RSVP">×</button>
       <span>RESERVE YOUR PLACE</span><h2 id="rsvpTitle">RSVP</h2>
       <p>Enter your details and we’ll email the ticket purchase link when tickets go on sale September 10.</p>
-      <form class="rsvp-form"><input type="hidden" name="_subject" value="New myStage Concert RSVP"><input type="hidden" name="_template" value="table"><input type="hidden" name="_captcha" value="false"><input class="project-honeypot" name="_honey" type="text" tabindex="-1" autocomplete="off"><input type="hidden" name="Event" value="Recently Deleted: Live at myStage Concert Venue"><input type="hidden" name="Event_Date" value="Saturday, October 10, 2026"><input type="hidden" name="Event_Time" value="8:00 PM ET"><input type="hidden" name="Tickets_On_Sale" value="September 10, 2026"><input type="hidden" name="Confirmation_Message" value="Tracey, Ed’s Assistant: RSVP confirmed for October 10, 2026 at 8:00 PM ET. Questions: d.wright@ghostsinshells.com"><label>Name<input name="name" type="text" autocomplete="name" required></label><label>Email address<input name="email" type="email" autocomplete="email" required></label><button type="submit">Join the RSVP list</button></form>
+      <form class="rsvp-form"><input type="hidden" name="_subject" value="New Exposure Concert RSVP"><input type="hidden" name="_template" value="table"><input type="hidden" name="_captcha" value="false"><input class="project-honeypot" name="_honey" type="text" tabindex="-1" autocomplete="off"><input type="hidden" name="Event" value="Recently Deleted: Live at Exposure"><input type="hidden" name="Event_Date" value="Saturday, October 10, 2026"><input type="hidden" name="Event_Time" value="8:00 PM ET"><input type="hidden" name="Tickets_On_Sale" value="September 10, 2026"><input type="hidden" name="Confirmation_Message" value="Tracey, Ed’s Assistant: RSVP confirmed for October 10, 2026 at 8:00 PM ET. Questions: d.wright@ghostsinshells.com"><label>Name<input name="name" type="text" autocomplete="name" required></label><label>Email address<input name="email" type="email" autocomplete="email" required></label><button type="submit">Join the RSVP list</button></form>
       <p class="rsvp-status" aria-live="polite"></p>
     </div>`;
     host.appendChild(modal);
@@ -125,7 +125,7 @@
               name: rsvp.name,
               email: rsvp.email,
               to_email: rsvp.email,
-              event_name: "Recently Deleted: Live at myStage Concert Venue",
+              event_name: "Recently Deleted: Live at Exposure",
               event_date: "Saturday, October 10, 2026",
               event_time: "8:00 PM ET",
               tickets_on_sale: "September 10, 2026",
