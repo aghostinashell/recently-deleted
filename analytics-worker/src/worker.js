@@ -1,6 +1,7 @@
 import { ACCESS_TYPES, ALLOWED_EVENTS } from "./events.js";
 import { resolvePrivateAsset } from "./private-assets.js";
 import { sanitizeMetadata, sha256, signContext, verifyContext } from "./security.js";
+import { handleOwner } from "./owner.js";
 
 const fallbackBuckets = new Map();
 const MAX_BODY_BYTES = 64 * 1024;
@@ -78,13 +79,14 @@ async function validateInvite(request, env, headers) {
     return json({ valid: false, reason: "rate_limited" }, 429, headers);
   }
   const invite = await env.DB.prepare(`
-    SELECT i.id, i.access_type, i.expires_at, i.revoked_at, i.is_test, i.total_visits,
+    SELECT i.id, i.access_type, i.expires_at, i.revoked_at, i.disabled_at,
+           i.authorization_version, i.is_test, i.total_visits,
            i.created_at AS issued_at, r.id AS recipient_id, r.display_name, r.access_level,
            r.personalized_artwork_path
     FROM access_invites i JOIN invite_recipients r ON r.id = i.recipient_id
     WHERE i.token_hash = ?
   `).bind(tokenHash).first();
-  if (!invite || invite.revoked_at) return json({ valid: false, reason: "invalid" }, 404, headers);
+  if (!invite || invite.revoked_at || invite.disabled_at) return json({ valid: false, reason: "invalid" }, 404, headers);
   if (invite.expires_at && Date.parse(invite.expires_at) < Date.now()) {
     return json({ valid: false, reason: "expired" }, 410, headers);
   }
@@ -103,6 +105,7 @@ async function validateInvite(request, env, headers) {
     publicPassNumber: invite.id.slice(-8).toUpperCase(),
     personalizedArtworkAvailable: Boolean(safeAssetPath(invite.personalized_artwork_path)),
     isTest: Boolean(invite.is_test),
+    authorizationVersion: Number(invite.authorization_version || 0),
     expiresAt: Date.now() + 12 * 60 * 60 * 1000
   }, env.INVITE_SIGNING_SECRET);
   return json({
@@ -118,6 +121,7 @@ async function validateInvite(request, env, headers) {
       publicPassNumber: invite.id.slice(-8).toUpperCase(),
       personalizedArtworkAvailable: Boolean(safeAssetPath(invite.personalized_artwork_path)),
       isTest: Boolean(invite.is_test),
+      authorizationVersion: Number(invite.authorization_version || 0),
       contextToken
     }
   }, 200, headers);
@@ -166,12 +170,14 @@ async function downloadPrivateAsset(request, env, headers, executionContext, ass
   }
 
   const invite = await env.DB.prepare(`
-    SELECT i.id, i.recipient_id, i.access_type, i.expires_at, i.revoked_at, i.is_test,
+    SELECT i.id, i.recipient_id, i.access_type, i.expires_at, i.revoked_at, i.disabled_at,
+      i.authorization_version, i.is_test,
       r.personalized_artwork_path
     FROM access_invites i JOIN invite_recipients r ON r.id = i.recipient_id
     WHERE i.id = ? AND i.recipient_id = ?
   `).bind(context.inviteId, context.recipientId).first();
-  if (!invite || invite.revoked_at || invite.access_type !== "DJ") {
+  if (!invite || invite.revoked_at || invite.disabled_at || invite.access_type !== "DJ" ||
+      Number(invite.authorization_version || 0) !== Number(context.authorizationVersion || 0)) {
     return json({ error: "invalid_invite" }, 401, headers);
   }
   if (invite.expires_at && Date.parse(invite.expires_at) < Date.now()) {
@@ -319,6 +325,7 @@ export default {
     if (!isAdminRoute && !request.headers.get("Origin")) return json({ error: "origin_required" }, 403, headers);
     if (!isAdminRoute && !originAllowed(request, env)) return json({ error: "origin_not_allowed" }, 403, headers);
     try {
+      if (url.pathname.startsWith("/v1/owner/")) return await handleOwner(request, env, headers, rateLimited);
       if (url.pathname === "/v1/invites/validate" && request.method === "POST") return await validateInvite(request, env, headers);
       if (url.pathname === "/v1/events" && request.method === "POST") return await collectEvents(request, env, headers);
       const downloadMatch = url.pathname.match(/^\/v1\/downloads\/([a-z0-9-]{3,80})$/);

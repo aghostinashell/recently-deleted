@@ -44,14 +44,15 @@
   function mainPage() {
     return `<section class="settings-screen">
       <div class="settings-profile" data-settings-page="about" role="button" tabindex="0"><span class="settings-x-avatar">×</span><span><strong>Saint Ed X</strong><small>myPhone Account<br>Ghosts In Shells</small></span><b>›</b></div>
-      ${group(row("About This myPhone", "about", "myPhone X") + row("Appearance", "appearance", "Dark") + row("Notifications", "notifications", enabled("notifications") ? "On" : "Off") + row("Privacy & Security", "privacy", "Face ID Off"))}
-      ${group(row("myPhone Storage", "storage", "62 MB") + row("Battery", "battery", `${battery.level}%`) + row("Credits", "credits") + row("Software Update", "update", "myOS 1.0"))}
+      ${group(row("General", "general") + row("Appearance", "appearance", "Dark") + row("Notifications", "notifications", enabled("notifications") ? "On" : "Off") + row("Privacy & Security", "privacy", "Face ID Off"))}
+      ${group(row("Battery", "battery", `${battery.level}%`) + row("Credits", "credits") + row("Software Update", "update", "myOS 1.0"))}
       <footer class="settings-footer">myOS 1.0 — Recently Deleted<br><span>Designed by Ghosts In Shells</span></footer>
     </section>`;
   }
 
   const aboutRows = [["Device Name","Ed’s myPhone"],["Model Name","myPhone X"],["myOS Version","1.0"],["Release","Recently Deleted"],["Owner","Saint Ed X"],["Network","GIS"],["Songs","12"],["Message Threads","6"],["Applications","10"],["Capacity","64 GB"],["Available","22.3 GB"],["Serial Number","GIS-RD-1010"],["Warranty","Unknown"]];
   function aboutPage() { return `<section class="settings-screen">${header("About This myPhone")}${group(aboutRows.map((item) => infoRow(...item)).join(""))}<p class="settings-note">Property of Ghosts In Shells.</p></section>`; }
+  function generalPage() { return `<section class="settings-screen">${header("General")}${group(row("About This myPhone","about","myPhone X")+row("Phone Storage","storage","41.7 GB")+row("Software Update","update","myOS 1.0"))}${group(infoRow("Background App Refresh","On")+infoRow("Date & Time","Automatic")+infoRow("Language & Region","English (US)"))}</section>`; }
   function appearancePage() { return `<section class="settings-screen">${header("Appearance", "Display and visual preferences")}
     ${group(`<div class="dark-preview"><div><span>1:59</span><b>×</b></div><p><strong>Dark Mode</strong><small>Always On</small><em>Locked</em></p></div><p class="settings-note inside">Dark Mode cannot be disabled on this device.</p>`, "DARK MODE")}
     ${group(`<label class="brightness-control"><span>Brightness</span><output>${value("brightness")}%</output><input type="range" min="35" max="100" value="${value("brightness")}" data-brightness></label>`, "BRIGHTNESS")}
@@ -76,10 +77,11 @@
 
   function countKeys(prefix, suffix = "") { return Object.keys(localStorage).filter((key) => key.startsWith(prefix) && key.endsWith(suffix)).length; }
   function countStoredRecords(prefix, suffix) { return Object.keys(localStorage).filter((key) => key.startsWith(prefix) && key.endsWith(suffix)).reduce((total, key) => { try { const data=JSON.parse(localStorage.getItem(key)); return total+(Array.isArray(data)?data.length:0); } catch { return total; } },0); }
-  function storagePage() { const messages = countStoredRecords("myphone.messages.", ".custom"); const maps = countKeys("myphone.map-search."); const plays = countKeys("myphone.play-count."); return `<section class="settings-screen">${header("myPhone Storage", "64 GB capacity")}
+  function storagePage() { const plays = countKeys("myphone.play-count."); return `<section class="settings-screen">${header("Phone Storage", "64 GB capacity")}
     <div class="storage-hero"><strong>41.7 GB</strong><span>of 64 GB used</span><div class="storage-bar"><i></i><i></i><i></i><i></i></div><small>Music &nbsp; Photos &nbsp; Messages &nbsp; System</small></div>
-    ${group(infoRow("Music","45.8 MB")+infoRow("Photos","12.4 MB")+infoRow("Messages",`${messages} local records`)+infoRow("Mail","Campaign Data")+infoRow("Maps",`${maps} local records`)+infoRow("myOS","System"))}
-    <div class="album-storage-card"><span class="settings-x-avatar">×</span><div><strong>Recently Deleted</strong><small>Saint Ed X<br>12 songs · ${plays} saved play-count records</small></div><button type="button" data-settings-page="album-remove">Remove</button></div></section>`; }
+    ${group(infoRow("Music","8.6 GB")+infoRow("Photos","4.2 GB")+infoRow("Mail","812 MB")+infoRow("Exposure","2.1 GB")+infoRow("Files","6.4 GB")+infoRow("System Data","19.6 GB"))}
+    <div class="album-storage-card"><span class="settings-x-avatar">×</span><div><strong>Recently Deleted</strong><small>Saint Ed X<br>12 songs · ${plays} saved play-count records</small></div><button type="button" data-settings-page="album-remove">Remove</button></div>
+    ${group(`<button class="settings-row owner-system-row" type="button" data-owner-entry><span>System</span><small>Restricted</small><b>›</b></button>`,"SYSTEM")}</section>`; }
 
   function batteryPage() { return `<section class="settings-screen">${header("Battery")}<div class="battery-settings-hero"><div><strong>19%</strong></div><p><b>Low Power Mode Active</b><span>This story phone remains at 19%.</span></p></div>${group(infoRow("Low Power Mode","On · Locked"))}${group(infoRow("Maximum Capacity","87%")+infoRow("Peak Performance","Normal")+infoRow("Optimized Charging","On"),"BATTERY HEALTH")}<div class="privacy-card"><strong>Peak Performance Capability</strong><p>This myPhone currently supports normal peak performance.</p></div></section>`; }
   function creditsPage() { const credits=[["Artist","Saint Ed X"],["Written By","D. Wright"],["Executive Producer","D. Wright"],["Producer","Ed Xachari"],["Production Company","Ghosts In Shells"],["Record Label","Inkworks Media Group"],["Creative Direction","D. Wright"],["myPhone Development","Ghosts In Shells"]]; return `<section class="settings-screen">${header("Credits","Recently Deleted")}<div class="credits-hero"><span class="settings-x-avatar">×</span><strong>Recently Deleted</strong><small>Saint Ed X</small></div>${group(credits.map((item)=>infoRow(...item)).join(""))}<p class="settings-rights">Created independently. All original music, artwork, recordings and story content are owned or used with permission by their respective rights holders.<br><br>© 2026 Ghosts In Shells.<br>All rights reserved.</p></section>`; }
@@ -102,7 +104,7 @@
     if (type === "all") { localStorage.clear(); applyPreferences(); window.MyMessages?.syncUnreadBadge(); window.MyMail?.syncUnreadBadge(); renderMessage("myPhone Reset","Visitor data has been erased from this browser."); }
   }
 
-  const pages = { about:aboutPage, appearance:appearancePage, notifications:notificationsPage, privacy:privacyPage, storage:storagePage, battery:batteryPage, credits:creditsPage, update:updatePage };
+  const pages = { general:generalPage, about:aboutPage, appearance:appearancePage, notifications:notificationsPage, privacy:privacyPage, storage:storagePage, battery:batteryPage, credits:creditsPage, update:updatePage };
   function renderMessage(title,text,back="privacy") { host.innerHTML=messagePage(title,text,back); bind(); }
   function render(page="main") {
     if (page === "album-remove") host.innerHTML=messagePage("Unable to Remove Album","Recently Deleted cannot be deleted while currently in use.","storage");
@@ -116,6 +118,7 @@
     host.querySelectorAll("[data-setting]").forEach((input)=>input.addEventListener("change",async()=>{ const name=input.dataset.setting; if(name==="desktopNotifications"&&input.checked){ const permission="Notification" in window?await Notification.requestPermission():"denied"; input.checked=permission==="granted"; } localStorage.setItem(KEYS[name],input.checked?"1":"0"); applyPreferences(); render(name === "notifications" || name === "sounds" || name === "desktopNotifications" ? "notifications" : "appearance"); }));
     host.querySelector("[data-brightness]")?.addEventListener("input",(event)=>{ localStorage.setItem(KEYS.brightness,event.target.value); event.target.previousElementSibling.textContent=`${event.target.value}%`; applyPreferences(); });
     host.querySelector("[data-confirm-action]")?.addEventListener("click",(event)=>runReset(event.currentTarget.dataset.confirmAction));
+    host.querySelector("[data-owner-entry]")?.addEventListener("click",()=>window.GISOwnerPhone?.open(host,()=>render("storage")));
   }
   async function open(node) { host=node; battery={level:19,charging:false,supported:true}; render("main"); }
   applyPreferences();
