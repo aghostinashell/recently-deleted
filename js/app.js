@@ -3,6 +3,8 @@
 const root = document.getElementById("site-root");
 const track = (name, properties = {}, options = {}) =>
   window.GISAnalytics?.trackEvent(name, properties, options);
+const isPrivateDjRoute = window.GIS_PRIVATE_DJ_ROUTE === true
+  || /^\/djparislife\/?$/i.test(location.pathname);
 
 const CORRECT_PASSCODE = "1010";
 
@@ -91,7 +93,37 @@ const dockApps = [
   }
 ];
 
+const djApps = [
+  { id: "music", name: "Music", icon: "♪" },
+  { id: "photos", name: "Photos", icon: "▧" },
+  { id: "mail", name: "Mail", icon: "✉" },
+  { id: "stage", name: "Exposure", icon: "●" },
+  { id: "settings", name: "Settings", icon: "⚙" }
+];
+
+let publicMailInitialized = false;
+
+function renderPrivateDjGate(message = "A valid private invitation is required.") {
+  root.innerHTML = `
+    <main class="dj-route-gate">
+      <div><span>GIS</span><h1>PRIVATE ACCESS</h1><p>${message}</p></div>
+    </main>`;
+}
+
+function initializePublicMail() {
+  if (publicMailInitialized) return;
+  publicMailInitialized = true;
+  window.MyMail?.initialize();
+}
+
 function bootSite() {
+  const hasInviteToken = new URLSearchParams(location.search).has("invite");
+  if (isPrivateDjRoute && !hasInviteToken) {
+    renderPrivateDjGate();
+    track("access_denied", { method: "private_route", reason: "invite_required" });
+    return;
+  }
+
   root.innerHTML = `
     <main class="device" id="device">
       ${renderHomeScreen()}
@@ -111,7 +143,13 @@ function bootSite() {
   initializeWeather();
   window.MyMessages?.syncUnreadBadge();
   initializeMediaProtection();
-  window.MyMail?.initialize();
+  if (!hasInviteToken) initializePublicMail();
+  else window.GISAnalytics?.inviteReady?.then(() => {
+    if (!window.DJPhone?.isActive()) {
+      if (isPrivateDjRoute) renderPrivateDjGate("This invitation is invalid, expired, or unavailable.");
+      else initializePublicMail();
+    }
+  });
   window.MySettings?.applyPreferences();
   window.MyPhone?.syncBadge();
   track("lock_screen_viewed", {}, { dedupeKey: "initial-lock-screen" });
@@ -216,6 +254,11 @@ function renderFaceIdScreen() {
       id="faceIdScreen"
     >
       ${renderStatusBar()}
+      <div class="dj-access-panel" id="djAccessPanel" hidden>
+        <span>ACCESS GRANTED</span>
+        <strong id="djAccessRecipient">AUTHORIZED DJ</strong>
+        <p>ALL ACCESS CREDENTIAL VERIFIED</p>
+      </div>
     </section>
   `;
 }
@@ -689,12 +732,13 @@ function cancelSwipe() {
   }
 }
 
-function beginUnlockSequence() {
+async function beginUnlockSequence() {
   if (faceIdSequenceRunning) {
     return;
   }
 
   faceIdSequenceRunning = true;
+  await window.GISAnalytics?.inviteReady;
   const isAuthorizedDj = window.GISAnalytics?.context().accessType === "DJ"
     && Boolean(window.GISAnalytics?.context().inviteContext);
   track("face_id_scan_started");
@@ -713,6 +757,9 @@ function beginUnlockSequence() {
 
   const islandMessage =
     document.getElementById("islandMessage");
+  const islandTitle = document.getElementById("islandTitle");
+  const djAccessPanel = document.getElementById("djAccessPanel");
+  const djAccessRecipient = document.getElementById("djAccessRecipient");
 
   lockScreen.classList.add("unlocking");
 
@@ -722,18 +769,23 @@ function beginUnlockSequence() {
 
     faceIdScreen.classList.remove("screen-hidden");
 
+    islandTitle.textContent = "Face ID";
     islandMessage.textContent = "Scanning…";
+    djAccessPanel.hidden = true;
     dynamicIsland.classList.remove("failed");
     dynamicIsland.classList.add("scanning");
   }, 280);
 
   window.setTimeout(() => {
-    const recipientName = window.GISAnalytics?.context().inviteContext?.recipientDisplayName;
-    islandMessage.textContent = isAuthorizedDj
-      ? `Access Granted: ${recipientName || "Authorized DJ"}`
-      : "Not Recognized";
+    const recipientName = isPrivateDjRoute
+      ? "DJ Paris Life"
+      : window.GISAnalytics?.context().inviteContext?.recipientDisplayName;
+    islandTitle.textContent = isAuthorizedDj ? "ACCESS GRANTED" : "Face ID";
+    islandMessage.textContent = isAuthorizedDj ? "Credential Verified" : "Not Recognized";
     dynamicIsland.classList.remove("scanning");
     if (isAuthorizedDj) {
+      djAccessRecipient.textContent = recipientName || "AUTHORIZED DJ";
+      djAccessPanel.hidden = false;
       track("face_id_success");
       track("face_id_access_granted");
       track("access_granted", { method: "face_id" });
@@ -746,13 +798,16 @@ function beginUnlockSequence() {
 
   window.setTimeout(() => {
     faceIdScreen.classList.add("screen-hidden");
+    djAccessPanel.hidden = true;
     if (isAuthorizedDj) {
       unlockSite("face_id");
+    } else if (isPrivateDjRoute) {
+      renderPrivateDjGate("This invitation is invalid, expired, or unavailable.");
     } else {
       passcodeScreen.classList.remove("screen-hidden");
       track("passcode_screen_viewed");
     }
-  }, 2250);
+  }, 2750);
 
   window.setTimeout(() => {
     dynamicIsland.classList.remove("failed");
@@ -909,6 +964,8 @@ function unlockSite(method = "passcode") {
     .getElementById("homeScreen")
     .classList.remove("screen-hidden");
 
+  if (method === "face_id" && window.DJPhone?.isActive()) activateDjMode();
+
   document.getElementById("device").scrollTop = 0;
   document.getElementById("homeScreen").scrollTop = 0;
 
@@ -921,7 +978,38 @@ function unlockSite(method = "passcode") {
   track("home_screen_viewed");
   if (method === "face_id" && window.GISAnalytics?.context().accessType === "DJ") {
     track("dj_phone_unlocked");
+    track("dj_home_screen_viewed");
   }
+}
+
+function activateDjMode() {
+  const device = document.getElementById("device");
+  if (device.classList.contains("dj-mode")) return;
+  device.classList.add("dj-mode");
+  document.getElementById("homePages").innerHTML = `
+    <div class="home-page dj-home-page" aria-label="DJ apps">
+      <header class="dj-home-header"><span>INDUSTRY ACCESS</span><strong>ALL ACCESS</strong></header>
+      <div class="app-grid dj-app-grid">${djApps.map(renderAppButton).join("")}</div>
+      <p class="dj-home-footer">Authorized promotional access · Ghosts In Shells</p>
+    </div>`;
+  document.querySelector(".home-page-dots").hidden = true;
+  const welcomeBadge = document.querySelector('[data-app-id="mail"] [data-mail-unread]');
+  if (welcomeBadge) {
+    welcomeBadge.hidden = !window.GISAnalytics?.context().inviteContext?.isFirstVisit;
+    welcomeBadge.textContent = "1";
+  }
+  document.querySelectorAll("[data-app-id]").forEach((button) => {
+    button.addEventListener("click", () => openApp(button.dataset.appId));
+  });
+  const dock = document.getElementById("systemDock");
+  dock.innerHTML = `<div class="system-dock dj-system-dock">
+      <span aria-hidden="true"></span>
+      <button class="dock-button" id="homeButton" type="button" aria-label="Return home">
+        <span class="home-x-icon">×</span>
+      </button>
+      <span aria-hidden="true"></span>
+    </div><div class="home-indicator"></div>`;
+  dock.querySelector("#homeButton").addEventListener("click", returnHome);
 }
 
 function openApp(appId) {
@@ -955,13 +1043,18 @@ function showAppWindow(app) {
   appWindow.dataset.activeAppId = app.id;
   document.getElementById(
     "appTitle"
-  ).textContent = app.name;
+  ).textContent = window.DJPhone?.isActive()
+    ? djApps.find((item) => item.id === app.id)?.name || app.name
+    : app.name;
 
   const appContent = document.getElementById("appContent");
 
   appContent.className = "app-content";
 
-  if (app.id === "music" && window.MyMusic) {
+  if (window.DJPhone?.isActive() && djApps.some((item) => item.id === app.id)) {
+    appContent.classList.add("dj-app-content");
+    window.DJPhone.openApp(app.id, appContent);
+  } else if (app.id === "music" && window.MyMusic) {
     appContent.classList.add("media-app-content");
     window.MyMusic.open(appContent);
   } else if (app.id === "notes" && window.MyNotes) {

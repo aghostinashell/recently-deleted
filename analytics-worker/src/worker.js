@@ -1,4 +1,5 @@
 import { ACCESS_TYPES, ALLOWED_EVENTS } from "./events.js";
+import { resolvePrivateAsset } from "./private-assets.js";
 import { sanitizeMetadata, sha256, signContext, verifyContext } from "./security.js";
 
 const fallbackBuckets = new Map();
@@ -51,6 +52,14 @@ function adminAuthorized(request, env) {
   return env.ADMIN_API_TOKEN && supplied === `Bearer ${env.ADMIN_API_TOKEN}`;
 }
 
+function safeAssetPath(value) {
+  const path = String(value || "").trim();
+  if (!path) return null;
+  if (path.length > 300 || path.includes("..") || path.startsWith("/") ||
+      !/^media\/[a-z0-9/_ .-]+\.(?:jpe?g|png|webp)$/i.test(path)) return null;
+  return path;
+}
+
 async function parseBody(request) {
   const length = Number(request.headers.get("Content-Length") || 0);
   if (length > MAX_BODY_BYTES) throw new Error("body_too_large");
@@ -70,7 +79,8 @@ async function validateInvite(request, env, headers) {
   }
   const invite = await env.DB.prepare(`
     SELECT i.id, i.access_type, i.expires_at, i.revoked_at, i.is_test, i.total_visits,
-           r.id AS recipient_id, r.display_name, r.access_level
+           i.created_at AS issued_at, r.id AS recipient_id, r.display_name, r.access_level,
+           r.personalized_artwork_path
     FROM access_invites i JOIN invite_recipients r ON r.id = i.recipient_id
     WHERE i.token_hash = ?
   `).bind(tokenHash).first();
@@ -89,6 +99,9 @@ async function validateInvite(request, env, headers) {
     recipientDisplayName: invite.display_name,
     accessType: invite.access_type,
     accessLevel: invite.access_level,
+    issuedAt: invite.issued_at,
+    publicPassNumber: invite.id.slice(-8).toUpperCase(),
+    personalizedArtworkAvailable: Boolean(safeAssetPath(invite.personalized_artwork_path)),
     isTest: Boolean(invite.is_test),
     expiresAt: Date.now() + 12 * 60 * 60 * 1000
   }, env.INVITE_SIGNING_SECRET);
@@ -101,10 +114,96 @@ async function validateInvite(request, env, headers) {
       recipientDisplayName: invite.display_name,
       accessType: invite.access_type,
       accessLevel: invite.access_level,
+      issuedAt: invite.issued_at,
+      publicPassNumber: invite.id.slice(-8).toUpperCase(),
+      personalizedArtworkAvailable: Boolean(safeAssetPath(invite.personalized_artwork_path)),
       isTest: Boolean(invite.is_test),
       contextToken
     }
   }, 200, headers);
+}
+
+function safeDownloadFilename(value) {
+  return String(value || "download")
+    .replace(/[\r\n"]/g, "")
+    .replace(/[^\w .()'-]/g, "-")
+    .slice(0, 180);
+}
+
+async function auditPrivateDownload(env, context, assetId) {
+  try {
+    await env.DB.prepare(`
+      INSERT INTO private_asset_downloads
+        (id, invite_id, recipient_id, asset_id, downloaded_at, is_test)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).bind(
+      crypto.randomUUID(),
+      context.inviteId,
+      context.recipientId,
+      assetId,
+      new Date().toISOString(),
+      context.isTest ? 1 : 0
+    ).run();
+  } catch {
+    // Delivery authorization is independent from analytics availability.
+  }
+}
+
+async function downloadPrivateAsset(request, env, headers, executionContext, assetId) {
+  const body = await parseBody(request);
+  const context = await verifyContext(body.invite_context_token, env.INVITE_SIGNING_SECRET);
+  if (!context?.inviteId || !context?.recipientId || context.accessType !== "DJ") {
+    return json({ error: "invalid_invite" }, 401, headers);
+  }
+  if (await rateLimited(
+    request,
+    env,
+    "DOWNLOADS_RATE_LIMITER",
+    12,
+    `${context.inviteId}:${String(assetId || "").slice(0, 80)}`
+  )) {
+    return json({ error: "rate_limited" }, 429, headers);
+  }
+
+  const invite = await env.DB.prepare(`
+    SELECT i.id, i.recipient_id, i.access_type, i.expires_at, i.revoked_at, i.is_test,
+      r.personalized_artwork_path
+    FROM access_invites i JOIN invite_recipients r ON r.id = i.recipient_id
+    WHERE i.id = ? AND i.recipient_id = ?
+  `).bind(context.inviteId, context.recipientId).first();
+  if (!invite || invite.revoked_at || invite.access_type !== "DJ") {
+    return json({ error: "invalid_invite" }, 401, headers);
+  }
+  if (invite.expires_at && Date.parse(invite.expires_at) < Date.now()) {
+    return json({ error: "expired_invite" }, 401, headers);
+  }
+
+  const authorizationContext = {
+    ...context,
+    personalizedArtworkAvailable: Boolean(safeAssetPath(invite.personalized_artwork_path))
+  };
+  const asset = resolvePrivateAsset(assetId, authorizationContext);
+  if (!asset || !asset.accessTypes.includes(invite.access_type)) {
+    return json({ error: "asset_not_authorized" }, 403, headers);
+  }
+  if (!env.DJ_PRIVATE_ASSETS?.get) return json({ error: "asset_unavailable" }, 503, headers);
+
+  const object = await env.DJ_PRIVATE_ASSETS.get(asset.key);
+  if (!object) return json({ error: "asset_unavailable" }, 404, headers);
+
+  const audit = auditPrivateDownload(env, authorizationContext, assetId);
+  if (executionContext?.waitUntil) executionContext.waitUntil(audit);
+  else await audit;
+
+  const responseHeaders = new Headers(headers);
+  responseHeaders.set("Content-Type", asset.contentType);
+  responseHeaders.set("Content-Disposition", `attachment; filename="${safeDownloadFilename(asset.filename)}"`);
+  responseHeaders.set("Cache-Control", "private, no-store, max-age=0");
+  responseHeaders.set("X-Content-Type-Options", "nosniff");
+  responseHeaders.set("Content-Security-Policy", "default-src 'none'; sandbox");
+  if (object.size != null) responseHeaders.set("Content-Length", String(object.size));
+  if (object.httpEtag) responseHeaders.set("ETag", object.httpEtag);
+  return new Response(object.body, { status: 200, headers: responseHeaders });
 }
 
 async function collectEvents(request, env, headers) {
@@ -207,7 +306,7 @@ async function testEvents(request, env, headers) {
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, executionContext) {
     const url = new URL(request.url);
     const headers = cors(request, env);
     if (request.method === "OPTIONS") {
@@ -222,6 +321,10 @@ export default {
     try {
       if (url.pathname === "/v1/invites/validate" && request.method === "POST") return await validateInvite(request, env, headers);
       if (url.pathname === "/v1/events" && request.method === "POST") return await collectEvents(request, env, headers);
+      const downloadMatch = url.pathname.match(/^\/v1\/downloads\/([a-z0-9-]{3,80})$/);
+      if (downloadMatch && request.method === "POST") {
+        return await downloadPrivateAsset(request, env, headers, executionContext, downloadMatch[1]);
+      }
       if (url.pathname === "/v1/test/events" && ["GET", "DELETE"].includes(request.method)) return await testEvents(request, env, headers);
       return json({ error: "not_found" }, 404, headers);
     } catch (error) {

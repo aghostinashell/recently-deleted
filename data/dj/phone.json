@@ -1,0 +1,163 @@
+{
+  "label": "INDUSTRY ACCESS",
+  "issuer": "Ghosts In Shells",
+  "credentialHolder": "DJ Paris Life",
+  "contactEmail": "d.wright@ghostsinshells.com",
+  "music": {
+    "artist": "Saint Ed X",
+    "fallbackCover": "media/dj/brand/saint-ed-x-logo.png",
+    "tracks": [
+      {
+        "id": "face-id",
+        "title": "Face ID",
+        "runtimeSeconds": 131,
+        "coverAssetId": "face-id-dj-cover",
+        "files": [
+          {
+            "id": "face-id-m4a",
+            "label": "Face ID",
+            "version": "original",
+            "format": "M4A",
+            "path": "media/audio/recently-deleted/01-face-id.m4a"
+          }
+        ]
+      },
+      {
+        "id": "white-bronco",
+        "title": "White Bronco",
+        "runtimeSeconds": 197,
+        "coverAssetId": "white-bronco-dj-cover",
+        "files": [
+          {
+            "id": "white-bronco-m4a",
+            "label": "White Bronco",
+            "version": "original",
+            "format": "M4A",
+            "path": "media/audio/recently-deleted/04-white-bronco.m4a"
+          }
+        ]
+      },
+      {
+        "id": "amber",
+        "title": "Amber",
+        "runtimeSeconds": 200,
+        "coverAssetId": "amber-dj-cover",
+        "files": [
+          {
+            "id": "amber-m4a",
+            "label": "Amber",
+            "version": "original",
+            "format": "M4A",
+            "path": "media/audio/recently-deleted/10-amber.m4a"
+          }
+        ]
+      }
+    ]
+  },
+  "photos": [
+    {
+      "id": "face-id-dj-cover",
+      "label": "Face ID",
+      "category": "personalized",
+      "fileType": "PNG",
+      "delivery": "private",
+      "privateAssetId": "face-id-dj-cover",
+      "available": true,
+      "requiredFilename": "saint-ed-x-face-id-dj-cover.png"
+    },
+    {
+      "id": "white-bronco-dj-cover",
+      "label": "White Bronco",
+      "category": "personalized",
+      "fileType": "PNG",
+      "delivery": "private",
+      "privateAssetId": "white-bronco-dj-cover",
+      "available": true,
+      "requiredFilename": "saint-ed-x-white-bronco-dj-cover.png"
+    },
+    {
+      "id": "amber-dj-cover",
+      "label": "Amber",
+      "category": "personalized",
+      "fileType": "PNG",
+      "delivery": "private",
+      "privateAssetId": "amber-dj-cover",
+      "available": true,
+      "requiredFilename": "saint-ed-x-amber-dj-cover.png"
+    },
+    {
+      "id": "saint-ed-x-logo",
+      "label": "Saint Ed X Logo",
+      "category": "logo",
+      "fileType": "PNG",
+      "path": "media/dj/brand/saint-ed-x-logo.png"
+    }
+  ],
+  "mail": [
+    {
+      "id": "dj-paris-life-welcome",
+      "sender": "Ghosts In Shells",
+      "subject": "WELCOME TO GHOSTS IN SHELLS",
+      "preview": "Your All Access Credential has been activated.",
+      "salutation": "DJ Paris Life,",
+      "body": [
+        "Welcome to Ghosts In Shells. Your All Access Credential has been activated.",
+        "This credential provides access to promotional releases, approved artwork, and future industry updates from Saint Ed X.",
+        "Additional releases, artwork, and promotional assets will be added directly to your credential as they become available. No new invitation will be required.",
+        "Thank you for taking the time to listen. We appreciate your support and look forward to hearing your thoughts."
+      ],
+      "releasesHeading": "Available Now",
+      "releases": [
+        {
+          "title": "Amber",
+          "detail": "Album Version - Exclusive Cover Art"
+        },
+        {
+          "title": "Face ID",
+          "detail": "Album Version - Exclusive Cover Art"
+        },
+        {
+          "title": "White Bronco",
+          "detail": "Album Version - Exclusive Cover Art"
+        }
+      ],
+      "signoff": "— Ghosts In Shells",
+      "permanent": true,
+      "firstLoginDelivery": true,
+      "action": null
+    },
+    {
+      "id": "face-id-licensed-preview",
+      "sender": "Saint Ed X / Ghosts In Shells",
+      "subject": "DJ MUSIC DELIVERY",
+      "preview": "Face ID, White Bronco, and Amber are ready inside Music.",
+      "body": [
+        "Face ID, White Bronco, and Amber are available here as authorized promotional previews.",
+        "Open Music for playback and the currently available files."
+      ],
+      "action": "music"
+    },
+    {
+      "id": "exposure-access",
+      "sender": "Exposure",
+      "subject": "EXPOSURE ACCESS",
+      "preview": "Your credential is recognized for future access.",
+      "body": [
+        "This credential may provide access to future private previews, performances, soundchecks, and industry events.",
+        "Confirmed opportunities will appear inside Exposure. No active event is currently scheduled."
+      ],
+      "action": "stage"
+    },
+    {
+      "id": "request-dj-drop",
+      "sender": "Ghosts In Shells",
+      "subject": "REQUEST A DJ DROP",
+      "preview": "Request a custom Saint Ed X DJ drop.",
+      "body": [
+        "Use the contact action below to request a custom Saint Ed X DJ drop.",
+        "Include your DJ name, station or platform, and pronunciation details in your email. Message content is not sent to analytics."
+      ],
+      "action": "dj-drop"
+    }
+  ]
+}
