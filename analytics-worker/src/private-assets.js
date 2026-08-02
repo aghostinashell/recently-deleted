@@ -24,6 +24,24 @@ const FIXED_ASSETS = Object.freeze({
     filename: "Saint Ed X - Face ID (Clean).wav",
     contentType: "audio/wav",
     accessTypes: ["DJ"]
+  },
+  "face-id-dj-cover": {
+    key: `${FACE_ID_PREFIX}/artwork/saint-ed-x-face-id-dj-cover.png`,
+    filename: "Saint Ed X - Face ID - DJ Cover.png",
+    contentType: "image/png",
+    accessTypes: ["DJ"]
+  },
+  "white-bronco-dj-cover": {
+    key: "releases/white-bronco/artwork/saint-ed-x-white-bronco-dj-cover.png",
+    filename: "Saint Ed X - White Bronco - DJ Cover.png",
+    contentType: "image/png",
+    accessTypes: ["DJ"]
+  },
+  "amber-dj-cover": {
+    key: "releases/amber/artwork/saint-ed-x-amber-dj-cover.png",
+    filename: "Saint Ed X - Amber - DJ Cover.png",
+    contentType: "image/png",
+    accessTypes: ["DJ"]
   }
 });
 

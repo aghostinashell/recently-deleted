@@ -8,6 +8,7 @@
 
   let configPromise = null;
   let activeHost = null;
+  let selectedTrack = null;
   let selectedFile = null;
   let playSessionId = "";
   let playbackStarted = false;
@@ -16,6 +17,7 @@
   let suppressPause = false;
   let milestones = new Set();
   let playStartedAt = 0;
+  const privateAssetUrls = new Map();
 
   const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (character) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
@@ -46,13 +48,13 @@
     const music = window.DJPhone?.configuration?.music;
     return {
       app_name: "music",
-      song_id: music?.id || "face-id",
-      song_title: music?.title || "Face ID",
-      content_id: music?.id || "face-id",
-      content_title: music?.title || "Face ID",
+      song_id: selectedTrack?.id || "unknown",
+      song_title: selectedTrack?.title || "Unknown",
+      content_id: selectedTrack?.id || "unknown",
+      content_title: selectedTrack?.title || "Unknown",
       version: selectedFile?.version || null,
       file_format: selectedFile?.format?.toLowerCase() || null,
-      runtime: Number.isFinite(audio.duration) ? Math.round(audio.duration) : music?.runtimeSeconds || null,
+      runtime: Number.isFinite(audio.duration) ? Math.round(audio.duration) : selectedTrack?.runtimeSeconds || null,
       playback_position: Math.round(audio.currentTime || 0),
       percentage_completed: Number.isFinite(audio.duration) && audio.duration > 0
         ? Math.round((audio.currentTime / audio.duration) * 100) : 0,
@@ -89,7 +91,7 @@
   function renderMusicStatus() {
     if (!activeHost?.querySelector(".dj-music-app")) return;
     const duration = Number.isFinite(audio.duration) ? audio.duration
-      : window.DJPhone?.configuration?.music?.runtimeSeconds || 0;
+      : selectedTrack?.runtimeSeconds || 0;
     const percentage = duration > 0 ? Math.min(100, (audio.currentTime / duration) * 100) : 0;
     const seek = activeHost.querySelector("[data-dj-seek]");
     if (seek) {
@@ -103,7 +105,7 @@
     const toggle = activeHost.querySelector("[data-dj-music-toggle]");
     if (toggle) {
       toggle.textContent = audio.paused ? "▶" : "Ⅱ";
-      toggle.setAttribute("aria-label", audio.paused ? "Play Face ID" : "Pause Face ID");
+      toggle.setAttribute("aria-label", `${audio.paused ? "Play" : "Pause"} ${selectedTrack?.title || "track"}`);
     }
     activeHost.querySelectorAll("[data-dj-version]").forEach((button) => {
       button.classList.toggle("active", button.dataset.djVersion === selectedFile?.id);
@@ -126,6 +128,15 @@
     link.click();
     link.remove();
     window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+  }
+
+  async function privateAssetUrl(assetId) {
+    if (!assetId) return null;
+    if (privateAssetUrls.has(assetId)) return privateAssetUrls.get(assetId);
+    const result = await window.GISAnalytics.requestPrivateAsset(assetId);
+    const objectUrl = URL.createObjectURL(result.blob);
+    privateAssetUrls.set(assetId, objectUrl);
+    return objectUrl;
   }
 
   audio.addEventListener("loadedmetadata", renderMusicStatus);
@@ -174,121 +185,128 @@
     const data = await config();
     window.DJPhone.configuration = data;
     const music = data.music;
-    const files = music.files || [];
-    selectedFile = files.find((file) => file.path) || null;
-    if (selectedFile && audio.src !== new URL(selectedFile.path, location.href).href) {
-      selectFile(selectedFile);
-    }
-    track("song_viewed", {
-      app_name: "music",
-      song_id: music.id,
-      song_title: music.title,
-      content_id: music.id,
-      content_title: music.title
-    }, { dedupeKey: `dj-${music.id}-${window.GISAnalytics?.context().sessionId}` });
-    host.innerHTML = `
-      <section class="dj-app dj-music-app">
-        <header class="dj-app-kicker"><span>DJ PROMO SERVICE</span><b>${esc(data.label)}</b></header>
-        <div class="dj-music-hero">
-          <img src="${esc(music.cover)}" alt="${esc(music.title)} official cover">
-          <div><small>NOW SERVICING</small><h2>${esc(music.title)}</h2><p>${esc(music.artist)}</p></div>
-        </div>
-        <dl class="dj-track-facts">
-          <div><dt>Runtime</dt><dd>${music.runtimeSeconds ? formatTime(music.runtimeSeconds) : "Awaiting metadata"}</dd></div>
-          <div><dt>BPM</dt><dd>${music.bpm || "Awaiting metadata"}</dd></div>
-          <div><dt>Key</dt><dd>${music.key || "Awaiting metadata"}</dd></div>
-          <div><dt>Release</dt><dd>${esc(music.releaseInformation || music.releaseDate || "Awaiting metadata")}</dd></div>
-        </dl>
-        <div class="dj-player">
-          <input data-dj-seek type="range" min="0" max="100" value="0" step="0.1" aria-label="Seek through Face ID">
-          <div class="dj-player-time"><span data-dj-elapsed>0:00</span><span data-dj-duration>${music.runtimeSeconds ? formatTime(music.runtimeSeconds) : "--:--"}</span></div>
-          <div class="dj-player-controls">
-            <button type="button" data-dj-restart aria-label="Restart Face ID">↶</button>
-            <button class="dj-primary-play" type="button" data-dj-music-toggle aria-label="Play Face ID">▶</button>
-          </div>
-        </div>
-        <section class="dj-file-section">
-          <header><h3>Version & File Access</h3><p>Unavailable masters are shown with their required delivery filename.</p></header>
-          <div class="dj-file-list">${files.map((file) => file.path ? `
-            <article class="dj-file available">
-              <button type="button" data-dj-version="${esc(file.id)}"><span><strong>${esc(file.label)}</strong><small>${esc(file.version)} · ${esc(file.format)}</small></span><b>SELECT</b></button>
-              <a href="${esc(file.path)}" download data-dj-music-download="${esc(file.id)}"
-                data-asset-id="${esc(file.id)}" data-asset-title="${esc(music.title)} ${esc(file.label)}"
-                data-asset-category="dj-music">DOWNLOAD</a>
-            </article>` : file.delivery === "private" && file.available ? `
-            <article class="dj-file available">
-              <span><strong>${esc(file.label)}</strong><small>${esc(file.version)} · ${esc(file.format)} · Protected</small></span>
-              <button type="button" data-dj-private-download="${esc(file.id)}">DOWNLOAD</button>
-            </article>` : `
-            <article class="dj-file unavailable"><span><strong>${esc(file.label)}</strong><small>Asset required</small></span><code>${esc(file.requiredFilename || file.requiredPath)}</code></article>`
-          ).join("")}</div>
-          <p class="dj-download-status" data-dj-download-status aria-live="polite"></p>
-        </section>
-      </section>`;
-    activeHost = host;
-    host.querySelector("[data-dj-music-toggle]").addEventListener("click", () => {
-      if (!selectedFile) return;
-      if (audio.paused) audio.play().catch(() => {});
-      else audio.pause();
-    });
-    host.querySelector("[data-dj-restart]").addEventListener("click", () => {
-      if (!selectedFile) return;
-      audio.currentTime = 0;
-      resetPlaybackSession();
-      track("song_restarted", trackMetadata());
-      audio.play().catch(() => {});
-    });
-    host.querySelector("[data-dj-seek]").addEventListener("input", (event) => {
-      if (Number.isFinite(audio.duration)) audio.currentTime = (Number(event.target.value) / 100) * audio.duration;
-    });
-    host.querySelectorAll("[data-dj-version]").forEach((button) => button.addEventListener("click", () => {
-      selectFile(files.find((file) => file.id === button.dataset.djVersion));
-    }));
-    host.querySelectorAll("[data-dj-music-download]").forEach((link) => link.addEventListener("click", () => {
-      const file = files.find((item) => item.id === link.dataset.djMusicDownload);
-      const metadata = trackMetadata({
-        asset_id: file.id,
-        asset_title: `${music.title} ${file.label}`,
-        asset_category: "dj-music"
-      });
-      track("music_file_downloaded", metadata);
-      if (file.format === "MP3") track("music_mp3_downloaded", metadata);
-      if (file.format === "WAV") track("music_wav_downloaded", metadata);
-      if (file.version === "clean") track("music_clean_downloaded", metadata);
-      if (file.version === "explicit") track("music_explicit_downloaded", metadata);
-    }));
-    host.querySelectorAll("[data-dj-private-download]").forEach((button) => button.addEventListener("click", async () => {
-      const file = files.find((item) => item.id === button.dataset.djPrivateDownload);
-      const status = host.querySelector("[data-dj-download-status]");
-      button.disabled = true;
-      status.textContent = "Preparing protected download…";
+    const tracks = music.tracks || [];
+    const resolvedTracks = await Promise.all(tracks.map(async (trackItem) => {
       try {
-        await savePrivateAsset(file.id);
-        status.textContent = "Download authorized.";
-        const metadata = trackMetadata({
-          asset_id: file.id,
-          asset_title: `${music.title} ${file.label}`,
-          asset_category: "dj-music",
-          delivery: "protected"
-        });
-        track("music_file_downloaded", metadata);
-        if (file.format === "MP3") track("music_mp3_downloaded", metadata);
-        if (file.format === "WAV") track("music_wav_downloaded", metadata);
-        if (file.version === "clean") track("music_clean_downloaded", metadata);
-        if (file.version === "explicit") track("music_explicit_downloaded", metadata);
-      } catch (error) {
-        status.textContent = error.message;
-      } finally {
-        button.disabled = false;
+        return { ...trackItem, cover: await privateAssetUrl(trackItem.coverAssetId) };
+      } catch {
+        return { ...trackItem, cover: music.fallbackCover };
       }
     }));
-    renderMusicStatus();
+    const render = (trackId) => {
+      selectedTrack = resolvedTracks.find((item) => item.id === trackId) || resolvedTracks[0];
+      if (!selectedTrack) throw new Error("No DJ music is currently available.");
+      const files = (selectedTrack.files || []).filter((file) => file.path || (file.delivery === "private" && file.available));
+      const firstPlayable = files.find((file) => file.path) || null;
+      if (firstPlayable && audio.src !== new URL(firstPlayable.path, location.href).href) selectFile(firstPlayable);
+      else selectedFile = firstPlayable;
+      track("song_viewed", {
+        app_name: "music",
+        song_id: selectedTrack.id,
+        song_title: selectedTrack.title,
+        content_id: selectedTrack.id,
+        content_title: selectedTrack.title
+      }, { dedupeKey: `dj-${selectedTrack.id}-${window.GISAnalytics?.context().sessionId}` });
+      const facts = [
+        ["Runtime", selectedTrack.runtimeSeconds ? formatTime(selectedTrack.runtimeSeconds) : null],
+        ["BPM", selectedTrack.bpm],
+        ["Key", selectedTrack.key],
+        ["Release", selectedTrack.releaseInformation || selectedTrack.releaseDate]
+      ].filter(([, value]) => value);
+      host.innerHTML = `
+        <section class="dj-app dj-music-app">
+          <header class="dj-app-kicker"><span>DJ PROMO SERVICE</span><b>${esc(data.label)}</b></header>
+          <div class="dj-track-picker">${resolvedTracks.map((item) => `
+            <button type="button" data-dj-track="${esc(item.id)}" class="${item.id === selectedTrack.id ? "active" : ""}">
+              <img src="${esc(item.cover || music.fallbackCover)}" alt="">
+              <span><strong>${esc(item.title)}</strong><small>${formatTime(item.runtimeSeconds)}</small></span>
+            </button>`).join("")}</div>
+          <div class="dj-music-hero">
+            <img src="${esc(selectedTrack.cover || music.fallbackCover)}" alt="${esc(selectedTrack.title)} licensed cover">
+            <div><small>NOW SERVICING</small><h2>${esc(selectedTrack.title)}</h2><p>${esc(music.artist)}</p></div>
+          </div>
+          ${facts.length ? `<dl class="dj-track-facts">${facts.map(([label, value]) =>
+            `<div><dt>${esc(label)}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl>` : ""}
+          <div class="dj-player">
+            <input data-dj-seek type="range" min="0" max="100" value="0" step="0.1" aria-label="Seek through ${esc(selectedTrack.title)}">
+            <div class="dj-player-time"><span data-dj-elapsed>0:00</span><span data-dj-duration>${formatTime(selectedTrack.runtimeSeconds)}</span></div>
+            <div class="dj-player-controls">
+              <button type="button" data-dj-restart aria-label="Restart ${esc(selectedTrack.title)}">↶</button>
+              <button class="dj-primary-play" type="button" data-dj-music-toggle aria-label="Play ${esc(selectedTrack.title)}">▶</button>
+            </div>
+          </div>
+          ${files.length ? `<section class="dj-file-section">
+            <header><h3>Available File</h3></header>
+            <div class="dj-file-list">${files.map((file) => file.path ? `
+              <article class="dj-file available">
+                <button type="button" data-dj-version="${esc(file.id)}"><span><strong>${esc(file.label)}</strong><small>${esc(file.version)} · ${esc(file.format)}</small></span><b>SELECT</b></button>
+                <a href="${esc(file.path)}" download data-dj-music-download="${esc(file.id)}"
+                  data-asset-id="${esc(file.id)}" data-asset-title="${esc(selectedTrack.title)} ${esc(file.label)}"
+                  data-asset-category="dj-music">DOWNLOAD</a>
+              </article>` : `
+              <article class="dj-file available">
+                <span><strong>${esc(file.label)}</strong><small>${esc(file.version)} · ${esc(file.format)} · Protected</small></span>
+                <button type="button" data-dj-private-download="${esc(file.id)}">DOWNLOAD</button>
+              </article>`).join("")}</div>
+            <p class="dj-download-status" data-dj-download-status aria-live="polite"></p>
+          </section>` : ""}
+        </section>`;
+      activeHost = host;
+      host.querySelectorAll("[data-dj-track]").forEach((button) => button.addEventListener("click", () => render(button.dataset.djTrack)));
+      host.querySelector("[data-dj-music-toggle]").addEventListener("click", () => {
+        if (!selectedFile) return;
+        if (audio.paused) audio.play().catch(() => {});
+        else audio.pause();
+      });
+      host.querySelector("[data-dj-restart]").addEventListener("click", () => {
+        if (!selectedFile) return;
+        audio.currentTime = 0;
+        resetPlaybackSession();
+        track("song_restarted", trackMetadata());
+        audio.play().catch(() => {});
+      });
+      host.querySelector("[data-dj-seek]").addEventListener("input", (event) => {
+        if (Number.isFinite(audio.duration)) audio.currentTime = (Number(event.target.value) / 100) * audio.duration;
+      });
+      host.querySelectorAll("[data-dj-version]").forEach((button) => button.addEventListener("click", () => {
+        selectFile(files.find((file) => file.id === button.dataset.djVersion));
+      }));
+      host.querySelectorAll("[data-dj-music-download]").forEach((link) => link.addEventListener("click", () => {
+        const file = files.find((item) => item.id === link.dataset.djMusicDownload);
+        track("music_file_downloaded", trackMetadata({
+          asset_id: file.id,
+          asset_title: `${selectedTrack.title} ${file.label}`,
+          asset_category: "dj-music"
+        }));
+      }));
+      host.querySelectorAll("[data-dj-private-download]").forEach((button) => button.addEventListener("click", async () => {
+        const file = files.find((item) => item.id === button.dataset.djPrivateDownload);
+        const status = host.querySelector("[data-dj-download-status]");
+        button.disabled = true;
+        status.textContent = "Preparing protected download…";
+        try {
+          await savePrivateAsset(file.id);
+          status.textContent = "Download authorized.";
+          track("music_file_downloaded", trackMetadata({
+            asset_id: file.id,
+            asset_title: `${selectedTrack.title} ${file.label}`,
+            asset_category: "dj-music",
+            delivery: "protected"
+          }));
+        } catch (error) {
+          status.textContent = error.message;
+        } finally {
+          button.disabled = false;
+        }
+      }));
+      renderMusicStatus();
+    };
+    render(selectedTrack?.id || resolvedTracks[0]?.id);
   }
 
   async function resolvedPhotos(data) {
     return Promise.all(data.photos.map(async (asset) => {
-      if (asset.delivery !== "private" || !asset.available ||
-          !context()?.personalizedArtworkAvailable || !asset.privateAssetId) return asset;
+      if (asset.delivery !== "private" || !asset.available || !asset.privateAssetId) return asset;
       try {
         const result = await window.GISAnalytics.requestPrivateAsset(asset.privateAssetId);
         return { ...asset, path: URL.createObjectURL(result.blob), protectedDelivery: true };
@@ -300,21 +318,16 @@
 
   async function openPhotos(host) {
     const data = await config();
-    const assets = await resolvedPhotos(data);
-    track("photo_folder_opened", { app_name: "photos", content_id: "face-id-dj-assets", content_title: "Face ID DJ Assets" });
+    const assets = (await resolvedPhotos(data)).filter((asset) => asset.path);
+    track("photo_folder_opened", { app_name: "photos", content_id: "dj-assets", content_title: "DJ Assets" });
     host.innerHTML = `
       <section class="dj-app dj-photos-app">
-        <header class="dj-app-kicker"><span>APPROVED ASSETS</span><b>FACE ID</b></header>
-        <div class="dj-photo-grid">${assets.map((asset) => asset.path ? `
+        <header class="dj-app-kicker"><span>APPROVED ASSETS</span><b>SAINT ED X</b></header>
+        <div class="dj-photo-grid">${assets.map((asset) => `
           <button type="button" class="dj-photo-card" data-dj-photo="${esc(asset.id)}">
             <img src="${esc(asset.path)}" alt="${esc(asset.label)}">
             <span><strong>${esc(asset.label)}</strong><small>${esc(asset.fileType)} · Available</small></span>
-          </button>` : `
-          <article class="dj-photo-card unavailable">
-            <div class="dj-missing-asset">ASSET<br>REQUIRED</div>
-            <span><strong>${esc(asset.label)}</strong><small>${esc(asset.fileType)} · Not supplied</small></span>
-            <code>${esc(asset.requiredFilename || asset.requiredPath)}</code>
-          </article>`).join("")}</div>
+          </button>`).join("")}</div>
         <div class="dj-photo-viewer" data-dj-photo-viewer hidden></div>
       </section>`;
     host.querySelectorAll("[data-dj-photo]").forEach((button) => button.addEventListener("click", () => {

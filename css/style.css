@@ -2677,6 +2677,7 @@ img,
 .dj-app{min-height:calc(100vh - 90px);padding:20px 18px 150px;background:linear-gradient(180deg,#141416,#050506 42%);color:#fff}
 .dj-app-kicker{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.12)}
 .dj-app-kicker b{color:#888;font-size:8px;letter-spacing:1.6px}
+.dj-track-picker{margin-bottom:18px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.dj-track-picker button{padding:7px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:#151517;color:#fff;text-align:left}.dj-track-picker button.active{border-color:#ff453a;background:rgba(255,69,58,.09)}.dj-track-picker img{width:100%;aspect-ratio:1;border-radius:8px;object-fit:cover}.dj-track-picker span{display:block;padding:7px 2px 2px}.dj-track-picker strong,.dj-track-picker small{display:block}.dj-track-picker strong{overflow:hidden;font-size:8px;text-overflow:ellipsis;white-space:nowrap}.dj-track-picker small{margin-top:3px;color:#777;font-size:7px}
 .dj-music-hero{display:grid;grid-template-columns:110px 1fr;gap:18px;align-items:end}
 .dj-music-hero img{width:110px;height:110px;border-radius:8px;object-fit:cover;box-shadow:0 14px 34px rgba(0,0,0,.5)}
 .dj-music-hero small{color:#ff453a;font-size:8px;font-weight:850;letter-spacing:1.6px}

@@ -93,47 +93,45 @@ The invite record must opt into personalized artwork, and the frontend
 recipient-specific key from the live authorized recipient; the client cannot
 select another recipient’s key.
 
+## Current protected DJ covers
+
+The supplied personalized covers are protected fixed assets. They are never
+committed to the public frontend:
+
+| Asset ID | Private R2 object key | MIME type |
+| --- | --- | --- |
+| `face-id-dj-cover` | `releases/face-id/artwork/saint-ed-x-face-id-dj-cover.png` | `image/png` |
+| `white-bronco-dj-cover` | `releases/white-bronco/artwork/saint-ed-x-white-bronco-dj-cover.png` | `image/png` |
+| `amber-dj-cover` | `releases/amber/artwork/saint-ed-x-amber-dj-cover.png` | `image/png` |
+
+The Amber cover contains private contact information, so protected Worker
+delivery is required.
+
 ## Release metadata
 
 `data/dj/phone.json` is the single frontend configuration location for:
 
 - artist
 - track title
-- release date
 - runtime
-- BPM
-- musical key
-- explicit/clean availability
-- MP3/WAV availability
+- currently delivered file formats
 - artwork paths and protected asset IDs
 
-Known values are `Saint Ed X` and `Face ID`. Values still required from the
-release owner are:
-
-- final release date;
-- final master runtime;
-- BPM;
-- musical key;
-- confirmation that explicit and clean versions are approved;
-- confirmation that each MP3 and WAV master has been delivered.
-
-Null values remain visibly “Awaiting metadata”; nothing is guessed.
+Only supplied values appear in the DJ phone. Missing clean versions, MP3/WAV
+masters, vertical covers, and press images remain absent from the interface
+until delivered.
 
 ## Artwork delivery
 
 | Asset | Format and recommended dimensions | Filename | Delivery |
 | --- | --- | --- | --- |
-| Official Face ID cover | JPG, sRGB, 3000×3000 | `01-face-id.jpg` | Public at `media/artwork/recently-deleted/01-face-id.jpg` |
-| Personalized licensed preview | JPG, sRGB, 3000×3000 | `saint-ed-x-face-id-licensed-preview.jpg` | Protected R2 recipient key |
-| Vertical promo artwork | JPG, sRGB, 2160×2700 (4:5) | `saint-ed-x-face-id-vertical.jpg` | Public at `media/dj/face-id/` |
-| Saint Ed X logo | Transparent PNG, at least 2000 px on longest edge | `saint-ed-x-logo.png` | Public at `media/dj/brand/` |
-| Approved promotional image | JPG, sRGB, at least 2400×3000 | `saint-ed-x-approved-press.jpg` | Public at `media/dj/press/` |
+| Face ID DJ cover | PNG, 1254×1254 | `saint-ed-x-face-id-dj-cover.png` | Protected R2 |
+| White Bronco DJ cover | PNG, 1254×1254 | `saint-ed-x-white-bronco-dj-cover.png` | Protected R2 |
+| Amber DJ cover | PNG, 1254×1254 | `saint-ed-x-amber-dj-cover.png` | Protected R2 |
+| Saint Ed X logo | PNG, 1254×1254 | `saint-ed-x-logo.png` | Public at `media/dj/brand/` |
 
-The official cover, vertical promo, logo, and approved promotional image are
-promotional materials and can remain public. The recipient-named licensed
-preview must use protected delivery. Source artwork, layered files, and
-unreleased alternates should also remain private and should not be added to
-the public configuration.
+Future vertical and press-art directories are reserved with `.gitkeep`, but
+they are intentionally absent from the public configuration and DJ interface.
 
 ## Deployment and rollback
 

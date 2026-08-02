@@ -62,33 +62,19 @@ The generator accepts:
 The image itself must be created and supplied manually. This project does not
 generate, watermark, edit, or recreate it.
 
-## Existing and missing assets
+## Current music and artwork
 
 Available now:
 
-- Playback preview:
-  `media/audio/recently-deleted/01-face-id.m4a`
-- Official square cover:
-  `media/artwork/recently-deleted/01-face-id.jpg`
+- Face ID M4A, 2:11
+- White Bronco M4A, 3:17
+- Amber M4A, 3:20
+- Three protected DJ cover images delivered through the Worker and private R2
+- Public Saint Ed X logo at `media/dj/brand/saint-ed-x-logo.png`
 
-Required before every requested DJ deliverable can be enabled:
-
-- Explicit and clean MP3/WAV masters in the private R2 keys documented in
-  `docs/dj-private-assets.md`
-- Personalized licensed-preview cover:
-  `media/dj/recipients/<recipient-id>/face-id-licensed-preview.jpg`
-- Vertical promotional artwork:
-  `media/dj/face-id/saint-ed-x-face-id-vertical.jpg`
-- Saint Ed X logo:
-  `media/dj/brand/saint-ed-x-logo.png`
-- Approved press image:
-  `media/dj/press/saint-ed-x-approved-press.jpg`
-
-The final runtime, BPM, musical key, release date, and availability approvals are not present in the
-repository. They remain explicit `null`/forthcoming values in
-`data/dj/phone.json` rather than invented metadata.
-
-Unavailable files appear as labeled configuration slots, not dead controls.
+Clean versions, MP3/WAV masters, vertical artwork, and press images are not
+shown until real files are supplied. Reserved repository directories remain
+available for those future assets without producing empty UI slots.
 
 ## Protected downloads
 
@@ -97,8 +83,8 @@ Worker verifies the signed context and live D1 invite, resolves a server-side
 allowlist, rate limits by invite and asset, and streams the file. Details and
 exact upload commands are in `docs/dj-private-assets.md`.
 
-The existing preview and official cover remain intentionally public
-promotional files. No private master is committed to GitHub Pages.
+The M4A previews and Saint Ed X logo remain public promotional files. The
+personalized covers and all future private masters stay out of GitHub Pages.
 
 ## Mail
 

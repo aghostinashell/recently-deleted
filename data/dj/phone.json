@@ -3,111 +3,93 @@
   "issuer": "Ghosts In Shells",
   "contactEmail": "d.wright@ghostsinshells.com",
   "music": {
-    "id": "face-id",
-    "title": "Face ID",
     "artist": "Saint Ed X",
-    "cover": "media/artwork/recently-deleted/01-face-id.jpg",
-    "releaseDate": null,
-    "runtimeSeconds": null,
-    "bpm": null,
-    "key": null,
-    "releaseInformation": null,
-    "availability": {
-      "explicit": false,
-      "clean": false,
-      "mp3": false,
-      "wav": false
-    },
-    "files": [
+    "fallbackCover": "media/dj/brand/saint-ed-x-logo.png",
+    "tracks": [
       {
-        "id": "existing-master-preview",
-        "label": "Existing Master Preview",
-        "version": "preview",
-        "format": "M4A",
-        "path": "media/audio/recently-deleted/01-face-id.m4a"
+        "id": "face-id",
+        "title": "Face ID",
+        "runtimeSeconds": 131,
+        "coverAssetId": "face-id-dj-cover",
+        "files": [
+          {
+            "id": "face-id-m4a",
+            "label": "Face ID",
+            "version": "original",
+            "format": "M4A",
+            "path": "media/audio/recently-deleted/01-face-id.m4a"
+          }
+        ]
       },
       {
-        "id": "face-id-explicit-mp3",
-        "label": "Explicit · MP3",
-        "version": "explicit",
-        "format": "MP3",
-        "delivery": "private",
-        "available": false,
-        "requiredFilename": "saint-ed-x-face-id-explicit.mp3"
+        "id": "white-bronco",
+        "title": "White Bronco",
+        "runtimeSeconds": 197,
+        "coverAssetId": "white-bronco-dj-cover",
+        "files": [
+          {
+            "id": "white-bronco-m4a",
+            "label": "White Bronco",
+            "version": "original",
+            "format": "M4A",
+            "path": "media/audio/recently-deleted/04-white-bronco.m4a"
+          }
+        ]
       },
       {
-        "id": "face-id-explicit-wav",
-        "label": "Explicit · WAV",
-        "version": "explicit",
-        "format": "WAV",
-        "delivery": "private",
-        "available": false,
-        "requiredFilename": "saint-ed-x-face-id-explicit.wav"
-      },
-      {
-        "id": "face-id-clean-mp3",
-        "label": "Clean · MP3",
-        "version": "clean",
-        "format": "MP3",
-        "delivery": "private",
-        "available": false,
-        "requiredFilename": "saint-ed-x-face-id-clean.mp3"
-      },
-      {
-        "id": "face-id-clean-wav",
-        "label": "Clean · WAV",
-        "version": "clean",
-        "format": "WAV",
-        "delivery": "private",
-        "available": false,
-        "requiredFilename": "saint-ed-x-face-id-clean.wav"
+        "id": "amber",
+        "title": "Amber",
+        "runtimeSeconds": 200,
+        "coverAssetId": "amber-dj-cover",
+        "files": [
+          {
+            "id": "amber-m4a",
+            "label": "Amber",
+            "version": "original",
+            "format": "M4A",
+            "path": "media/audio/recently-deleted/10-amber.m4a"
+          }
+        ]
       }
     ]
   },
   "photos": [
     {
-      "id": "official-square-cover",
-      "label": "Official Square Cover",
-      "category": "official",
-      "fileType": "JPG",
-      "path": "media/artwork/recently-deleted/01-face-id.jpg",
-      "requiredPath": null
-    },
-    {
-      "id": "personalized-licensed-preview",
-      "label": "Personalized Licensed Preview",
+      "id": "face-id-dj-cover",
+      "label": "Face ID",
       "category": "personalized",
-      "fileType": "JPG",
-      "path": null,
+      "fileType": "PNG",
       "delivery": "private",
-      "privateAssetId": "face-id-personalized-artwork",
-      "available": false,
-      "recipientConfigured": true,
-      "requiredFilename": "saint-ed-x-face-id-licensed-preview.jpg"
+      "privateAssetId": "face-id-dj-cover",
+      "available": true,
+      "requiredFilename": "saint-ed-x-face-id-dj-cover.png"
     },
     {
-      "id": "vertical-promo-artwork",
-      "label": "Vertical Promo Artwork",
-      "category": "vertical",
-      "fileType": "JPG",
-      "path": null,
-      "requiredPath": "media/dj/face-id/saint-ed-x-face-id-vertical.jpg"
+      "id": "white-bronco-dj-cover",
+      "label": "White Bronco",
+      "category": "personalized",
+      "fileType": "PNG",
+      "delivery": "private",
+      "privateAssetId": "white-bronco-dj-cover",
+      "available": true,
+      "requiredFilename": "saint-ed-x-white-bronco-dj-cover.png"
+    },
+    {
+      "id": "amber-dj-cover",
+      "label": "Amber",
+      "category": "personalized",
+      "fileType": "PNG",
+      "delivery": "private",
+      "privateAssetId": "amber-dj-cover",
+      "available": true,
+      "requiredFilename": "saint-ed-x-amber-dj-cover.png"
     },
     {
       "id": "saint-ed-x-logo",
       "label": "Saint Ed X Logo",
       "category": "logo",
       "fileType": "PNG",
-      "path": null,
-      "requiredPath": "media/dj/brand/saint-ed-x-logo.png"
-    },
-    {
-      "id": "approved-press-image",
-      "label": "Approved Press Image",
-      "category": "press",
-      "fileType": "JPG",
-      "path": null,
-      "requiredPath": "media/dj/press/saint-ed-x-approved-press.jpg"
+      "path": "media/dj/brand/saint-ed-x-logo.png"
     }
   ],
   "mail": [
@@ -126,11 +108,11 @@
     {
       "id": "face-id-licensed-preview",
       "sender": "Saint Ed X / Ghosts In Shells",
-      "subject": "FACE ID — LICENSED PREVIEW",
-      "preview": "The new single is ready inside Music.",
+      "subject": "DJ MUSIC DELIVERY",
+      "preview": "Face ID, White Bronco, and Amber are ready inside Music.",
       "body": [
-        "Face ID is available here as an authorized promotional preview.",
-        "Open Music for playback, version details, and currently available files. Additional masters will appear when approved."
+        "Face ID, White Bronco, and Amber are available here as authorized promotional previews.",
+        "Open Music for playback and the currently available files."
       ],
       "action": "music"
     },
