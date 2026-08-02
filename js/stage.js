@@ -1,6 +1,8 @@
 "use strict";
 
 (function () {
+  const trackEvent = (name, properties = {}, options = {}) =>
+    window.GISAnalytics?.trackEvent(name, properties, options);
   const state = { event: null, notifications: [], messages: [], recordings: [] };
   let host = null;
 
@@ -25,6 +27,11 @@
     if (!host) return;
     const nextEvent = upcomingConcert();
     const isLive = Boolean(state.event?.videoUrl || state.event?.isLive);
+    trackEvent("exposure_section_opened", {
+      app_name: "camera",
+      event_id: state.event?.id || nextEvent?.id || null,
+      venue_id: state.event?.venueId || "exposure"
+    });
 
     host.innerHTML = `<div class="camera-app">
       <section class="camera-viewfinder" aria-label="Exposure live event camera">
@@ -46,14 +53,43 @@
 
     host.querySelector("[data-camera-event]")?.addEventListener("click", (event) => {
       const eventId = event.currentTarget.dataset.cameraEvent;
+      trackEvent("exposure_event_viewed", {
+        app_name: "camera",
+        event_id: eventId,
+        content_id: eventId,
+        venue_id: "exposure"
+      });
       document.querySelector('[data-app-id="calendar"]')?.click();
       window.setTimeout(() => window.MyCalendar?.openEvent(eventId), 50);
     });
     host.querySelector("[data-open-calendar]")?.addEventListener("click", () => document.querySelector('[data-app-id="calendar"]')?.click());
     host.querySelector("[data-camera-library]")?.addEventListener("click", openLibrary);
+    const video = host.querySelector("video");
+    if (video) {
+      const media = () => ({
+        app_name: "camera",
+        event_id: state.event?.id,
+        media_id: state.event?.mediaId || state.event?.id,
+        venue_id: state.event?.venueId || "exposure",
+        playback_position: Math.round(video.currentTime || 0),
+        percentage_completed: Number.isFinite(video.duration) && video.duration > 0
+          ? Math.round((video.currentTime / video.duration) * 100) : 0
+      });
+      video.addEventListener("play", () => trackEvent(video.currentTime > 0 ? "media_playback_resumed" : "media_playback_started", media()));
+      video.addEventListener("pause", () => { if (!video.ended) trackEvent("media_playback_paused", media()); });
+      video.addEventListener("ended", () => trackEvent("exposure_event_completed", { ...media(), percentage_completed: 100 }));
+      const milestones = new Set();
+      video.addEventListener("timeupdate", () => [25, 50, 75, 90].forEach((milestone) => {
+        if (media().percentage_completed >= milestone && !milestones.has(milestone)) {
+          milestones.add(milestone);
+          trackEvent("media_playback_milestone", { ...media(), milestone });
+        }
+      }));
+    }
   }
 
   function openLibrary() {
+    trackEvent("section_viewed", { app_name: "camera", section: "exposure_archive" });
     const overlay = document.createElement("div");
     overlay.className = "camera-library-overlay";
     const recordings = state.recordings.length
@@ -65,7 +101,11 @@
     overlay.addEventListener("click", (event) => { if (event.target === overlay) overlay.remove(); });
   }
 
-  function open(element) { host = element; render(); }
+  function open(element) {
+    host = element;
+    trackEvent("venue_viewed", { app_name: "camera", venue_id: "exposure", content_title: "Exposure" });
+    render();
+  }
   function setEvent(event) { state.event = event || null; render(); }
   function addRecording(recording) { state.recordings.unshift(recording); render(); }
   function notify(notification) {

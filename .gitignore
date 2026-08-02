@@ -1,0 +1,6 @@
+analytics-worker/.dev.vars
+analytics-worker/.dev.vars.*
+!analytics-worker/.dev.vars.example
+analytics-worker/wrangler.toml
+analytics-worker/.wrangler/
+analytics-worker/node_modules/

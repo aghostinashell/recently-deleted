@@ -1,6 +1,8 @@
 "use strict";
 
 (function createMailApp() {
+  const trackEvent = (name, properties = {}, options = {}) =>
+    window.GISAnalytics?.trackEvent(name, properties, options);
   const DATA_URL = "data/mail/ads.json";
   const DELIVERED_KEY = "myphone.mail.deliveries.v2";
   const UNREAD_KEY = "myphone.mail.unread.v2";
@@ -445,6 +447,12 @@
   }
 
   function openEmail(host, campaign, delivery, campaigns) {
+    trackEvent("mail_message_opened", {
+      app_name: "mail",
+      content_id: campaign.id,
+      content_title: campaign.subject,
+      message_category: campaign.tier || "standard"
+    });
     writeList(UNREAD_KEY, readList(UNREAD_KEY).filter((id) => id !== delivery.id));
     syncUnreadBadge();
     host.innerHTML = `
@@ -453,12 +461,26 @@
         <header class="sponsored-email-header">${campaign.logo ? `<img class="sponsored-email-logo" src="${escapeHtml(campaign.logo)}" alt="${escapeHtml(campaign.sender)} logo">` : ""}<h2>${escapeHtml(campaign.sender)}</h2><h1>${escapeHtml(campaign.headline)}</h1><p>To: Ed</p><time>${escapeHtml(deliveryTime(delivery))}</time></header>
         <div class="sponsored-email-body">${renderEmailBody(campaign)}</div>
       </article>`;
-    host.querySelector("[data-mail-back]").addEventListener("click", () => renderInbox(host, campaigns));
-    host.querySelector("[data-open-project-form]")?.addEventListener("click", () => openProjectForm(host, campaign, delivery, campaigns));
-    host.querySelector("[data-open-artist-form]")?.addEventListener("click", () => openArtistForm(host, campaign, delivery, campaigns));
-    host.querySelector("[data-open-ghosts-form]")?.addEventListener("click", () => openGhostsForm(host, campaign, delivery, campaigns));
-    host.querySelector("[data-open-fi-form]")?.addEventListener("click", () => openFiForm(host, campaign, delivery, campaigns));
-    host.querySelector("[data-open-music-app]")?.addEventListener("click", () => document.querySelector('[data-app-id="music"]')?.click());
+    host.querySelector("[data-mail-back]").addEventListener("click", () => {
+      trackEvent("mail_message_closed", { app_name: "mail", content_id: campaign.id });
+      renderInbox(host, campaigns);
+    });
+    const bindContact = (selector, callback) => host.querySelector(selector)?.addEventListener("click", () => {
+      trackEvent("reply_or_contact_clicked", { app_name: "mail", content_id: campaign.id, interaction_type: selector.slice(1, -1) });
+      callback();
+    });
+    bindContact("[data-open-project-form]", () => openProjectForm(host, campaign, delivery, campaigns));
+    bindContact("[data-open-artist-form]", () => openArtistForm(host, campaign, delivery, campaigns));
+    bindContact("[data-open-ghosts-form]", () => openGhostsForm(host, campaign, delivery, campaigns));
+    bindContact("[data-open-fi-form]", () => openFiForm(host, campaign, delivery, campaigns));
+    bindContact("[data-open-music-app]", () => document.querySelector('[data-app-id="music"]')?.click());
+    host.querySelectorAll("a[href]").forEach((link) => link.addEventListener("click", () => {
+      trackEvent("mail_link_clicked", {
+        app_name: "mail",
+        content_id: campaign.id,
+        link_host: new URL(link.href, location.href).hostname
+      });
+    }));
     document.getElementById("appWindow").scrollTop = 0;
   }
 
@@ -530,6 +552,7 @@
   }
 
   function renderInbox(host, campaigns) {
+    trackEvent("mailbox_viewed", { app_name: "mail", mailbox: "inbox" });
     const deliveries = readList(DELIVERED_KEY);
     const unread = readList(UNREAD_KEY);
     const inbox = deliveries.map((delivery) => ({ delivery, campaign: mailForDelivery(delivery, campaigns) })).filter((item) => item.campaign).reverse();
@@ -572,6 +595,7 @@
   }
 
   async function openInbox(host) {
+    trackEvent("section_viewed", { app_name: "mail", section: "inbox" });
     host.innerHTML = `<p class="app-loading">Loading Mail…</p>`;
     try {
       const campaigns = await getCampaigns();

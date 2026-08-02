@@ -1,0 +1,28 @@
+export const ALLOWED_EVENTS = new Set([
+  "first_visit", "returning_visit", "session_started", "session_ended", "page_loaded",
+  "route_viewed", "time_on_site", "lock_screen_viewed", "swipe_up_attempted",
+  "face_id_scan_started", "face_id_success", "face_id_failure", "face_id_access_granted",
+  "access_granted", "access_denied", "passcode_screen_viewed", "passcode_attempt",
+  "phone_unlocked", "phone_returned_to_lock_screen", "home_screen_viewed", "app_opened",
+  "app_closed", "app_time_spent", "section_viewed", "item_opened",
+  "external_link_clicked", "download_button_clicked", "download_requested",
+  "download_completed", "album_viewed", "song_viewed", "song_play_started",
+  "song_paused", "song_resumed", "song_skipped", "song_restarted",
+  "song_playback_milestone", "song_completed", "music_file_downloaded",
+  "next_song_selected", "previous_song_selected", "artwork_viewed", "image_enlarged",
+  "artwork_downloaded", "mailbox_viewed", "mail_message_opened", "mail_message_closed",
+  "mail_link_clicked", "mail_attachment_viewed", "mail_attachment_downloaded",
+  "reply_or_contact_clicked", "message_thread_opened", "message_thread_closed",
+  "message_reply_selected", "message_image_viewed", "message_link_clicked",
+  "message_conversation_completed", "exposure_section_opened", "venue_viewed",
+  "exposure_event_viewed", "trailer_started", "trailer_completed",
+  "exposure_event_entered", "media_playback_started", "media_playback_paused",
+  "media_playback_resumed", "media_playback_milestone", "exposure_event_completed",
+  "rsvp_clicked", "ticket_link_clicked", "ticket_redeemed", "backstage_content_opened",
+  "soundcheck_content_opened", "performance_clip_opened", "dj_invite_opened",
+  "dj_invite_validated", "dj_invite_rejected", "dj_invite_expired",
+  "authorized_recipient_recognized", "dj_phone_unlocked", "first_dj_visit",
+  "repeat_dj_visit", "contact_link_clicked"
+]);
+
+export const ACCESS_TYPES = new Set(["public", "DJ", "media", "venue", "owner"]);

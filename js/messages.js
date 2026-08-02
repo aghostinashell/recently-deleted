@@ -1,6 +1,8 @@
 "use strict";
 
 (function createConnectedApps() {
+  const trackEvent = (name, properties = {}, options = {}) =>
+    window.GISAnalytics?.trackEvent(name, properties, options);
   const THREAD_URLS = ["data/messages/amber.json", "data/messages/naomi.json", "data/messages/chase-bank.json", "data/messages/selina.json", "data/messages/ghost-supply.json", "data/messages/fi-ent.json", "data/messages/tracey.json"];
   const DATA_URL = THREAD_URLS[0];
   const MUSIC_DATA_URL = "data/music/recently-deleted.json";
@@ -247,6 +249,7 @@
   }
 
   async function openMessages(host) {
+    trackEvent("section_viewed", { app_name: "messages", section: "threads" });
     host.innerHTML = `<p class="app-loading">Loading Messages…</p>`;
     try {
       const threads = [...await getThreads()].sort((a, b) => latestReceived(b).timestamp - latestReceived(a).timestamp);
@@ -302,6 +305,11 @@
   }
 
   function openThread(host, data) {
+    trackEvent("message_thread_opened", {
+      app_name: "messages",
+      content_id: data.threadId,
+      content_title: data.contact?.name
+    });
     const threadMessages = messagesForThread(data);
     localStorage.setItem(readKey(data.threadId), "1");
     localStorage.removeItem(unreadKey(data.threadId));
@@ -342,7 +350,10 @@
           <button type="submit" aria-label="Send message">↑</button>
         </form>
       </section>`;
-    host.querySelector("[data-back-messages]").addEventListener("click", () => openMessages(host));
+    host.querySelector("[data-back-messages]").addEventListener("click", () => {
+      trackEvent("message_thread_closed", { app_name: "messages", content_id: data.threadId });
+      openMessages(host);
+    });
     host.querySelectorAll("[data-message-location]").forEach((button) => {
       button.addEventListener("click", () => openMaps(host, button.dataset.messageLocation));
     });
@@ -351,6 +362,12 @@
       const input = event.currentTarget.elements.message;
       const text = input.value.trim();
       if (!text) return;
+      trackEvent("message_reply_selected", {
+        app_name: "messages",
+        content_id: data.threadId,
+        interaction_type: "freeform_reply",
+        character_count_bucket: text.length < 25 ? "1-24" : text.length < 100 ? "25-99" : "100+"
+      });
       const stored = readStored(customKey(data.threadId));
       const outgoing = nowMessage("Ed", text);
       if (data.threadId === "tracey") {
@@ -367,6 +384,7 @@
   }
 
   async function openPhotos(host) {
+    trackEvent("section_viewed", { app_name: "photos", section: "library" });
     host.innerHTML = `<p class="app-loading">Loading Photos…</p>`;
     const [data, music] = await Promise.all([getData(), getMusicData()]);
     const uniqueTrackArtworkNumbers = new Set([1, 4, 10]);
@@ -383,11 +401,41 @@
         <div class="photos-grid">
           ${photos.map((photo) => `<button type="button" data-photo-src="${escapeHtml(photo.src)}" aria-label="View ${escapeHtml(photo.caption)}"><img src="${escapeHtml(photo.src)}" alt="${escapeHtml(photo.caption)}" draggable="false"></button>`).join("")}
         </div>
-        <div class="photo-lightbox" hidden><button type="button" aria-label="Close photo">×</button><img alt=""></div>
+        <div class="photo-lightbox" hidden><button type="button" aria-label="Close photo">×</button><img alt="">
+          ${window.GISAnalytics?.context().accessType === "DJ" ? `<a class="photo-download-link" download>Download Artwork</a>` : ""}
+        </div>
       </section>`;
     const lightbox = host.querySelector(".photo-lightbox");
     host.querySelectorAll("[data-photo-src]").forEach((button) => button.addEventListener("click", () => {
+      const photo = photos.find((item) => item.src === button.dataset.photoSrc);
+      trackEvent("artwork_viewed", {
+        app_name: "photos",
+        asset_id: photo?.id,
+        asset_title: photo?.caption,
+        asset_category: photo?.id === "album-cover" || photo?.id?.startsWith("track-") ? "artwork" : "photo",
+        file_type: String(photo?.src || "").split(".").pop()?.toLowerCase()
+      });
+      trackEvent("image_enlarged", {
+        app_name: "photos",
+        asset_id: photo?.id,
+        asset_title: photo?.caption
+      });
       lightbox.querySelector("img").src = button.dataset.photoSrc;
+      const download = lightbox.querySelector(".photo-download-link");
+      if (download) {
+        download.href = button.dataset.photoSrc;
+        download.dataset.assetId = photo?.id || "";
+        download.dataset.assetTitle = photo?.caption || "";
+        download.dataset.assetCategory = "artwork";
+        download.onclick = () => trackEvent("artwork_downloaded", {
+          app_name: "photos",
+          asset_id: photo?.id,
+          asset_title: photo?.caption,
+          asset_category: photo?.id === "album-cover" || photo?.id?.startsWith("track-") ? "artwork" : "photo",
+          file_type: String(photo?.src || "").split(".").pop()?.toLowerCase(),
+          completion_detection: "browser_download_requested"
+        });
+      }
       lightbox.hidden = false;
     }));
     lightbox.querySelector("button").addEventListener("click", () => { lightbox.hidden = true; });

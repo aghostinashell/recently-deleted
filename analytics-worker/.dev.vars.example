@@ -1,0 +1,4 @@
+INVITE_SIGNING_SECRET=generate-a-long-random-secret
+ADMIN_API_TOKEN=generate-a-different-long-random-secret
+ALLOWED_ORIGINS=http://localhost:8000,http://127.0.0.1:8000
+TEST_MODE=true

@@ -17,6 +17,31 @@
   let showLyrics = false;
   let playQualificationTimer = null;
   let currentPlayQualified = false;
+  let playSessionId = "";
+  let playStartedAt = 0;
+  let playHasStarted = false;
+  let playbackMilestones = new Set();
+  const trackEvent = (name, properties = {}, options = {}) =>
+    window.GISAnalytics?.trackEvent(name, properties, options);
+
+  function trackProperties(track = currentTrack()) {
+    if (!track) return {};
+    return {
+      app_name: "music",
+      song_id: `recently-deleted-${track.number}`,
+      song_title: track.title,
+      content_id: `recently-deleted-${track.number}`,
+      content_title: track.title,
+      album_title: albumData?.album,
+      version: track.version || "original",
+      file_format: String(track.audio || "").split(".").pop()?.toLowerCase() || null,
+      runtime: Number.isFinite(audio.duration) ? Math.round(audio.duration) : null,
+      playback_position: Math.round(audio.currentTime || 0),
+      percentage_completed: Number.isFinite(audio.duration) && audio.duration > 0
+        ? Math.round((audio.currentTime / audio.duration) * 100) : 0,
+      play_session_id: playSessionId
+    };
+  }
 
   function playCountKey(track) {
     return `myphone.play-count.${track.number}-${track.title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
@@ -127,6 +152,7 @@
   function playerView() {
     const track = currentTrack();
     if (!track) return trackListView();
+    const djContext = window.GISAnalytics?.context().accessType === "DJ";
     return `
       <div class="music-player-view">
         <div class="player-backdrop" style="background-image:url('${escapeHtml(track.artwork)}')" aria-hidden="true"></div>
@@ -150,6 +176,10 @@
           <button class="${repeatMode ? "active" : ""}" type="button" data-music-action="repeat" aria-label="Repeat ${repeatMode === 1 ? "all" : repeatMode === 2 ? "one" : "off"}">${repeatMode === 2 ? "↻¹" : "↻"}</button>
         </div>
         ${track.lyrics ? `<button class="music-lyrics-toggle" type="button" data-music-action="lyrics">${showLyrics ? "Hide Lyrics" : "Show Lyrics"}</button>` : ""}
+        ${djContext ? `<a class="music-download-link" href="${escapeHtml(track.audio)}" download
+          data-music-download data-asset-id="recently-deleted-${track.number}"
+          data-asset-title="${escapeHtml(track.title)}"
+          data-asset-category="music">Download DJ Audio File</a>` : ""}
         ${showLyrics ? `<section class="music-lyrics" aria-label="Lyrics"><h3>Lyrics</h3><p>${lyricsText ? escapeHtml(lyricsText) : "Loading lyrics…"}</p></section>` : ""}
         <p class="app-error" data-music-error>${escapeHtml(loadError)}</p>
       </div>`;
@@ -178,6 +208,16 @@
     host.querySelector("[data-music-volume]")?.addEventListener("input", (event) => {
       audio.volume = Number(event.target.value);
     });
+    host.querySelector("[data-music-download]")?.addEventListener("click", () => {
+      trackEvent("music_file_downloaded", {
+        ...trackProperties(),
+        asset_id: `recently-deleted-${currentTrack()?.number}`,
+        asset_title: currentTrack()?.title,
+        asset_category: "music",
+        file_type: String(currentTrack()?.audio || "").split(".").pop()?.toLowerCase(),
+        completion_detection: "browser_download_requested"
+      });
+    });
     updatePlayerUI();
   }
 
@@ -190,16 +230,25 @@
   async function playTrack(index) {
     const tracks = albumData?.tracks || [];
     if (!tracks.length) return;
+    const previousTrack = currentTrack();
+    if (previousTrack && !audio.ended && audio.currentTime > 0) {
+      trackEvent("song_skipped", trackProperties(previousTrack));
+    }
     currentIndex = (index + tracks.length) % tracks.length;
     cancelPlayQualification();
     currentPlayQualified = false;
     const track = currentTrack();
+    playSessionId = crypto.randomUUID?.() || `${Date.now()}-${currentIndex}`;
+    playStartedAt = 0;
+    playHasStarted = false;
+    playbackMilestones = new Set();
     loadError = "";
     audio.src = track.audio;
     updateMediaSession(track);
     lyricsText = "";
     showLyrics = false;
     activeView = "player";
+    trackEvent("song_viewed", trackProperties(track));
     render(playerView());
     try {
       await audio.play();
@@ -212,7 +261,10 @@
   }
 
   function handleAction(action) {
-    if (action === "open-album") { activeView = "list"; render(trackListView()); }
+    if (action === "open-album") {
+      trackEvent("album_viewed", { app_name: "music", content_id: "recently-deleted", content_title: albumData.album });
+      activeView = "list"; render(trackListView());
+    }
     if (action === "back") { activeView = "album"; render(albumView()); }
     if (action === "track-list") { activeView = "list"; render(trackListView()); }
     if (action === "play-album") { shuffle = false; playTrack(0); }
@@ -225,10 +277,18 @@
       else audio.pause();
     }
     if (action === "previous") {
-      if (audio.currentTime > 3) { audio.currentTime = 0; return; }
+      trackEvent("previous_song_selected", trackProperties());
+      if (audio.currentTime > 3) {
+        audio.currentTime = 0;
+        trackEvent("song_restarted", trackProperties());
+        return;
+      }
       playTrack(currentIndex <= 0 ? albumData.tracks.length - 1 : currentIndex - 1);
     }
-    if (action === "next") playTrack(nextIndex());
+    if (action === "next") {
+      trackEvent("next_song_selected", trackProperties());
+      playTrack(nextIndex());
+    }
     if (action === "shuffle") { shuffle = !shuffle; render(playerView()); }
     if (action === "repeat") { repeatMode = (repeatMode + 1) % 3; render(playerView()); }
     if (action === "lyrics") toggleLyrics();
@@ -297,6 +357,15 @@
     host?.querySelector(".player-artwork-wrap")?.classList.toggle("paused", audio.paused);
     if ("mediaSession" in navigator) navigator.mediaSession.playbackState = audio.paused ? "paused" : "playing";
     updateMediaPosition();
+    if (Number.isFinite(audio.duration) && audio.duration > 0 && playSessionId) {
+      const percent = (audio.currentTime / audio.duration) * 100;
+      [25, 50, 75, 90].forEach((milestone) => {
+        if (percent >= milestone && !playbackMilestones.has(milestone)) {
+          playbackMilestones.add(milestone);
+          trackEvent("song_playback_milestone", { ...trackProperties(), milestone });
+        }
+      });
+    }
   }
 
   if ("mediaSession" in navigator) {
@@ -322,11 +391,42 @@
   }
 
   ["timeupdate", "loadedmetadata"].forEach((eventName) => audio.addEventListener(eventName, updatePlayerUI));
-  audio.addEventListener("play", () => { beginPlayQualification(); updatePlayerUI(); });
-  audio.addEventListener("pause", () => { cancelPlayQualification(); if (!currentPlayQualified) currentPlayQualified = false; updatePlayerUI(); });
+  audio.addEventListener("play", () => {
+    beginPlayQualification();
+    const eventName = playHasStarted ? "song_resumed" : "song_play_started";
+    if (!playHasStarted) playStartedAt = Date.now();
+    playHasStarted = true;
+    trackEvent(eventName, trackProperties());
+    updatePlayerUI();
+  });
+  audio.addEventListener("pause", () => {
+    cancelPlayQualification();
+    if (!currentPlayQualified) currentPlayQualified = false;
+    if (playHasStarted && !audio.ended) {
+      trackEvent("song_paused", {
+        ...trackProperties(),
+        listening_duration: playStartedAt ? Math.round((Date.now() - playStartedAt) / 1000) : 0
+      });
+    }
+    updatePlayerUI();
+  });
   audio.addEventListener("ended", () => {
     cancelPlayQualification();
-    if (repeatMode === 2) { currentPlayQualified = false; audio.currentTime = 0; audio.play(); }
+    trackEvent("song_completed", {
+      ...trackProperties(),
+      percentage_completed: 100,
+      listening_duration: playStartedAt ? Math.round((Date.now() - playStartedAt) / 1000) : Math.round(audio.duration || 0)
+    }, { dedupeKey: playSessionId });
+    if (repeatMode === 2) {
+      trackEvent("song_restarted", { ...trackProperties(), repeat_play: true });
+      currentPlayQualified = false;
+      playSessionId = crypto.randomUUID?.() || `${Date.now()}-${currentIndex}`;
+      playStartedAt = 0;
+      playHasStarted = false;
+      playbackMilestones = new Set();
+      audio.currentTime = 0;
+      audio.play();
+    }
     else if (albumData?.tracks?.length > 1 && (repeatMode === 1 || currentIndex < albumData.tracks.length - 1 || shuffle)) playTrack(nextIndex());
     else updatePlayerUI();
   });
@@ -338,6 +438,7 @@
       host.innerHTML = `<p class="app-loading">Loading music…</p>`;
       try {
         await getAlbum();
+        trackEvent("section_viewed", { app_name: "music", section: "library" });
         render(currentTrack() ? playerView() : albumView());
       } catch (error) {
         host.innerHTML = `<p class="app-error">Music could not be loaded. ${escapeHtml(error.message)}</p>`;
