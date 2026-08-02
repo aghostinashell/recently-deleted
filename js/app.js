@@ -3,6 +3,8 @@
 const root = document.getElementById("site-root");
 const track = (name, properties = {}, options = {}) =>
   window.GISAnalytics?.trackEvent(name, properties, options);
+const isPrivateDjRoute = window.GIS_PRIVATE_DJ_ROUTE === true
+  || /^\/djparislife\/?$/i.test(location.pathname);
 
 const CORRECT_PASSCODE = "1010";
 
@@ -101,6 +103,13 @@ const djApps = [
 
 let publicMailInitialized = false;
 
+function renderPrivateDjGate(message = "A valid private invitation is required.") {
+  root.innerHTML = `
+    <main class="dj-route-gate">
+      <div><span>GIS</span><h1>PRIVATE ACCESS</h1><p>${message}</p></div>
+    </main>`;
+}
+
 function initializePublicMail() {
   if (publicMailInitialized) return;
   publicMailInitialized = true;
@@ -108,6 +117,13 @@ function initializePublicMail() {
 }
 
 function bootSite() {
+  const hasInviteToken = new URLSearchParams(location.search).has("invite");
+  if (isPrivateDjRoute && !hasInviteToken) {
+    renderPrivateDjGate();
+    track("access_denied", { method: "private_route", reason: "invite_required" });
+    return;
+  }
+
   root.innerHTML = `
     <main class="device" id="device">
       ${renderHomeScreen()}
@@ -127,9 +143,12 @@ function bootSite() {
   initializeWeather();
   window.MyMessages?.syncUnreadBadge();
   initializeMediaProtection();
-  if (!new URLSearchParams(location.search).has("invite")) initializePublicMail();
+  if (!hasInviteToken) initializePublicMail();
   else window.GISAnalytics?.inviteReady?.then(() => {
-    if (!window.DJPhone?.isActive()) initializePublicMail();
+    if (!window.DJPhone?.isActive()) {
+      if (isPrivateDjRoute) renderPrivateDjGate("This invitation is invalid, expired, or unavailable.");
+      else initializePublicMail();
+    }
   });
   window.MySettings?.applyPreferences();
   window.MyPhone?.syncBadge();
@@ -780,6 +799,8 @@ async function beginUnlockSequence() {
     djAccessPanel.hidden = true;
     if (isAuthorizedDj) {
       unlockSite("face_id");
+    } else if (isPrivateDjRoute) {
+      renderPrivateDjGate("This invitation is invalid, expired, or unavailable.");
     } else {
       passcodeScreen.classList.remove("screen-hidden");
       track("passcode_screen_viewed");

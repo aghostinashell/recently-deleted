@@ -69,5 +69,5 @@ limit = 12
 period = 60
 
 [env.production.vars]
-ALLOWED_ORIGINS = "https://ghostsinshells.com"
+ALLOWED_ORIGINS = "https://ghostsinshells.com,https://www.ghostsinshells.com"
 TEST_MODE = "false"

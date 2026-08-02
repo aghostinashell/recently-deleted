@@ -2,14 +2,16 @@
 
 ## Entry and access
 
-The DJ phone uses the existing site URL with a secure invite query parameter:
+The DJ phone uses a private, recipient-specific route with a secure invite
+query parameter:
 
-`https://ghostsinshells.com/?invite=<secure-random-token>`
+`https://www.ghostsinshells.com/djparislife/?invite=<secure-random-token>`
 
-There is no public DJ route. The public shell renders first, the production
-Worker validates the token, and DJ mode becomes available only when the signed
-context has `accessType: "DJ"`. Invalid, malformed, expired, revoked, or
-unavailable validation never activates DJ mode.
+The route is not an authentication boundary by itself. Without a valid token,
+it displays only a private-access notice. The production Worker validates the
+token, and DJ mode becomes available only when the signed context has
+`accessType: "DJ"`. Invalid, malformed, expired, revoked, or unavailable
+validation never activates DJ mode and never falls back to the public phone.
 
 The Face ID sequence waits for invite validation before deciding access. A
 valid invite displays:
