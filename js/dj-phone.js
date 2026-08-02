@@ -18,8 +18,6 @@
   let milestones = new Set();
   let playStartedAt = 0;
   const privateAssetUrls = new Map();
-  let mailPollTimer = null;
-  let knownRemoteMailIds = new Set();
 
   const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (character) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
@@ -376,20 +374,7 @@
 
   async function openMail(host) {
     const data = await config();
-    let remoteMessages = [];
-    try {
-      remoteMessages = await window.GISAnalytics.requestDjMail();
-    } catch { /* The permanent credential mail remains available offline. */ }
-    const messages = [
-      ...remoteMessages.map((message) => ({
-        ...message,
-        preview: String(message.body || "").slice(0, 100),
-        body: String(message.body || "").split(/\n{2,}/).filter(Boolean),
-        action: "reply",
-        permanent: true
-      })),
-      ...data.mail
-    ];
+    const messages = data.mail;
     track("mailbox_viewed", { app_name: "mail", mailbox: "all-access" });
     const renderInbox = () => {
       host.innerHTML = `<section class="dj-app dj-mail-app">
@@ -409,7 +394,6 @@
       const action = message.action === "music" ? `<button type="button" data-dj-mail-app="music">OPEN MUSIC</button>`
         : message.action === "stage" ? `<button type="button" data-dj-mail-app="stage">OPEN EXPOSURE</button>`
         : message.action === "dj-drop" ? `<a href="mailto:${esc(data.contactEmail)}?subject=${encodeURIComponent("Saint Ed X DJ Drop Request")}" data-dj-drop>REQUEST A DJ DROP</a>`
-        : message.action === "reply" ? `<a href="mailto:${esc(data.contactEmail)}?subject=${encodeURIComponent(`Re: ${message.subject}`)}" data-dj-reply>REPLY TO GHOSTS IN SHELLS</a>`
         : "";
       host.innerHTML = `<article class="dj-app dj-mail-message">
         <button type="button" data-dj-mail-back>‹ Inbox</button>
@@ -440,11 +424,6 @@
         track("reply_or_contact_clicked", metadata);
         track("contact_link_clicked", metadata);
         track("dj_drop_request_clicked", metadata);
-      });
-      host.querySelector("[data-dj-reply]")?.addEventListener("click", () => {
-        track("reply_or_contact_clicked", {
-          app_name: "mail", content_id: message.id, interaction_type: "email_reply"
-        });
       });
     };
     renderInbox();
@@ -494,45 +473,8 @@
           <div><dt>Pass Number</dt><dd>${esc(invite?.publicPassNumber || "VERIFIED")}</dd></div>
         </dl>
       </div>
-      <div class="dj-settings-note"><strong>Mail Notifications</strong><p>Allow notifications to be alerted when Ghosts In Shells sends a new credential message.</p>
-        <button type="button" data-dj-enable-notifications>ENABLE NOTIFICATIONS</button></div>
       <div class="dj-settings-note"><strong>Credential Security</strong><p>This screen never displays the invite token, token hash, signed context, database identifiers, or administrative credentials.</p></div>
     </section>`;
-    host.querySelector("[data-dj-enable-notifications]").addEventListener("click", async (event) => {
-      if (!("Notification" in window)) {
-        event.currentTarget.textContent = "NOT SUPPORTED";
-        return;
-      }
-      const permission = await Notification.requestPermission();
-      event.currentTarget.textContent = permission === "granted" ? "NOTIFICATIONS ENABLED" : "PERMISSION NOT GRANTED";
-      if (permission === "granted") startMailNotifications();
-    });
-  }
-
-  async function pollDjMail() {
-    try {
-      const messages = await window.GISAnalytics.requestDjMail();
-      const nextIds = new Set(messages.map((message) => message.id));
-      if (knownRemoteMailIds.size) {
-        const newest = messages.find((message) => !knownRemoteMailIds.has(message.id));
-        if (newest) {
-          document.querySelector('[data-app-id="mail"] [data-mail-unread]')?.removeAttribute("hidden");
-          if ("Notification" in window && Notification.permission === "granted") {
-            new Notification("Ghosts In Shells", { body: newest.subject, tag: newest.id });
-          }
-        }
-      }
-      knownRemoteMailIds = nextIds;
-    } catch { /* Mail polling never blocks the phone. */ }
-  }
-
-  function startMailNotifications() {
-    if (mailPollTimer) return;
-    pollDjMail();
-    mailPollTimer = window.setInterval(pollDjMail, 60_000);
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") pollDjMail();
-    });
   }
 
   async function openApp(appId, host) {
@@ -555,7 +497,6 @@
   window.DJPhone = {
     isActive,
     openApp,
-    startMailNotifications,
     configuration: null
   };
 }());

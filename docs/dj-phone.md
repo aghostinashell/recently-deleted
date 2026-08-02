@@ -101,18 +101,6 @@ The DJ-drop action opens an email addressed to
 `d.wright@ghostsinshells.com`. Analytics records only the action and message
 ID; no visitor-entered email body is collected.
 
-Owner updates can be sent from `d.wright@ghostsinshells.com` to
-`djparislife@ghostsinshells.com`. Cloudflare Email Routing delivers the
-message to the Worker, which rejects every other envelope sender, stores the
-plain-text message privately in D1, and exposes it only through a currently
-valid signed DJ credential. The phone checks for new messages while active,
-shows an unread badge, and can display a browser notification after the
-credential holder grants permission. Reply actions open the device mail
-composer addressed to `d.wright@ghostsinshells.com`.
-
-Message bodies are product data rather than analytics data. They are never
-included in analytics events, logs, or notification text.
-
 ## Analytics
 
 DJ mode uses the existing anonymous visitor, session, signed invite, recipient,
