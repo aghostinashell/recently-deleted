@@ -998,6 +998,7 @@ function activateDjMode() {
     welcomeBadge.hidden = !window.GISAnalytics?.context().inviteContext?.isFirstVisit;
     welcomeBadge.textContent = "1";
   }
+  window.DJPhone?.startMailNotifications();
   document.querySelectorAll("[data-app-id]").forEach((button) => {
     button.addEventListener("click", () => openApp(button.dataset.appId));
   });

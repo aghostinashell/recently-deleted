@@ -1,9 +1,13 @@
 import { ACCESS_TYPES, ALLOWED_EVENTS } from "./events.js";
 import { resolvePrivateAsset } from "./private-assets.js";
 import { sanitizeMetadata, sha256, signContext, verifyContext } from "./security.js";
+import PostalMime from "postal-mime";
 
 const fallbackBuckets = new Map();
 const MAX_BODY_BYTES = 64 * 1024;
+const DJ_MAIL_AUDIENCE = "dj-paris-life";
+const DJ_MAIL_OWNER = "d.wright@ghostsinshells.com";
+const DJ_MAIL_ADDRESS = "djparislife@ghostsinshells.com";
 
 function json(data, status = 200, headers = {}) {
   return new Response(JSON.stringify(data), {
@@ -206,6 +210,66 @@ async function downloadPrivateAsset(request, env, headers, executionContext, ass
   return new Response(object.body, { status: 200, headers: responseHeaders });
 }
 
+async function authorizedDjContext(request, env) {
+  const body = await parseBody(request);
+  const context = await verifyContext(body.invite_context_token, env.INVITE_SIGNING_SECRET);
+  if (!context?.inviteId || !context?.recipientId || context.accessType !== "DJ") return null;
+  const invite = await env.DB.prepare(`
+    SELECT id FROM access_invites
+    WHERE id = ? AND recipient_id = ? AND access_type = 'DJ'
+      AND revoked_at IS NULL AND (expires_at IS NULL OR expires_at > ?)
+  `).bind(context.inviteId, context.recipientId, new Date().toISOString()).first();
+  return invite ? context : null;
+}
+
+async function readDjMail(request, env, headers) {
+  const context = await authorizedDjContext(request, env);
+  if (!context) return json({ error: "invalid_invite" }, 401, headers);
+  const result = await env.DB.prepare(`
+    SELECT id, sender_name, reply_to, subject, body_text, received_at, permanent
+    FROM dj_mail_messages WHERE audience_key = ?
+    ORDER BY received_at DESC LIMIT 50
+  `).bind(DJ_MAIL_AUDIENCE).all();
+  return json({
+    messages: (result.results || []).map((message) => ({
+      id: message.id,
+      sender: message.sender_name,
+      replyTo: message.reply_to,
+      subject: message.subject,
+      body: message.body_text,
+      receivedAt: message.received_at,
+      permanent: Boolean(message.permanent)
+    }))
+  }, 200, { ...headers, "Cache-Control": "private, no-store" });
+}
+
+async function receiveDjMail(message, env) {
+  const from = String(message.from || "").trim().toLowerCase();
+  const to = String(message.to || "").trim().toLowerCase();
+  if (from !== DJ_MAIL_OWNER || to !== DJ_MAIL_ADDRESS) {
+    message.setReject?.("Unauthorized DJ mailbox sender or recipient");
+    return;
+  }
+  const raw = await new Response(message.raw).arrayBuffer();
+  const parsed = await PostalMime.parse(raw);
+  const subject = String(parsed.subject || "Ghosts In Shells Update").replace(/[\r\n]+/g, " ").trim().slice(0, 180);
+  const bodyText = String(parsed.text || "").replace(/\u0000/g, "").trim().slice(0, 20000);
+  if (!bodyText) {
+    message.setReject?.("DJ mailbox messages require a text body");
+    return;
+  }
+  const sourceMessageId = String(parsed.messageId || message.headers?.get?.("Message-ID") || "").slice(0, 300) || null;
+  await env.DB.prepare(`
+    INSERT OR IGNORE INTO dj_mail_messages
+      (id, audience_key, sender_name, sender_address, reply_to, subject, body_text,
+       source_message_id, received_at, permanent)
+    VALUES (?, ?, 'Ghosts In Shells', ?, ?, ?, ?, ?, ?, 1)
+  `).bind(
+    crypto.randomUUID(), DJ_MAIL_AUDIENCE, DJ_MAIL_OWNER, DJ_MAIL_OWNER,
+    subject, bodyText, sourceMessageId, new Date().toISOString()
+  ).run();
+}
+
 async function collectEvents(request, env, headers) {
   const body = await parseBody(request);
   const events = Array.isArray(body.events) ? body.events.slice(0, 25) : [];
@@ -321,6 +385,7 @@ export default {
     try {
       if (url.pathname === "/v1/invites/validate" && request.method === "POST") return await validateInvite(request, env, headers);
       if (url.pathname === "/v1/events" && request.method === "POST") return await collectEvents(request, env, headers);
+      if (url.pathname === "/v1/dj-mail" && request.method === "POST") return await readDjMail(request, env, headers);
       const downloadMatch = url.pathname.match(/^\/v1\/downloads\/([a-z0-9-]{3,80})$/);
       if (downloadMatch && request.method === "POST") {
         return await downloadPrivateAsset(request, env, headers, executionContext, downloadMatch[1]);
@@ -331,5 +396,8 @@ export default {
       const status = error.message === "body_too_large" ? 413 : 400;
       return json({ error: status === 413 ? "body_too_large" : "invalid_request" }, status, headers);
     }
+  },
+  async email(message, env) {
+    await receiveDjMail(message, env);
   }
 };

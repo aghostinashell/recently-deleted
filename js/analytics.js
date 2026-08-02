@@ -203,6 +203,19 @@
     };
   }
 
+  async function requestDjMail() {
+    if (!endpoint || !inviteContext?.contextToken || accessType !== "DJ") return [];
+    const response = await fetch(`${endpoint}/v1/dj-mail`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ invite_context_token: inviteContext.contextToken }),
+      cache: "no-store"
+    });
+    if (!response.ok) throw new Error("DJ mail is temporarily unavailable.");
+    const result = await response.json();
+    return Array.isArray(result.messages) ? result.messages : [];
+  }
+
   function trackEvent(eventName, properties = {}, options = {}) {
     if (disabled || !allowedEvents.has(eventName)) return null;
     const dedupeKey = options.dedupeKey ? `${eventName}:${options.dedupeKey}` : null;
@@ -291,7 +304,7 @@
   localStorage.setItem(visitorKey, JSON.stringify(visitor));
 
   window.GISAnalytics = Object.freeze({
-    trackEvent, flush, appOpened, appClosed, requestPrivateAsset,
+    trackEvent, flush, appOpened, appClosed, requestPrivateAsset, requestDjMail,
     context: () => ({ accessType, inviteContext, visitorId: visitor.id, sessionId: session.id }),
     inviteReady,
     disabled
