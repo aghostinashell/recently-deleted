@@ -1,6 +1,8 @@
 "use strict";
 
 const root = document.getElementById("site-root");
+const track = (name, properties = {}, options = {}) =>
+  window.GISAnalytics?.trackEvent(name, properties, options);
 
 const CORRECT_PASSCODE = "1010";
 
@@ -112,6 +114,7 @@ function bootSite() {
   window.MyMail?.initialize();
   window.MySettings?.applyPreferences();
   window.MyPhone?.syncBadge();
+  track("lock_screen_viewed", {}, { dedupeKey: "initial-lock-screen" });
 
   window.setInterval(updateDateAndTime, 1000);
 }
@@ -546,6 +549,28 @@ function bindEvents() {
     .addEventListener("click", returnToPasscodeFromLostScreen);
 
   window.addEventListener("keydown", handleKeyboardInput);
+  document.addEventListener("click", (event) => {
+    const link = event.target.closest?.("a[href]");
+    if (!link) return;
+    const url = new URL(link.href, location.href);
+    if (url.origin !== location.origin) {
+      track("external_link_clicked", {
+        app_name: document.getElementById("appTitle")?.textContent?.toLowerCase() || null,
+        link_host: url.hostname
+      });
+    }
+    if (link.hasAttribute("download")) {
+      const asset = {
+        app_name: document.getElementById("appTitle")?.textContent?.toLowerCase() || null,
+        asset_id: link.dataset.assetId || url.pathname.split("/").pop(),
+        asset_title: link.dataset.assetTitle || link.textContent.trim(),
+        asset_category: link.dataset.assetCategory || "file",
+        file_type: url.pathname.split(".").pop()?.toLowerCase()
+      };
+      track("download_button_clicked", asset);
+      track("download_requested", asset);
+    }
+  });
 }
 
 function startHomeSwipe(event) {
@@ -637,6 +662,7 @@ function endSwipe() {
 
   const swipeDistance =
     swipeStartY - swipeCurrentY;
+  track("swipe_up_attempted", { swipe_distance: Math.max(0, Math.round(swipeDistance)) });
 
   swipeTracking = false;
 
@@ -669,6 +695,9 @@ function beginUnlockSequence() {
   }
 
   faceIdSequenceRunning = true;
+  const isAuthorizedDj = window.GISAnalytics?.context().accessType === "DJ"
+    && Boolean(window.GISAnalytics?.context().inviteContext);
+  track("face_id_scan_started");
 
   const lockScreen =
     document.getElementById("lockScreen");
@@ -699,14 +728,30 @@ function beginUnlockSequence() {
   }, 280);
 
   window.setTimeout(() => {
-    islandMessage.textContent = "Not Recognized";
+    const recipientName = window.GISAnalytics?.context().inviteContext?.recipientDisplayName;
+    islandMessage.textContent = isAuthorizedDj
+      ? `Access Granted: ${recipientName || "Authorized DJ"}`
+      : "Not Recognized";
     dynamicIsland.classList.remove("scanning");
-    dynamicIsland.classList.add("failed");
+    if (isAuthorizedDj) {
+      track("face_id_success");
+      track("face_id_access_granted");
+      track("access_granted", { method: "face_id" });
+    } else {
+      dynamicIsland.classList.add("failed");
+      track("face_id_failure");
+      track("access_denied", { method: "face_id" });
+    }
   }, 1320);
 
   window.setTimeout(() => {
-    passcodeScreen.classList.remove("screen-hidden");
     faceIdScreen.classList.add("screen-hidden");
+    if (isAuthorizedDj) {
+      unlockSite("face_id");
+    } else {
+      passcodeScreen.classList.remove("screen-hidden");
+      track("passcode_screen_viewed");
+    }
   }, 2250);
 
   window.setTimeout(() => {
@@ -740,6 +785,8 @@ function returnToLockScreen() {
   hideDock();
 
   faceIdSequenceRunning = false;
+  track("phone_returned_to_lock_screen");
+  track("lock_screen_viewed");
 }
 
 function handlePasscodeKey(key) {
@@ -801,11 +848,14 @@ function updatePasscodeDots() {
 }
 
 function checkPasscode() {
+  track("passcode_attempt", { digit_count: enteredPasscode.length });
   if (enteredPasscode === CORRECT_PASSCODE) {
-    unlockSite();
+    track("access_granted", { method: "passcode" });
+    unlockSite("passcode");
     return;
   }
 
+  track("access_denied", { method: "passcode" });
   showPasscodeError();
 
   enteredPasscode = "";
@@ -845,7 +895,7 @@ function hidePasscodeError() {
     .classList.remove("visible");
 }
 
-function unlockSite() {
+function unlockSite(method = "passcode") {
   enteredPasscode = "";
 
   updatePasscodeDots();
@@ -867,6 +917,11 @@ function unlockSite() {
     .classList.add("unlocked");
 
   showDock();
+  track("phone_unlocked", { method });
+  track("home_screen_viewed");
+  if (method === "face_id" && window.GISAnalytics?.context().accessType === "DJ") {
+    track("dj_phone_unlocked");
+  }
 }
 
 function openApp(appId) {
@@ -894,6 +949,10 @@ function openDockApp(appId) {
 }
 
 function showAppWindow(app) {
+  const appWindow = document.getElementById("appWindow");
+  const previousApp = appWindow.classList.contains("open") ? appWindow.dataset.activeAppId : "";
+  if (previousApp && previousApp !== app.id) window.GISAnalytics?.appClosed(previousApp);
+  appWindow.dataset.activeAppId = app.id;
   document.getElementById(
     "appTitle"
   ).textContent = app.name;
@@ -957,6 +1016,8 @@ function showAppWindow(app) {
     .classList.add("app-open");
 
   showDock();
+  window.GISAnalytics?.appOpened(app.id);
+  track("section_viewed", { app_name: app.id, section: "root" });
 }
 
 function renderInstagramApp() {
@@ -1183,6 +1244,12 @@ function weatherPresentation(code) {
 }
 
 function returnHome() {
+  const appWindow = document.getElementById("appWindow");
+  const activeApp = appWindow.dataset.activeAppId;
+  if (activeApp && appWindow.classList.contains("open")) {
+    window.GISAnalytics?.appClosed(activeApp);
+  }
+  delete appWindow.dataset.activeAppId;
   document
     .getElementById("appWindow")
     .classList.remove("open");
@@ -1196,6 +1263,7 @@ function returnHome() {
     .classList.remove("screen-hidden");
 
   showDock();
+  track("home_screen_viewed");
 }
 
 function showDock() {

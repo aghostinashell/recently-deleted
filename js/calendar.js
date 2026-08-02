@@ -1,6 +1,8 @@
 "use strict";
 
 (function () {
+  const trackEvent = (name, properties = {}, options = {}) =>
+    window.GISAnalytics?.trackEvent(name, properties, options);
   const events = [
     {
       id: "recently-deleted-release",
@@ -58,6 +60,13 @@
     const dayEvents = eventsFor(date);
     if (!dayEvents.length) return;
     const event = dayEvents[0];
+    trackEvent(event.type === "concert" ? "exposure_event_viewed" : "item_opened", {
+      app_name: "calendar",
+      event_id: event.id,
+      content_id: event.id,
+      content_title: event.title,
+      venue_id: event.type === "concert" ? "exposure" : null
+    });
     const until = new Date(event.startsAt).getTime() - Date.now();
     if (until <= 600000 && until > -Math.max(event.durationMinutes || 120, 10) * 60000) {
       window.MyStage?.setEvent({ ...event, isLive: true });
@@ -78,7 +87,16 @@
         <button type="button" class="event-reserve" id="eventReserve">RSVP for ticket access</button>`;
     host.innerHTML = `<article class="event-detail"><button type="button" class="event-back" id="eventBack">‹ Calendar</button><span>${event.type === "release" ? "ALBUM RELEASE" : "BIRTHDAY CONCERT"}</span><h2>${event.title}</h2>${event.subtitle ? `<h3>${event.subtitle}</h3>` : ""}<p>${dateLabel}</p>${eventActions}</article>`;
     document.getElementById("eventBack").addEventListener("click", render);
-    document.getElementById("eventReserve")?.addEventListener("click", () => openRsvp(event));
+    document.getElementById("eventReserve")?.addEventListener("click", () => {
+      trackEvent("rsvp_clicked", {
+        app_name: "calendar",
+        event_id: event.id,
+        content_id: event.id,
+        content_title: event.title,
+        venue_id: "exposure"
+      });
+      openRsvp(event);
+    });
   }
 
   function openRsvp(event) {
