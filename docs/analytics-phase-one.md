@@ -316,9 +316,9 @@ Review the generated SQL, apply its `sql` value to
 `inviteUrl` through the approved private channel. Delete the secure JSON after
 delivery. Never paste the raw URL into source control, logs, or public chat.
 
-## Privacy changes recommended before production
+## Privacy disclosure
 
-Add a privacy policy linked from the public site that explains:
+The public phone's Settings → Privacy & Security screen now explains:
 
 - first-party anonymous IDs in browser storage;
 - event, device, referral, campaign, and approximate-location collection;
@@ -326,9 +326,10 @@ Add a privacy policy linked from the public site that explains:
 - personalized industry invite attribution;
 - how visitors can opt out or erase the device-local anonymous identifier.
 
-The current Settings privacy copy says music activity remains on the device;
-that sentence must be updated before production analytics are enabled because
-playback events will then be sent to the analytics API.
+The disclosure also states that analytics does not collect passcodes, typed
+messages, form contents, precise location, raw IP addresses, or secret
+credentials. Music copy distinguishes device-local play counts from playback
+events sent to the analytics API.
 
 The implementation honors Global Privacy Control and `Do Not Track: 1` by
 disabling collection. Whether a consent banner is legally required depends on
