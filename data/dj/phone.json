@@ -7,10 +7,17 @@
     "title": "Face ID",
     "artist": "Saint Ed X",
     "cover": "media/artwork/recently-deleted/01-face-id.jpg",
-    "runtimeSeconds": 131,
+    "releaseDate": null,
+    "runtimeSeconds": null,
     "bpm": null,
     "key": null,
-    "releaseInformation": "Promotional single · Release details forthcoming",
+    "releaseInformation": null,
+    "availability": {
+      "explicit": false,
+      "clean": false,
+      "mp3": false,
+      "wav": false
+    },
     "files": [
       {
         "id": "existing-master-preview",
@@ -20,36 +27,40 @@
         "path": "media/audio/recently-deleted/01-face-id.m4a"
       },
       {
-        "id": "explicit-mp3",
+        "id": "face-id-explicit-mp3",
         "label": "Explicit · MP3",
         "version": "explicit",
         "format": "MP3",
-        "path": null,
-        "requiredPath": "media/dj/face-id/saint-ed-x-face-id-explicit.mp3"
+        "delivery": "private",
+        "available": false,
+        "requiredFilename": "saint-ed-x-face-id-explicit.mp3"
       },
       {
-        "id": "explicit-wav",
+        "id": "face-id-explicit-wav",
         "label": "Explicit · WAV",
         "version": "explicit",
         "format": "WAV",
-        "path": null,
-        "requiredPath": "media/dj/face-id/saint-ed-x-face-id-explicit.wav"
+        "delivery": "private",
+        "available": false,
+        "requiredFilename": "saint-ed-x-face-id-explicit.wav"
       },
       {
-        "id": "clean-mp3",
+        "id": "face-id-clean-mp3",
         "label": "Clean · MP3",
         "version": "clean",
         "format": "MP3",
-        "path": null,
-        "requiredPath": "media/dj/face-id/saint-ed-x-face-id-clean.mp3"
+        "delivery": "private",
+        "available": false,
+        "requiredFilename": "saint-ed-x-face-id-clean.mp3"
       },
       {
-        "id": "clean-wav",
+        "id": "face-id-clean-wav",
         "label": "Clean · WAV",
         "version": "clean",
         "format": "WAV",
-        "path": null,
-        "requiredPath": "media/dj/face-id/saint-ed-x-face-id-clean.wav"
+        "delivery": "private",
+        "available": false,
+        "requiredFilename": "saint-ed-x-face-id-clean.wav"
       }
     ]
   },
@@ -68,8 +79,11 @@
       "category": "personalized",
       "fileType": "JPG",
       "path": null,
+      "delivery": "private",
+      "privateAssetId": "face-id-personalized-artwork",
+      "available": false,
       "recipientConfigured": true,
-      "requiredPath": "media/dj/recipients/<recipient-id>/face-id-licensed-preview.jpg"
+      "requiredFilename": "saint-ed-x-face-id-licensed-preview.jpg"
     },
     {
       "id": "vertical-promo-artwork",

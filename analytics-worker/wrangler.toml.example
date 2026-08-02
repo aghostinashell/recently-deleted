@@ -8,6 +8,10 @@ database_name = "ghosts-in-shells-analytics-staging"
 database_id = "REPLACE_WITH_STAGING_D1_DATABASE_ID"
 migrations_dir = "migrations"
 
+[[env.staging.r2_buckets]]
+binding = "DJ_PRIVATE_ASSETS"
+bucket_name = "ghosts-in-shells-dj-private-staging"
+
 [[env.staging.ratelimits]]
 name = "EVENTS_RATE_LIMITER"
 namespace_id = "1101"
@@ -22,6 +26,13 @@ namespace_id = "1102"
 limit = 30
 period = 60
 
+[[env.staging.ratelimits]]
+name = "DOWNLOADS_RATE_LIMITER"
+namespace_id = "1103"
+[env.staging.ratelimits.simple]
+limit = 12
+period = 60
+
 [env.staging.vars]
 ALLOWED_ORIGINS = "http://localhost:8000,http://127.0.0.1:8000"
 TEST_MODE = "true"
@@ -31,6 +42,10 @@ binding = "DB"
 database_name = "ghosts-in-shells-analytics-production"
 database_id = "REPLACE_WITH_PRODUCTION_D1_DATABASE_ID"
 migrations_dir = "migrations"
+
+[[env.production.r2_buckets]]
+binding = "DJ_PRIVATE_ASSETS"
+bucket_name = "ghosts-in-shells-dj-private-production"
 
 [[env.production.ratelimits]]
 name = "EVENTS_RATE_LIMITER"
@@ -44,6 +59,13 @@ name = "INVITES_RATE_LIMITER"
 namespace_id = "1202"
 [env.production.ratelimits.simple]
 limit = 30
+period = 60
+
+[[env.production.ratelimits]]
+name = "DOWNLOADS_RATE_LIMITER"
+namespace_id = "1203"
+[env.production.ratelimits.simple]
+limit = 12
 period = 60
 
 [env.production.vars]

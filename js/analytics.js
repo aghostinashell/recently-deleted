@@ -179,6 +179,30 @@
     } catch { /* Retain the queue for a later retry. */ }
   }
 
+  async function requestPrivateAsset(assetId) {
+    if (!endpoint || !inviteContext?.contextToken || accessType !== "DJ") {
+      throw new Error("Authorized download context is unavailable.");
+    }
+    if (!/^[a-z0-9-]{3,80}$/.test(String(assetId || ""))) {
+      throw new Error("Invalid asset request.");
+    }
+    const response = await fetch(`${endpoint}/v1/downloads/${assetId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ invite_context_token: inviteContext.contextToken })
+    });
+    if (!response.ok) {
+      const result = await response.json().catch(() => ({}));
+      throw new Error(result.error === "rate_limited"
+        ? "Download limit reached. Please wait one minute and try again."
+        : "This protected asset is unavailable.");
+    }
+    return {
+      blob: await response.blob(),
+      filename: response.headers.get("Content-Disposition")?.match(/filename="([^"]+)"/)?.[1] || "download"
+    };
+  }
+
   function trackEvent(eventName, properties = {}, options = {}) {
     if (disabled || !allowedEvents.has(eventName)) return null;
     const dedupeKey = options.dedupeKey ? `${eventName}:${options.dedupeKey}` : null;
@@ -264,7 +288,7 @@
   localStorage.setItem(visitorKey, JSON.stringify(visitor));
 
   window.GISAnalytics = Object.freeze({
-    trackEvent, flush, appOpened, appClosed,
+    trackEvent, flush, appOpened, appClosed, requestPrivateAsset,
     context: () => ({ accessType, inviteContext, visitorId: visitor.id, sessionId: session.id }),
     inviteReady,
     disabled

@@ -29,6 +29,10 @@ Created:
 - `js/dj-phone.js`
 - `data/dj/phone.json`
 - `analytics-worker/migrations/0002_dj_phone_recipient_assets.sql`
+- `analytics-worker/migrations/0003_private_download_audit.sql`
+- `analytics-worker/src/private-assets.js`
+- `docs/dj-private-assets.md`
+- `docs/dj-iphone-safari-checklist.md`
 - `docs/dj-phone.md`
 
 Modified:
@@ -47,8 +51,9 @@ Modified:
 Migration `0002_dj_phone_recipient_assets.sql` adds nullable
 `invite_recipients.personalized_artwork_path`. The Worker accepts only a
 relative image path under `media/`, rejects traversal and URL schemes, and
-places the safe path inside the signed invite context. No recipient list or
-mapping is shipped in frontend code.
+places only an availability flag inside the signed invite context. Protected
+delivery derives the recipient-specific R2 key on the Worker. No recipient
+list, object key, or mapping is shipped in frontend code.
 
 The generator accepts:
 
@@ -68,14 +73,8 @@ Available now:
 
 Required before every requested DJ deliverable can be enabled:
 
-- Explicit MP3:
-  `media/dj/face-id/saint-ed-x-face-id-explicit.mp3`
-- Explicit WAV:
-  `media/dj/face-id/saint-ed-x-face-id-explicit.wav`
-- Clean MP3:
-  `media/dj/face-id/saint-ed-x-face-id-clean.mp3`
-- Clean WAV:
-  `media/dj/face-id/saint-ed-x-face-id-clean.wav`
+- Explicit and clean MP3/WAV masters in the private R2 keys documented in
+  `docs/dj-private-assets.md`
 - Personalized licensed-preview cover:
   `media/dj/recipients/<recipient-id>/face-id-licensed-preview.jpg`
 - Vertical promotional artwork:
@@ -85,22 +84,21 @@ Required before every requested DJ deliverable can be enabled:
 - Approved press image:
   `media/dj/press/saint-ed-x-approved-press.jpg`
 
-The BPM, musical key, and final release information are not present in the
+The final runtime, BPM, musical key, release date, and availability approvals are not present in the
 repository. They remain explicit `null`/forthcoming values in
 `data/dj/phone.json` rather than invented metadata.
 
 Unavailable files appear as labeled configuration slots, not dead controls.
 
-## Download security limitation
+## Protected downloads
 
-The DJ interface and download controls are invite-gated. The currently
-available preview and cover, however, already live in the public GitHub Pages
-repository. Hiding their links is not storage-level authorization. New
-private masters should not be committed to GitHub Pages. True protected
-delivery requires moving them to private object storage and serving them
-through a Worker endpoint that validates the signed invite context. This is a
-deployment blocker for claiming storage-secure MP3/WAV delivery, not for
-reviewing the DJ phone interface.
+New masters use private R2 storage and `POST /v1/downloads/:asset-id`. The
+Worker verifies the signed context and live D1 invite, resolves a server-side
+allowlist, rate limits by invite and asset, and streams the file. Details and
+exact upload commands are in `docs/dj-private-assets.md`.
+
+The existing preview and official cover remain intentionally public
+promotional files. No private master is committed to GitHub Pages.
 
 ## Mail
 
@@ -168,8 +166,7 @@ mode `0600`; delete it after testing.
 ## DJ Paris process — only after explicit approval
 
 1. Supply and verify every real audio/artwork asset.
-2. Put private masters behind an invite-authorized Worker/object-storage
-   download path instead of committing them to GitHub Pages.
+2. Upload private masters to the documented private R2 keys.
 3. Manually create the licensed-preview artwork with the approved watermark.
 4. Upload it at the recipient-specific path.
 5. Run the generator with the approved display name, access level,
@@ -184,7 +181,7 @@ No DJ Paris invite exists as part of this branch.
 
 Deployment after approval:
 
-1. Apply migration `0002_dj_phone_recipient_assets.sql` to production D1.
+1. Apply migrations `0002` and `0003` to production D1.
 2. Deploy the production Worker.
 3. Merge the reviewed branch into `main`.
 4. Wait for GitHub Pages to report `built`.

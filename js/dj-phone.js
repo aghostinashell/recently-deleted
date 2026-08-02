@@ -115,6 +115,19 @@
     return `${Math.floor(safe / 60)}:${String(safe % 60).padStart(2, "0")}`;
   }
 
+  async function savePrivateAsset(assetId) {
+    const result = await window.GISAnalytics.requestPrivateAsset(assetId);
+    const objectUrl = URL.createObjectURL(result.blob);
+    const link = document.createElement("a");
+    link.href = objectUrl;
+    link.download = result.filename;
+    link.hidden = true;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+  }
+
   audio.addEventListener("loadedmetadata", renderMusicStatus);
   audio.addEventListener("timeupdate", () => {
     renderMusicStatus();
@@ -181,14 +194,14 @@
           <div><small>NOW SERVICING</small><h2>${esc(music.title)}</h2><p>${esc(music.artist)}</p></div>
         </div>
         <dl class="dj-track-facts">
-          <div><dt>Runtime</dt><dd>${formatTime(music.runtimeSeconds)}</dd></div>
+          <div><dt>Runtime</dt><dd>${music.runtimeSeconds ? formatTime(music.runtimeSeconds) : "Awaiting metadata"}</dd></div>
           <div><dt>BPM</dt><dd>${music.bpm || "Awaiting metadata"}</dd></div>
           <div><dt>Key</dt><dd>${music.key || "Awaiting metadata"}</dd></div>
-          <div><dt>Release</dt><dd>${esc(music.releaseInformation)}</dd></div>
+          <div><dt>Release</dt><dd>${esc(music.releaseInformation || music.releaseDate || "Awaiting metadata")}</dd></div>
         </dl>
         <div class="dj-player">
           <input data-dj-seek type="range" min="0" max="100" value="0" step="0.1" aria-label="Seek through Face ID">
-          <div class="dj-player-time"><span data-dj-elapsed>0:00</span><span data-dj-duration>${formatTime(music.runtimeSeconds)}</span></div>
+          <div class="dj-player-time"><span data-dj-elapsed>0:00</span><span data-dj-duration>${music.runtimeSeconds ? formatTime(music.runtimeSeconds) : "--:--"}</span></div>
           <div class="dj-player-controls">
             <button type="button" data-dj-restart aria-label="Restart Face ID">↶</button>
             <button class="dj-primary-play" type="button" data-dj-music-toggle aria-label="Play Face ID">▶</button>
@@ -202,9 +215,14 @@
               <a href="${esc(file.path)}" download data-dj-music-download="${esc(file.id)}"
                 data-asset-id="${esc(file.id)}" data-asset-title="${esc(music.title)} ${esc(file.label)}"
                 data-asset-category="dj-music">DOWNLOAD</a>
+            </article>` : file.delivery === "private" && file.available ? `
+            <article class="dj-file available">
+              <span><strong>${esc(file.label)}</strong><small>${esc(file.version)} · ${esc(file.format)} · Protected</small></span>
+              <button type="button" data-dj-private-download="${esc(file.id)}">DOWNLOAD</button>
             </article>` : `
-            <article class="dj-file unavailable"><span><strong>${esc(file.label)}</strong><small>Asset required</small></span><code>${esc(file.requiredPath)}</code></article>`
+            <article class="dj-file unavailable"><span><strong>${esc(file.label)}</strong><small>Asset required</small></span><code>${esc(file.requiredFilename || file.requiredPath)}</code></article>`
           ).join("")}</div>
+          <p class="dj-download-status" data-dj-download-status aria-live="polite"></p>
         </section>
       </section>`;
     activeHost = host;
@@ -239,19 +257,50 @@
       if (file.version === "clean") track("music_clean_downloaded", metadata);
       if (file.version === "explicit") track("music_explicit_downloaded", metadata);
     }));
+    host.querySelectorAll("[data-dj-private-download]").forEach((button) => button.addEventListener("click", async () => {
+      const file = files.find((item) => item.id === button.dataset.djPrivateDownload);
+      const status = host.querySelector("[data-dj-download-status]");
+      button.disabled = true;
+      status.textContent = "Preparing protected download…";
+      try {
+        await savePrivateAsset(file.id);
+        status.textContent = "Download authorized.";
+        const metadata = trackMetadata({
+          asset_id: file.id,
+          asset_title: `${music.title} ${file.label}`,
+          asset_category: "dj-music",
+          delivery: "protected"
+        });
+        track("music_file_downloaded", metadata);
+        if (file.format === "MP3") track("music_mp3_downloaded", metadata);
+        if (file.format === "WAV") track("music_wav_downloaded", metadata);
+        if (file.version === "clean") track("music_clean_downloaded", metadata);
+        if (file.version === "explicit") track("music_explicit_downloaded", metadata);
+      } catch (error) {
+        status.textContent = error.message;
+      } finally {
+        button.disabled = false;
+      }
+    }));
     renderMusicStatus();
   }
 
-  function resolvedPhotos(data) {
-    const personalizedPath = context()?.personalizedArtworkPath;
-    return data.photos.map((asset) => asset.recipientConfigured && personalizedPath
-      ? { ...asset, path: personalizedPath }
-      : asset);
+  async function resolvedPhotos(data) {
+    return Promise.all(data.photos.map(async (asset) => {
+      if (asset.delivery !== "private" || !asset.available ||
+          !context()?.personalizedArtworkAvailable || !asset.privateAssetId) return asset;
+      try {
+        const result = await window.GISAnalytics.requestPrivateAsset(asset.privateAssetId);
+        return { ...asset, path: URL.createObjectURL(result.blob), protectedDelivery: true };
+      } catch {
+        return asset;
+      }
+    }));
   }
 
   async function openPhotos(host) {
     const data = await config();
-    const assets = resolvedPhotos(data);
+    const assets = await resolvedPhotos(data);
     track("photo_folder_opened", { app_name: "photos", content_id: "face-id-dj-assets", content_title: "Face ID DJ Assets" });
     host.innerHTML = `
       <section class="dj-app dj-photos-app">
@@ -264,7 +313,7 @@
           <article class="dj-photo-card unavailable">
             <div class="dj-missing-asset">ASSET<br>REQUIRED</div>
             <span><strong>${esc(asset.label)}</strong><small>${esc(asset.fileType)} · Not supplied</small></span>
-            <code>${esc(asset.requiredPath)}</code>
+            <code>${esc(asset.requiredFilename || asset.requiredPath)}</code>
           </article>`).join("")}</div>
         <div class="dj-photo-viewer" data-dj-photo-viewer hidden></div>
       </section>`;
@@ -280,11 +329,19 @@
       viewer.innerHTML = `<button type="button" data-close-dj-photo aria-label="Close artwork">×</button>
         <img src="${esc(asset.path)}" alt="${esc(asset.label)} full size">
         <div><strong>${esc(asset.label)}</strong><small>${esc(asset.fileType)}</small>
-        <a href="${esc(asset.path)}" download data-dj-photo-download="${esc(asset.id)}"
+        <a href="${esc(asset.path)}" download="${esc(asset.requiredFilename || "")}" data-dj-photo-download="${esc(asset.id)}"
           data-asset-id="${esc(asset.id)}" data-asset-title="${esc(asset.label)}"
           data-asset-category="${esc(asset.category)}">DOWNLOAD ASSET</a></div>`;
       viewer.querySelector("[data-close-dj-photo]").addEventListener("click", () => { viewer.hidden = true; });
-      viewer.querySelector("[data-dj-photo-download]").addEventListener("click", () => {
+      viewer.querySelector("[data-dj-photo-download]").addEventListener("click", async (event) => {
+        if (asset.protectedDelivery) {
+          event.preventDefault();
+          try {
+            await savePrivateAsset(asset.privateAssetId);
+          } catch {
+            return;
+          }
+        }
         const metadata = {
           app_name: "photos", asset_id: asset.id, asset_title: asset.label,
           asset_category: asset.category, file_type: asset.fileType.toLowerCase()
