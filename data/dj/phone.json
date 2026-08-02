@@ -1,0 +1,146 @@
+{
+  "label": "INDUSTRY ACCESS",
+  "issuer": "Ghosts In Shells",
+  "contactEmail": "d.wright@ghostsinshells.com",
+  "music": {
+    "id": "face-id",
+    "title": "Face ID",
+    "artist": "Saint Ed X",
+    "cover": "media/artwork/recently-deleted/01-face-id.jpg",
+    "runtimeSeconds": 131,
+    "bpm": null,
+    "key": null,
+    "releaseInformation": "Promotional single · Release details forthcoming",
+    "files": [
+      {
+        "id": "existing-master-preview",
+        "label": "Existing Master Preview",
+        "version": "preview",
+        "format": "M4A",
+        "path": "media/audio/recently-deleted/01-face-id.m4a"
+      },
+      {
+        "id": "explicit-mp3",
+        "label": "Explicit · MP3",
+        "version": "explicit",
+        "format": "MP3",
+        "path": null,
+        "requiredPath": "media/dj/face-id/saint-ed-x-face-id-explicit.mp3"
+      },
+      {
+        "id": "explicit-wav",
+        "label": "Explicit · WAV",
+        "version": "explicit",
+        "format": "WAV",
+        "path": null,
+        "requiredPath": "media/dj/face-id/saint-ed-x-face-id-explicit.wav"
+      },
+      {
+        "id": "clean-mp3",
+        "label": "Clean · MP3",
+        "version": "clean",
+        "format": "MP3",
+        "path": null,
+        "requiredPath": "media/dj/face-id/saint-ed-x-face-id-clean.mp3"
+      },
+      {
+        "id": "clean-wav",
+        "label": "Clean · WAV",
+        "version": "clean",
+        "format": "WAV",
+        "path": null,
+        "requiredPath": "media/dj/face-id/saint-ed-x-face-id-clean.wav"
+      }
+    ]
+  },
+  "photos": [
+    {
+      "id": "official-square-cover",
+      "label": "Official Square Cover",
+      "category": "official",
+      "fileType": "JPG",
+      "path": "media/artwork/recently-deleted/01-face-id.jpg",
+      "requiredPath": null
+    },
+    {
+      "id": "personalized-licensed-preview",
+      "label": "Personalized Licensed Preview",
+      "category": "personalized",
+      "fileType": "JPG",
+      "path": null,
+      "recipientConfigured": true,
+      "requiredPath": "media/dj/recipients/<recipient-id>/face-id-licensed-preview.jpg"
+    },
+    {
+      "id": "vertical-promo-artwork",
+      "label": "Vertical Promo Artwork",
+      "category": "vertical",
+      "fileType": "JPG",
+      "path": null,
+      "requiredPath": "media/dj/face-id/saint-ed-x-face-id-vertical.jpg"
+    },
+    {
+      "id": "saint-ed-x-logo",
+      "label": "Saint Ed X Logo",
+      "category": "logo",
+      "fileType": "PNG",
+      "path": null,
+      "requiredPath": "media/dj/brand/saint-ed-x-logo.png"
+    },
+    {
+      "id": "approved-press-image",
+      "label": "Approved Press Image",
+      "category": "press",
+      "fileType": "JPG",
+      "path": null,
+      "requiredPath": "media/dj/press/saint-ed-x-approved-press.jpg"
+    }
+  ],
+  "mail": [
+    {
+      "id": "all-access-approved",
+      "sender": "Ghosts In Shells",
+      "subject": "ALL ACCESS APPROVED",
+      "preview": "Your industry credential is active.",
+      "body": [
+        "Your Ghosts In Shells credential has been verified.",
+        "This phone provides authorized access to Saint Ed X promotional music, approved artwork, and future Exposure experiences.",
+        "Materials are intended for the credential holder."
+      ],
+      "action": null
+    },
+    {
+      "id": "face-id-licensed-preview",
+      "sender": "Saint Ed X / Ghosts In Shells",
+      "subject": "FACE ID — LICENSED PREVIEW",
+      "preview": "The new single is ready inside Music.",
+      "body": [
+        "Face ID is available here as an authorized promotional preview.",
+        "Open Music for playback, version details, and currently available files. Additional masters will appear when approved."
+      ],
+      "action": "music"
+    },
+    {
+      "id": "exposure-access",
+      "sender": "Exposure",
+      "subject": "EXPOSURE ACCESS",
+      "preview": "Your credential is recognized for future access.",
+      "body": [
+        "This credential may provide access to future private previews, performances, soundchecks, and industry events.",
+        "Confirmed opportunities will appear inside Exposure. No active event is currently scheduled."
+      ],
+      "action": "stage"
+    },
+    {
+      "id": "request-dj-drop",
+      "sender": "Ghosts In Shells",
+      "subject": "REQUEST A DJ DROP",
+      "preview": "Request a custom Saint Ed X DJ drop.",
+      "body": [
+        "Use the contact action below to request a custom Saint Ed X DJ drop.",
+        "Include your DJ name, station or platform, and pronunciation details in your email. Message content is not sent to analytics."
+      ],
+      "action": "dj-drop"
+    }
+  ]
+}

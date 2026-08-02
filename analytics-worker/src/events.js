@@ -22,7 +22,13 @@ export const ALLOWED_EVENTS = new Set([
   "soundcheck_content_opened", "performance_clip_opened", "dj_invite_opened",
   "dj_invite_validated", "dj_invite_rejected", "dj_invite_expired",
   "authorized_recipient_recognized", "dj_phone_unlocked", "first_dj_visit",
-  "repeat_dj_visit", "contact_link_clicked"
+  "repeat_dj_visit", "contact_link_clicked", "dj_home_screen_viewed",
+  "music_version_selected", "song_repeat_played",
+  "music_mp3_downloaded", "music_wav_downloaded", "music_clean_downloaded",
+  "music_explicit_downloaded", "photo_folder_opened",
+  "official_artwork_downloaded", "personalized_artwork_downloaded",
+  "vertical_artwork_downloaded", "logo_downloaded", "press_image_downloaded",
+  "dj_drop_request_clicked", "credential_status_viewed", "event_preview_clicked"
 ]);
 
 export const ACCESS_TYPES = new Set(["public", "DJ", "media", "venue", "owner"]);

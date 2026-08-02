@@ -99,3 +99,41 @@ test("expired and revoked invites are rejected", async () => {
   }));
   assert.equal(revoked.status, 404);
 });
+
+test("valid DJ invite returns only signed safe credential context", async () => {
+  const invite = {
+    id: "test-invite-11111111-1111-4111-8111-111111111111",
+    access_type: "DJ",
+    expires_at: "2030-01-01T00:00:00.000Z",
+    revoked_at: null,
+    is_test: 1,
+    total_visits: 0,
+    issued_at: "2026-08-02T00:00:00.000Z",
+    recipient_id: "test-recipient-22222222-2222-4222-8222-222222222222",
+    display_name: "DJ Phone Test",
+    access_level: "All Access Test",
+    personalized_artwork_path: "media/dj/recipients/test/face-id-licensed-preview.jpg"
+  };
+  const env = {
+    ...baseEnv,
+    DB: {
+      prepare: (sql) => ({
+        bind: () => sql.includes("SELECT")
+          ? { first: async () => invite }
+          : { run: async () => ({ success: true }) }
+      })
+    }
+  };
+  const response = await worker.fetch(request("/v1/invites/validate", {
+    method: "POST",
+    headers: { Origin: origin, "Content-Type": "application/json" },
+    body: JSON.stringify({ token: "a".repeat(43) })
+  }), env);
+  assert.equal(response.status, 200);
+  const result = await response.json();
+  assert.equal(result.context.recipientDisplayName, "DJ Phone Test");
+  assert.equal(result.context.publicPassNumber, "11111111");
+  assert.equal(result.context.personalizedArtworkPath, invite.personalized_artwork_path);
+  assert.equal("token" in result.context, false);
+  assert.match(result.context.contextToken, /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/);
+});

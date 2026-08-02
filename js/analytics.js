@@ -41,7 +41,13 @@
     "backstage_content_opened", "soundcheck_content_opened",
     "performance_clip_opened", "dj_invite_opened", "dj_invite_validated",
     "dj_invite_rejected", "dj_invite_expired", "authorized_recipient_recognized",
-    "dj_phone_unlocked", "first_dj_visit", "repeat_dj_visit", "contact_link_clicked"
+    "dj_phone_unlocked", "first_dj_visit", "repeat_dj_visit", "contact_link_clicked",
+    "dj_home_screen_viewed", "music_version_selected", "song_repeat_played",
+    "music_mp3_downloaded", "music_wav_downloaded", "music_clean_downloaded",
+    "music_explicit_downloaded", "photo_folder_opened",
+    "official_artwork_downloaded", "personalized_artwork_downloaded",
+    "vertical_artwork_downloaded", "logo_downloaded", "press_image_downloaded",
+    "dj_drop_request_clicked", "credential_status_viewed", "event_preview_clicked"
   ]);
 
   function uuid() {
@@ -86,9 +92,12 @@
   const visitor = getVisitor();
   const session = getSession();
   const params = new URLSearchParams(location.search);
+  let settleInviteReady;
+  const inviteReady = new Promise((resolve) => { settleInviteReady = resolve; });
   let inviteContext = safeParse(sessionStorage.getItem(inviteContextKey), null);
   let accessType = inviteContext?.accessType || "public";
   let inviteValidationPending = Boolean(params.get("invite") && endpoint && !inviteContext);
+  if (!params.get("invite") || inviteContext) settleInviteReady();
 
   function campaign() {
     return {
@@ -188,9 +197,13 @@
 
   async function validateInvite() {
     const token = params.get("invite");
-    if (!token || disabled) return;
+    if (!token || disabled) {
+      settleInviteReady();
+      return;
+    }
     if (!endpoint) {
       if (debug) console.info("[Ghosts In Shells analytics] Invite present; validation requires an analytics endpoint.");
+      settleInviteReady();
       return;
     }
     try {
@@ -203,6 +216,7 @@
       if (!response.ok || !result.valid) {
         inviteValidationPending = false;
         trackEvent(result.reason === "expired" ? "dj_invite_expired" : "dj_invite_rejected");
+        window.dispatchEvent(new CustomEvent("gis:invite-rejected", { detail: { reason: result.reason || "invalid" } }));
         flush();
         return;
       }
@@ -214,11 +228,20 @@
       trackEvent("dj_invite_validated", {}, { dedupeKey: inviteContext.inviteId });
       trackEvent("authorized_recipient_recognized", {}, { dedupeKey: inviteContext.recipientId });
       trackEvent(result.isFirstVisit ? "first_dj_visit" : "repeat_dj_visit");
+      window.dispatchEvent(new CustomEvent("gis:invite-validated", {
+        detail: {
+          accessType: inviteContext.accessType,
+          accessLevel: inviteContext.accessLevel,
+          recipientDisplayName: inviteContext.recipientDisplayName
+        }
+      }));
       flush();
     } catch {
       inviteValidationPending = false;
       flush();
       /* The public phone remains available if validation is offline. */
+    } finally {
+      settleInviteReady();
     }
   }
 
@@ -243,6 +266,7 @@
   window.GISAnalytics = Object.freeze({
     trackEvent, flush, appOpened, appClosed,
     context: () => ({ accessType, inviteContext, visitorId: visitor.id, sessionId: session.id }),
+    inviteReady,
     disabled
   });
 

@@ -51,6 +51,14 @@ function adminAuthorized(request, env) {
   return env.ADMIN_API_TOKEN && supplied === `Bearer ${env.ADMIN_API_TOKEN}`;
 }
 
+function safeAssetPath(value) {
+  const path = String(value || "").trim();
+  if (!path) return null;
+  if (path.length > 300 || path.includes("..") || path.startsWith("/") ||
+      !/^media\/[a-z0-9/_ .-]+\.(?:jpe?g|png|webp)$/i.test(path)) return null;
+  return path;
+}
+
 async function parseBody(request) {
   const length = Number(request.headers.get("Content-Length") || 0);
   if (length > MAX_BODY_BYTES) throw new Error("body_too_large");
@@ -70,7 +78,8 @@ async function validateInvite(request, env, headers) {
   }
   const invite = await env.DB.prepare(`
     SELECT i.id, i.access_type, i.expires_at, i.revoked_at, i.is_test, i.total_visits,
-           r.id AS recipient_id, r.display_name, r.access_level
+           i.created_at AS issued_at, r.id AS recipient_id, r.display_name, r.access_level,
+           r.personalized_artwork_path
     FROM access_invites i JOIN invite_recipients r ON r.id = i.recipient_id
     WHERE i.token_hash = ?
   `).bind(tokenHash).first();
@@ -89,6 +98,9 @@ async function validateInvite(request, env, headers) {
     recipientDisplayName: invite.display_name,
     accessType: invite.access_type,
     accessLevel: invite.access_level,
+    issuedAt: invite.issued_at,
+    publicPassNumber: invite.id.slice(-8).toUpperCase(),
+    personalizedArtworkPath: safeAssetPath(invite.personalized_artwork_path),
     isTest: Boolean(invite.is_test),
     expiresAt: Date.now() + 12 * 60 * 60 * 1000
   }, env.INVITE_SIGNING_SECRET);
@@ -101,6 +113,9 @@ async function validateInvite(request, env, headers) {
       recipientDisplayName: invite.display_name,
       accessType: invite.access_type,
       accessLevel: invite.access_level,
+      issuedAt: invite.issued_at,
+      publicPassNumber: invite.id.slice(-8).toUpperCase(),
+      personalizedArtworkPath: safeAssetPath(invite.personalized_artwork_path),
       isTest: Boolean(invite.is_test),
       contextToken
     }
