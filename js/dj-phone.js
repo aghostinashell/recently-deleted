@@ -381,7 +381,7 @@
         <header class="dj-mail-header"><span>${esc(data.label)}</span><h2>Inbox</h2><small>${messages.length} messages</small></header>
         <div class="dj-mail-list">${messages.map((message) => `
           <button type="button" data-dj-mail="${esc(message.id)}"><i></i><span><strong>${esc(message.sender)}</strong>
-          <b>${esc(message.subject)}</b><p>${esc(message.preview)}</p></span><em>›</em></button>`).join("")}</div>
+          <b>${esc(message.subject)}</b><p>${esc(message.preview)}</p></span><em>${message.permanent ? "◆" : "›"}</em></button>`).join("")}</div>
       </section>`;
       host.querySelectorAll("[data-dj-mail]").forEach((button) => button.addEventListener("click", () => {
         renderMessage(messages.find((message) => message.id === button.dataset.djMail));
@@ -397,8 +397,15 @@
         : "";
       host.innerHTML = `<article class="dj-app dj-mail-message">
         <button type="button" data-dj-mail-back>‹ Inbox</button>
-        <header><span>${esc(message.sender)}</span><h2>${esc(message.subject)}</h2></header>
-        <div>${message.body.map((paragraph) => `<p>${esc(paragraph)}</p>`).join("")}</div>
+        <header><span>${esc(message.sender)}${message.permanent ? " · PERMANENT" : ""}</span><h2>${esc(message.subject)}</h2></header>
+        <div>
+          ${message.salutation ? `<p><strong>${esc(message.salutation)}</strong></p>` : ""}
+          ${message.body.slice(0, 2).map((paragraph) => `<p>${esc(paragraph)}</p>`).join("")}
+          ${message.releases?.length ? `<section class="dj-mail-releases"><strong>${esc(message.releasesHeading || "Available Now")}</strong>${message.releases.map((release) =>
+            `<p><b>${esc(release.title)}</b> — ${esc(release.detail)}</p>`).join("")}</section>` : ""}
+          ${message.body.slice(2).map((paragraph) => `<p>${esc(paragraph)}</p>`).join("")}
+          ${message.signoff ? `<p><strong>${esc(message.signoff)}</strong></p>` : ""}
+        </div>
         ${action}
       </article>`;
       host.querySelector("[data-dj-mail-back]").addEventListener("click", () => {
@@ -456,7 +463,7 @@
       <div class="dj-credential-card">
         <span class="dj-credential-issuer">GHOSTS IN SHELLS</span>
         <div class="dj-credential-seal">×</div>
-        <p>Credential Holder<strong>${esc(invite?.recipientDisplayName || "Authorized DJ")}</strong></p>
+        <p>Credential Holder<strong>${esc(data.credentialHolder || invite?.recipientDisplayName || "Authorized DJ")}</strong></p>
         <dl>
           <div><dt>Access Type</dt><dd>${esc(invite?.accessType || "DJ")}</dd></div>
           <div><dt>Access Level</dt><dd>${esc(invite?.accessLevel || "All Access")}</dd></div>

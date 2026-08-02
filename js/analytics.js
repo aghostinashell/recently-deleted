@@ -244,7 +244,10 @@
         flush();
         return;
       }
-      inviteContext = result.context;
+      inviteContext = {
+        ...result.context,
+        isFirstVisit: Boolean(result.isFirstVisit)
+      };
       accessType = inviteContext.accessType;
       sessionStorage.setItem(inviteContextKey, JSON.stringify(inviteContext));
       inviteValidationPending = false;

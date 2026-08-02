@@ -777,7 +777,9 @@ async function beginUnlockSequence() {
   }, 280);
 
   window.setTimeout(() => {
-    const recipientName = window.GISAnalytics?.context().inviteContext?.recipientDisplayName;
+    const recipientName = isPrivateDjRoute
+      ? "DJ Paris Life"
+      : window.GISAnalytics?.context().inviteContext?.recipientDisplayName;
     islandTitle.textContent = isAuthorizedDj ? "ACCESS GRANTED" : "Face ID";
     islandMessage.textContent = isAuthorizedDj ? "Credential Verified" : "Not Recognized";
     dynamicIsland.classList.remove("scanning");
@@ -805,7 +807,7 @@ async function beginUnlockSequence() {
       passcodeScreen.classList.remove("screen-hidden");
       track("passcode_screen_viewed");
     }
-  }, 2250);
+  }, 2750);
 
   window.setTimeout(() => {
     dynamicIsland.classList.remove("failed");
@@ -991,6 +993,11 @@ function activateDjMode() {
       <p class="dj-home-footer">Authorized promotional access · Ghosts In Shells</p>
     </div>`;
   document.querySelector(".home-page-dots").hidden = true;
+  const welcomeBadge = document.querySelector('[data-app-id="mail"] [data-mail-unread]');
+  if (welcomeBadge) {
+    welcomeBadge.hidden = !window.GISAnalytics?.context().inviteContext?.isFirstVisit;
+    welcomeBadge.textContent = "1";
+  }
   document.querySelectorAll("[data-app-id]").forEach((button) => {
     button.addEventListener("click", () => openApp(button.dataset.appId));
   });

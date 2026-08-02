@@ -1,6 +1,7 @@
 {
   "label": "INDUSTRY ACCESS",
   "issuer": "Ghosts In Shells",
+  "credentialHolder": "DJ Paris Life",
   "contactEmail": "d.wright@ghostsinshells.com",
   "music": {
     "artist": "Saint Ed X",
@@ -94,15 +95,35 @@
   ],
   "mail": [
     {
-      "id": "all-access-approved",
+      "id": "dj-paris-life-welcome",
       "sender": "Ghosts In Shells",
-      "subject": "ALL ACCESS APPROVED",
-      "preview": "Your industry credential is active.",
+      "subject": "WELCOME TO GHOSTS IN SHELLS",
+      "preview": "Your All Access Credential has been activated.",
+      "salutation": "DJ Paris Life,",
       "body": [
-        "Your Ghosts In Shells credential has been verified.",
-        "This phone provides authorized access to Saint Ed X promotional music, approved artwork, and future Exposure experiences.",
-        "Materials are intended for the credential holder."
+        "Welcome to Ghosts In Shells. Your All Access Credential has been activated.",
+        "This credential provides access to promotional releases, approved artwork, and future industry updates from Saint Ed X.",
+        "Additional releases, artwork, and promotional assets will be added directly to your credential as they become available. No new invitation will be required.",
+        "Thank you for taking the time to listen. We appreciate your support and look forward to hearing your thoughts."
       ],
+      "releasesHeading": "Available Now",
+      "releases": [
+        {
+          "title": "Amber",
+          "detail": "Album Version - Exclusive Cover Art"
+        },
+        {
+          "title": "Face ID",
+          "detail": "Album Version - Exclusive Cover Art"
+        },
+        {
+          "title": "White Bronco",
+          "detail": "Album Version - Exclusive Cover Art"
+        }
+      ],
+      "signoff": "— Ghosts In Shells",
+      "permanent": true,
+      "firstLoginDelivery": true,
       "action": null
     },
     {
