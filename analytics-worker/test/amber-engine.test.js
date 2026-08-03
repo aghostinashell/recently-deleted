@@ -45,3 +45,27 @@ test("Amber's activity and continuity rules are represented in the client engine
   assert.match(source, /recentResponses/);
   assert.match(source, /reply\.split\(\/\\n\{2,\}\/\)/);
 });
+
+test("Amber prioritizes conversation context and browser-local user memory", async () => {
+  const source = await readFile(messagesPath, "utf8");
+  assert.match(source, /function rememberAmberContext/);
+  assert.match(source, /function recalledAmberReply/);
+  assert.match(source, /recentUserMessages/);
+  assert.match(source, /\.slice\(-12\)/);
+  assert.match(source, /facts\.lastFeeling/);
+  assert.match(source, /facts\.lastUserActivity/);
+  assert.match(source, /sharedContext\.kind \|\| memoryQuestion \? null/);
+  assert.match(source, /writeList\(pendingKey\(thread\.threadId\), \[\]\)/);
+});
+
+test("Amber does not let time of day override the user's actual topic", async () => {
+  const source = await readFile(messagesPath, "utf8");
+  const matcher = source.slice(
+    source.indexOf("function matchingAmberCategory"),
+    source.indexOf("function chooseAmberResponse")
+  );
+  assert.doesNotMatch(matcher, /getHours/);
+  assert.doesNotMatch(matcher, /getDay/);
+  assert.match(matcher, /lastTopicAt/);
+  assert.match(matcher, /messageMatchesTrigger/);
+});

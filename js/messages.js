@@ -179,24 +179,28 @@
     return categoryById(engine, state.activeActivity);
   }
 
+  function messageMatchesTrigger(normalized, trigger) {
+    const value = normalizeMessage(trigger);
+    if (!value) return false;
+    if (normalized === value) return true;
+    if (/[^\w\s]/.test(value)) return normalized.includes(value);
+    return new RegExp(`(?:^|\\s)${value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?:$|\\s)`).test(normalized);
+  }
+
   function matchingAmberCategory(engine, normalized, state) {
     const active = activeAmberCategory(engine, state);
     const contextQuestion = /^(where are you|what are you doing|wyd|busy|can you talk|why arent you replying)$/.test(normalized);
     if (active && contextQuestion) return active;
     const matches = engine.categories.filter((category) =>
-      (category.triggers || []).some((trigger) => normalized === normalizeMessage(trigger) ||
-        normalized.includes(normalizeMessage(trigger))));
+      (category.triggers || []).some((trigger) => messageMatchesTrigger(normalized, trigger)));
     if (matches.length) {
       return matches.sort((left, right) => Math.max(...right.triggers.map((item) => item.length)) -
         Math.max(...left.triggers.map((item) => item.length)))[0];
     }
     const followUp = /^(why|how|where|when|what happened|you okay|are you okay|really|and then|then what)$/.test(normalized);
-    if (followUp && state.lastCategory) return categoryById(engine, state.lastCategory);
-    const now = new Date();
-    const lateNight = categoryById(engine, "late-night");
-    if (lateNight && (now.getHours() >= lateNight.timeWindow.startHour || now.getHours() <= lateNight.timeWindow.endHour)) return lateNight;
-    const weekend = categoryById(engine, "weekend");
-    if (weekend?.days.includes(now.getDay()) && /\b(plan|today|tomorrow|doing)\b/.test(normalized)) return weekend;
+    if (followUp && state.lastCategory && Date.now() - Number(state.lastTopicAt || 0) < 15 * 60 * 1000) {
+      return categoryById(engine, state.lastCategory);
+    }
     return null;
   }
 
@@ -218,6 +222,134 @@
     state.activityUntil = Date.now() + durationMinutes * 60 * 1000;
   }
 
+  function cleanRememberedValue(value) {
+    return String(value || "").replace(/[.!?]+$/, "").trim().slice(0, 100);
+  }
+
+  function rememberAmberContext(text, normalized, state) {
+    const facts = state.facts && typeof state.facts === "object" ? state.facts : {};
+    const result = { kind: "", value: "", reply: "" };
+    const patterns = [
+      ["name", /\bmy name is ([a-z][a-z '-]{1,40})/i],
+      ["location", /\bi live in ([a-z0-9][a-z0-9 ,.'-]{1,60})/i],
+      ["workplace", /\bi work at ([a-z0-9][a-z0-9 &.'-]{1,60})/i],
+      ["favorite", /\bmy favorite (?:thing|food|song|movie|show|place)?\s*(?:is|=)\s*([^.!?]{2,80})/i],
+      ["like", /\bi (?:really )?(?:like|love) ([^.!?]{2,80})/i],
+      ["dislike", /\bi (?:really )?(?:hate|dont like|don't like) ([^.!?]{2,80})/i]
+    ];
+    for (const [key, pattern] of patterns) {
+      const match = text.match(pattern);
+      if (!match) continue;
+      const value = cleanRememberedValue(match[1]);
+      facts[key] = value;
+      result.kind = key;
+      result.value = value;
+      result.reply = key === "name" ? `okay ${value}. i got you.`
+        : key === "location" ? `okay. how do you like living in ${value}?`
+        : key === "workplace" ? `okay. how long have you been at ${value}?`
+        : key === "dislike" ? "noted 😂 what don't you like about it?"
+        : "okay noted 😂 what do you like about it?";
+      break;
+    }
+
+    const emotion = normalized.match(/\b(?:im|i am|ive been|i feel) (happy|good|great|excited|proud|tired|exhausted|sad|upset|angry|mad|stressed|anxious|worried|sick|hurt|lonely)\b/);
+    if (!result.kind && emotion) {
+      const value = emotion[1];
+      facts.lastFeeling = value;
+      result.kind = "feeling";
+      result.value = value;
+      result.reply = /happy|good|great|excited|proud/.test(value)
+        ? "okayyy i love that for you 😂 what happened?"
+        : /tired|exhausted|sick/.test(value)
+          ? "you need to slow down for a minute. you okay?"
+          : "what happened? you wanna talk about it?";
+    }
+
+    const sharedActivities = [
+      ["work", /\b(?:im|i am) (?:at work|working)\b/, "how's work been today?"],
+      ["gym", /\b(?:im|i am) (?:at the gym|working out)\b/, "you almost done or just getting started?"],
+      ["food", /\b(?:im|i am) (?:eating|getting food|making food)\b/, "what'd you get?"],
+      ["driving", /\b(?:im|i am) (?:driving|in the car|on the road)\b/, "okay text me when you stop. where you headed?"],
+      ["shopping", /\b(?:im|i am) (?:shopping|at the store|at the mall)\b/, "what are you looking for?"],
+      ["watching-tv", /\b(?:im|i am) watching\b/, "what are you watching?"],
+      ["travel", /\b(?:im|i am) (?:traveling|out of town|on a trip)\b/, "okay where'd you go?"],
+      ["plan", /\b(?:im|i am|were|we are) (?:going to|gonna|planning to) ([^.!?]{2,100})/i, "okay. how do you feel about it?"]
+    ];
+    if (!result.kind) {
+      for (const [kind, pattern, reply] of sharedActivities) {
+        const match = normalized.match(pattern);
+        if (!match) continue;
+        result.kind = kind;
+        result.value = cleanRememberedValue(match[1] || kind);
+        result.reply = reply;
+        facts.lastUserActivity = result.value;
+        break;
+      }
+    }
+
+    state.facts = facts;
+    state.recentUserMessages = [...(state.recentUserMessages || []), {
+      text: text.slice(0, 500),
+      at: Date.now(),
+      topic: result.kind || state.lastCategory || "conversation"
+    }].slice(-12);
+    return result;
+  }
+
+  function recalledAmberReply(state) {
+    const facts = state.facts || {};
+    const details = [
+      facts.name ? `your name is ${facts.name}` : "",
+      facts.location ? `you live in ${facts.location}` : "",
+      facts.workplace ? `you work at ${facts.workplace}` : "",
+      facts.favorite ? `your favorite is ${facts.favorite}` : "",
+      facts.like ? `you like ${facts.like}` : "",
+      facts.dislike ? `you don't like ${facts.dislike}` : "",
+      facts.lastFeeling ? `you said you were feeling ${facts.lastFeeling}` : "",
+      facts.lastUserActivity ? `last you told me, you were ${facts.lastUserActivity}` : ""
+    ].filter(Boolean);
+    if (!details.length) return "i remember what we talk about. you just haven't told me much about you yet 😂";
+    return `yeah i remember. ${details.slice(0, 3).join(", and ")}.`;
+  }
+
+  function contextualAmberReply(text, normalized, state, sharedContext) {
+    if (/\b(remember|what do you know about me|what did i tell you|do you know my)\b/.test(normalized)) {
+      return recalledAmberReply(state);
+    }
+    if (sharedContext.reply) return sharedContext.reply;
+    if (state.awaitingAnswer && !text.includes("?") && Date.now() - Number(state.questionAskedAt || 0) < 15 * 60 * 1000) {
+      state.awaitingAnswer = false;
+      return chooseAmberResponse([
+        "okay. that makes sense.",
+        "i hear you. how do you feel about it though?",
+        "okay wait... tell me the rest.",
+        "yeah i get what you mean.",
+        "see that makes more sense now."
+      ], state);
+    }
+    if (text.includes("?")) {
+      return chooseAmberResponse([
+        "hmm. why do you ask?",
+        "honestly i'm not sure yet. what do you think?",
+        "maybe. i need more context 😂",
+        "wait what made you think about that?",
+        "i can answer that but you gotta tell me what happened first."
+      ], state);
+    }
+    if (/^(yes|yeah|yep|no|nah|maybe|idk|i dont know|i don't know|okay|ok)$/.test(normalized)) {
+      return chooseAmberResponse(["fair enough 😂", "okay.", "mmhmm.", "i hear you.", "that's what i thought."], state);
+    }
+    return chooseAmberResponse([
+      "okay wait... tell me more.",
+      "yeah i can see that. what happened after?",
+      "i'm listening.",
+      "that makes sense honestly.",
+      "okay. how do you feel about it?",
+      "and what are you gonna do?",
+      "see now i need the whole story 😂"
+    ], state);
+  }
+
   async function queueAmberReply(host, thread, text) {
     const engine = await getAmberEngine(thread);
     const normalized = normalizeMessage(text);
@@ -225,6 +357,7 @@
     const previousUserAt = Number(state.lastUserAt || 0);
     const active = activeAmberCategory(engine, state);
     const doubleText = previousUserAt && Date.now() - previousUserAt < 45 * 1000;
+    writeList(pendingKey(thread.threadId), []);
     state.lastUserAt = Date.now();
     state.lastUserMessage = text.slice(0, 500);
     state.messageCount = Number(state.messageCount || 0) + 1;
@@ -237,15 +370,22 @@
       return;
     }
 
-    const category = matchingAmberCategory(engine, normalized, state);
-    const responses = category?.responses || engine.fallbackResponses || [];
-    if (!responses.length) return;
-    const reply = chooseAmberResponse(responses, state);
+    const sharedContext = rememberAmberContext(text, normalized, state);
+    const memoryQuestion = /\b(remember|what do you know about me|what did i tell you|do you know my)\b/.test(normalized);
+    const category = sharedContext.kind || memoryQuestion ? null : matchingAmberCategory(engine, normalized, state);
+    const responses = category?.responses || [];
+    const reply = category && responses.length
+      ? chooseAmberResponse(responses, state)
+      : contextualAmberReply(text, normalized, state, sharedContext);
+    if (!reply) return;
     const triggerDelay = category?.triggerDelays?.[normalized];
     const delay = Number(triggerDelay ?? category?.delaySeconds ?? engine.defaultDelaySeconds ?? 4);
     persistAmberActivity(engine, category || { id: "fallback" }, reply, state);
-    state.lastCategory = category?.id || "fallback";
+    state.lastCategory = category?.id || sharedContext.kind || state.lastCategory || "conversation";
+    state.lastTopicAt = Date.now();
     state.lastResponse = reply;
+    state.awaitingAnswer = reply.trim().endsWith("?");
+    state.questionAskedAt = state.awaitingAnswer ? Date.now() : Number(state.questionAskedAt || 0);
     state.recentResponses = [...(state.recentResponses || []), reply].slice(-5);
     saveResponseState(thread.threadId, state);
 
