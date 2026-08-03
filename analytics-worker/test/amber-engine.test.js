@@ -55,7 +55,8 @@ test("Amber prioritizes conversation context and browser-local user memory", asy
   assert.match(source, /facts\.lastFeeling/);
   assert.match(source, /facts\.lastUserActivity/);
   assert.match(source, /sharedContext\.kind \|\| memoryQuestion \? null/);
-  assert.match(source, /writeList\(pendingKey\(thread\.threadId\), \[\]\)/);
+  assert.match(source, /localStorage\.setItem\(pendingKey\(thread\.threadId\), JSON\.stringify\(\[\]\)\)/);
+  assert.doesNotMatch(source, /writeList\(pendingKey\(thread\.threadId\)/);
 });
 
 test("Amber does not let time of day override the user's actual topic", async () => {
