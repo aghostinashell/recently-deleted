@@ -9,21 +9,11 @@
   let dataPromise = null;
   let threadsPromise = null;
   let musicPromise = null;
+  let amberEnginePromise = null;
   let mapInstance = null;
   let mapSearchMarker = null;
   let lastGeocodeRequestAt = 0;
   const replyTimers = new Map();
-  const AMBER_REPLIES = [
-    { match: "where are you", reply: "At home. Why?", delay: 10 },
-    { match: "what are you doing", reply: "Mindin my business 😂 what are you doing?", delay: 14 },
-    { match: "you up", reply: "I am now.", delay: 3 },
-    { match: "come over", reply: "That’s not how you ask.", delay: 4 },
-    { match: "i miss you", reply: "You miss me or you’re bored?", delay: 15 },
-    { match: "call me", reply: "Give me a minute.", delay: 3 },
-    { match: "my bad", reply: "You say that like it fixes everything.", delay: 25 },
-    { match: "you mad", reply: "No. I just move different once I notice things.", delay: 60 },
-    { match: "good morning", reply: "Morning stranger.", delay: 64 }
-  ];
   const SELINA_REPLIES = [
     { match: "where are you", reply: "Why?", delay: 35 },
     { match: "what are you doing", reply: "Getting ready to go to sleep.", delay: 16 },
@@ -47,7 +37,6 @@
     { match: "good morning", reply: "Don’t “good morning” me like you didn’t disappear last night.", delay: 14 }
   ];
   const REPLY_PROFILES = {
-    amber: { rules: AMBER_REPLIES, fallback: { reply: "You finally decided to text back.", delay: 4 } },
     selina: { rules: SELINA_REPLIES, fallback: { reply: "What do you want, Ed?", delay: 7 } },
     naomi: { rules: NAOMI_REPLIES, fallback: { reply: "Here you go starting again.", delay: 3 } }
   };
@@ -96,10 +85,32 @@
   function unreadKey(threadId) { return `myphone.messages.${threadId}.unread`; }
   function customKey(threadId) { return `myphone.messages.${threadId}.custom`; }
   function pendingKey(threadId) { return `myphone.messages.${threadId}.pending`; }
+  function responseStateKey(threadId) { return `myphone.messages.${threadId}.response-state`; }
 
   function readStored(key) {
     try { const value = JSON.parse(localStorage.getItem(key)); return Array.isArray(value) ? value : []; }
     catch { return []; }
+  }
+
+  function readResponseState(threadId) {
+    try {
+      const state = JSON.parse(localStorage.getItem(responseStateKey(threadId)) || "{}");
+      return state && typeof state === "object" ? state : {};
+    } catch { return {}; }
+  }
+
+  function saveResponseState(threadId, state) {
+    localStorage.setItem(responseStateKey(threadId), JSON.stringify(state));
+  }
+
+  function getAmberEngine(thread) {
+    if (!amberEnginePromise) {
+      amberEnginePromise = fetch(thread.responseEngine).then((response) => {
+        if (!response.ok) throw new Error("Amber's response library could not be loaded.");
+        return response.json();
+      });
+    }
+    return amberEnginePromise;
   }
 
   function messagesForThread(thread) {
@@ -155,7 +166,101 @@
     replyTimers.set(thread.threadId, timer);
   }
 
-  function queueReply(host, thread, text) {
+  function normalizeMessage(text) {
+    return String(text || "").toLowerCase().replace(/[.,?!'"’]/g, "").replace(/\s+/g, " ").trim();
+  }
+
+  function categoryById(engine, id) {
+    return engine.categories.find((category) => category.id === id);
+  }
+
+  function activeAmberCategory(engine, state) {
+    if (!state.activeActivity || Number(state.activityUntil || 0) <= Date.now()) return null;
+    return categoryById(engine, state.activeActivity);
+  }
+
+  function matchingAmberCategory(engine, normalized, state) {
+    const active = activeAmberCategory(engine, state);
+    const contextQuestion = /^(where are you|what are you doing|wyd|busy|can you talk|why arent you replying)$/.test(normalized);
+    if (active && contextQuestion) return active;
+    const matches = engine.categories.filter((category) =>
+      (category.triggers || []).some((trigger) => normalized === normalizeMessage(trigger) ||
+        normalized.includes(normalizeMessage(trigger))));
+    if (matches.length) {
+      return matches.sort((left, right) => Math.max(...right.triggers.map((item) => item.length)) -
+        Math.max(...left.triggers.map((item) => item.length)))[0];
+    }
+    const followUp = /^(why|how|where|when|what happened|you okay|are you okay|really|and then|then what)$/.test(normalized);
+    if (followUp && state.lastCategory) return categoryById(engine, state.lastCategory);
+    const now = new Date();
+    const lateNight = categoryById(engine, "late-night");
+    if (lateNight && (now.getHours() >= lateNight.timeWindow.startHour || now.getHours() <= lateNight.timeWindow.endHour)) return lateNight;
+    const weekend = categoryById(engine, "weekend");
+    if (weekend?.days.includes(now.getDay()) && /\b(plan|today|tomorrow|doing)\b/.test(normalized)) return weekend;
+    return null;
+  }
+
+  function chooseAmberResponse(options, state) {
+    const recent = Array.isArray(state.recentResponses) ? state.recentResponses : [];
+    const available = options.filter((response) => !recent.includes(response));
+    const pool = available.length ? available : options;
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  function persistAmberActivity(engine, category, response, state) {
+    let activityCategory = category;
+    if (category.id === "wyd" && /\bdriving\b/.test(response)) activityCategory = categoryById(engine, "driving");
+    const activity = activityCategory?.activity;
+    if (!activity) return;
+    const durationMinutes = randomSeconds(activity.minMinutes, activity.maxMinutes);
+    state.activeActivity = activityCategory.id;
+    state.activityStartedAt = Date.now();
+    state.activityUntil = Date.now() + durationMinutes * 60 * 1000;
+  }
+
+  async function queueAmberReply(host, thread, text) {
+    const engine = await getAmberEngine(thread);
+    const normalized = normalizeMessage(text);
+    const state = readResponseState(thread.threadId);
+    const previousUserAt = Number(state.lastUserAt || 0);
+    const active = activeAmberCategory(engine, state);
+    const doubleText = previousUserAt && Date.now() - previousUserAt < 45 * 1000;
+    state.lastUserAt = Date.now();
+    state.lastUserMessage = text.slice(0, 500);
+    state.messageCount = Number(state.messageCount || 0) + 1;
+
+    const canLeaveOnRead = active && ["driving", "work", "shopping", "gym", "travel", "sleep"].includes(active.id);
+    if ((active?.id === "sleep" && Math.random() < 0.8) ||
+        (canLeaveOnRead && doubleText && Math.random() < Number(engine.leaveOnReadChance || 0))) {
+      state.leftOnReadAt = Date.now();
+      saveResponseState(thread.threadId, state);
+      return;
+    }
+
+    const category = matchingAmberCategory(engine, normalized, state);
+    const responses = category?.responses || engine.fallbackResponses || [];
+    if (!responses.length) return;
+    const reply = chooseAmberResponse(responses, state);
+    const triggerDelay = category?.triggerDelays?.[normalized];
+    const delay = Number(triggerDelay ?? category?.delaySeconds ?? engine.defaultDelaySeconds ?? 4);
+    persistAmberActivity(engine, category || { id: "fallback" }, reply, state);
+    state.lastCategory = category?.id || "fallback";
+    state.lastResponse = reply;
+    state.recentResponses = [...(state.recentResponses || []), reply].slice(-5);
+    saveResponseState(thread.threadId, state);
+
+    const pending = readStored(pendingKey(thread.threadId));
+    const bubbles = reply.split(/\n{2,}/).map((bubble) => bubble.trim()).filter(Boolean).slice(0, 2);
+    let dueAt = Date.now() + delay * 1000;
+    const queued = bubbles.map((bubble, index) => {
+      if (index) dueAt += randomSeconds(1, 3) * 1000;
+      return { reply: bubble, dueAt };
+    });
+    localStorage.setItem(pendingKey(thread.threadId), JSON.stringify([...pending, ...queued]));
+    scheduleReplies(host, thread);
+  }
+
+  async function queueReply(host, thread, text) {
     if (thread.threadId === "tracey") {
       const storedReplies = readStored(customKey(thread.threadId)).filter((message) => message.sender === thread.contact.name && TRACEY_SEQUENCE.some((step) => step.reply === message.text)).length;
       const pending = readStored(pendingKey(thread.threadId));
@@ -168,9 +273,13 @@
       scheduleReplies(host, thread);
       return;
     }
+    if (thread.threadId === "amber") {
+      await queueAmberReply(host, thread, text);
+      return;
+    }
     const profile = REPLY_PROFILES[thread.threadId];
     if (!profile) return;
-    const normalized = text.toLowerCase().replace(/[.,?!]/g, "").replace(/\s+/g, " ").trim();
+    const normalized = normalizeMessage(text);
     let rule = profile.rules.find((item) => item.match === normalized);
     if (!rule) {
       const fallbackUsedKey = `myphone.messages.${thread.threadId}.fallback-used`;
@@ -357,7 +466,7 @@
     host.querySelectorAll("[data-message-location]").forEach((button) => {
       button.addEventListener("click", () => openMaps(host, button.dataset.messageLocation));
     });
-    host.querySelector("[data-message-composer]").addEventListener("submit", (event) => {
+    host.querySelector("[data-message-composer]").addEventListener("submit", async (event) => {
       event.preventDefault();
       const input = event.currentTarget.elements.message;
       const text = input.value.trim();
@@ -375,7 +484,7 @@
         outgoing.readAt = Date.now() + randomSeconds(2, 5) * 1000;
       }
       localStorage.setItem(customKey(data.threadId), JSON.stringify([...stored, outgoing]));
-      queueReply(host, data, text);
+      await queueReply(host, data, text);
       openThread(host, data);
     });
     scheduleReplies(host, data);

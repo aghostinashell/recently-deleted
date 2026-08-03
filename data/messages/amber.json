@@ -1,5 +1,6 @@
 {
   "threadId": "amber",
+  "responseEngine": "data/messages/amber-response-engine.json",
   "contact": {
     "name": "Amber",
     "photo": "media/messages/amber/IMG_0266.png"

@@ -1,0 +1,141 @@
+{
+  "version": "1.0-locked",
+  "defaultDelaySeconds": 4,
+  "leaveOnReadChance": 0.12,
+  "categories": [
+    {
+      "id": "good-morning",
+      "triggers": ["good morning", "morning", "gm"],
+      "delaySeconds": 64,
+      "responses": ["morning ☀️", "good morning.\n\nfinally slept lol", "hey.\n\nhope today goes easy on you.", "just made coffee.\n\ni'm still waking up 😂", "morning.\n\ni'm already running late.", "good morning 🙂\n\nyou been up long?", "i almost went back to sleep.", "today's already busy and i haven't even left yet.", "morning.\n\ndon't text me until i find caffeine 😂", "i actually woke up in a good mood today."]
+    },
+    {
+      "id": "wyd",
+      "triggers": ["wyd", "what are you doing", "whats up", "what's up", "sup"],
+      "delaySeconds": 14,
+      "responses": ["folding laundry.\n\nexciting life i know.", "not much.\n\nwhat about you?", "just got home.", "laying here pretending i'm gonna be productive.", "running a couple errands.", "making something to eat.", "absolutely nothing.\n\nand i'm okay with that.", "driving right now.\n\ni'll text you in a few.", "just finished work.", "trying to figure out what i'm gonna do with the rest of my day."]
+    },
+    {
+      "id": "work",
+      "activity": { "minMinutes": 30, "maxMinutes": 90 },
+      "triggers": ["busy", "busy?", "can you talk", "why aren't you replying", "why arent you replying", "at work", "working"],
+      "delaySeconds": 10,
+      "responses": ["i'm at work 😭", "i'll answer when i can.", "one of those days today.", "been running around all morning.", "everybody needs something from me today.", "on break finally.", "almost off.", "work has been nonstop today.", "i'm hiding in the break room for five minutes 😂", "remind me why i came here today?"]
+    },
+    {
+      "id": "driving",
+      "activity": { "minMinutes": 5, "maxMinutes": 8 },
+      "triggers": ["driving", "on the road", "in the car", "traffic"],
+      "delaySeconds": 10,
+      "responses": ["driving.", "i'll text you when i park.", "traffic is ridiculous.", "red light.\n\nwhat's up?", "almost there.", "gps has me all over the place.", "somebody almost hit me 🙄", "windows down.\n\nmusic up.", "i swear nobody knows how to drive anymore.", "i'm almost home."]
+    },
+    {
+      "id": "coffee",
+      "activity": { "minMinutes": 10, "maxMinutes": 30 },
+      "triggers": ["coffee", "caffeine", "latte"],
+      "delaySeconds": 14,
+      "responses": ["coffee first.\n\neverything else later.", "i needed this 😂", "trying a new place today.", "this coffee is actually pretty good.", "i probably drink too much coffee.", "i'm on cup number two already.", "caffeine is carrying me today.", "don't judge me...\n\ni added way too much caramel.", "this is basically dessert.", "coffee fixed my attitude."]
+    },
+    {
+      "id": "food",
+      "activity": { "minMinutes": 15, "maxMinutes": 40 },
+      "triggers": ["food", "lunch", "dinner", "eat", "eating", "hungry"],
+      "delaySeconds": 14,
+      "responses": ["finally eating.", "i forgot how hungry i was.", "just grabbed something quick.", "i've been craving tacos all day.", "trying to decide what i want.", "probably shouldn't be eating this 😂", "i'll cook later.", "it's not healthy but it'll do.", "i've been snacking all afternoon.", "you got any food recommendations?"]
+    },
+    {
+      "id": "shopping",
+      "activity": { "minMinutes": 15, "maxMinutes": 45 },
+      "triggers": ["shopping", "store", "mall"],
+      "delaySeconds": 14,
+      "responses": ["running into a store real quick.", "i came in for one thing...", "i somehow bought more than i planned.", "standing in line forever.", "just browsing honestly.", "i should leave before i spend more money.", "i'm almost done here.", "this place is packed.", "trying to convince myself i don't need it.", "adulting isn't cheap 😂"]
+    },
+    {
+      "id": "home",
+      "activity": { "minMinutes": 30, "maxMinutes": 180 },
+      "triggers": ["where are you", "home", "at home", "you home"],
+      "delaySeconds": 10,
+      "responses": ["finally home.", "not leaving the house again today.", "just relaxing.", "i've been watching random videos.", "cleaning up a little.", "trying not to do anything.", "i'm enjoying the quiet.", "about to change into pajamas.", "today wore me out.", "home is winning today."]
+    },
+    {
+      "id": "watching-tv",
+      "activity": { "minMinutes": 30, "maxMinutes": 120 },
+      "triggers": ["tv", "movie", "netflix", "watching"],
+      "delaySeconds": 14,
+      "responses": ["watching a show.", "i've watched three episodes already 😂", "i can't decide what to watch.", "this movie is terrible.", "i've seen this before but i'm watching it again.", "trying to stay awake.", "it's background noise at this point.", "i've been scrolling more than watching.", "recommend me something.", "i'm probably gonna fall asleep before it ends."]
+    },
+    {
+      "id": "gym",
+      "activity": { "minMinutes": 30, "maxMinutes": 75 },
+      "triggers": ["gym", "workout", "working out", "cardio"],
+      "delaySeconds": 14,
+      "responses": ["at the gym.", "trying to convince myself to finish this workout.", "leg day was a mistake 😂", "almost done here.", "i almost skipped today.", "cardio is disrespectful.", "just stretching now.", "i'm exhausted.", "headed home after this.", "i'll feel better tomorrow... hopefully."]
+    },
+    {
+      "id": "random-thoughts",
+      "triggers": ["random", "thinking", "how's your day", "hows your day", "how are you"],
+      "delaySeconds": 4,
+      "responses": ["today went by fast.", "it's weird how quiet it is today.", "i've been thinking all day.", "my sleep schedule is terrible.", "why does time move so fast now?", "i need a vacation.", "i've been in my own little world today.", "it's one of those days.", "life has been weird lately.", "i'm just vibing today."]
+    },
+    {
+      "id": "playful",
+      "triggers": ["lol", "lmao", "😂", "joke", "funny", "sure", "whatever"],
+      "delaySeconds": 4,
+      "responses": ["you're ridiculous 😂", "i knew you were gonna say that.", "sure you were.", "that's your story?", "i'm not believing that.", "you're funny.", "you really think so?", "whatever helps you sleep 😂", "you're something else.", "i'll let you have this one."]
+    },
+    {
+      "id": "missing-someone",
+      "triggers": ["miss you", "i miss you", "thinking about you", "thought about you"],
+      "delaySeconds": 15,
+      "responses": ["that's sweet.", "i've been wondering how you've been.", "it's been a minute.", "hope you've been alright.", "i'm glad you checked in.", "life gets busy.", "i've been thinking too.", "i appreciate that.", "it's nice hearing from you.", "you've been quiet lately."]
+    },
+    {
+      "id": "voice-messages",
+      "triggers": ["voice note", "voicemail", "call", "call me", "facetime"],
+      "delaySeconds": 3,
+      "responses": ["i'll listen in a minute.", "can't play it right now.", "give me a few.", "i'll listen when i get home.", "hold on.", "i'll get back to you.", "i saw it.", "i haven't forgotten.", "i'm just busy.", "i'll reply when i can."]
+    },
+    {
+      "id": "sleep",
+      "activity": { "minMinutes": 360, "maxMinutes": 540 },
+      "triggers": ["goodnight", "good night", "going to sleep", "going to bed", "night"],
+      "delaySeconds": 25,
+      "responses": ["i'm going to bed.", "i'm exhausted.", "goodnight.", "talk tomorrow.", "my eyes are closing 😂", "i'm done for today.", "hopefully i sleep better tonight.", "don't stay up too late.", "i'm putting my phone down.", "night 🙂"]
+    },
+    {
+      "id": "late-night",
+      "timeWindow": { "startHour": 22, "endHour": 5 },
+      "triggers": ["you up", "awake", "can't sleep", "cant sleep"],
+      "delaySeconds": 3,
+      "responses": ["you're still awake?", "i should've been asleep.", "it's quiet tonight.", "can't sleep.", "just laying here.", "my brain won't shut off.", "it's one of those nights.", "what are you doing up?", "i'll probably regret staying awake.", "insomnia wins again."]
+    },
+    {
+      "id": "weekend",
+      "days": [0, 5, 6],
+      "triggers": ["plans", "weekend", "what you doing this weekend"],
+      "delaySeconds": 14,
+      "responses": ["no plans yet.", "just taking it easy.", "trying to stay out of trouble 😂", "probably staying in.", "seeing family later.", "running errands.", "hopefully relaxing.", "depends how i feel tomorrow.", "i'm playing it by ear.", "i'll figure it out."]
+    },
+    {
+      "id": "travel",
+      "activity": { "minMinutes": 60, "maxMinutes": 240 },
+      "triggers": ["trip", "vacation", "travel", "out of town"],
+      "delaySeconds": 14,
+      "responses": ["on the road.", "just got into town.", "it's been a long drive.", "i needed this little trip.", "i'll be back tomorrow.", "still traveling.", "i've been in the car forever.", "finally stopped for a break.", "almost there.", "i'll tell you about it later."]
+    },
+    {
+      "id": "come-over",
+      "triggers": ["come over"],
+      "delaySeconds": 4,
+      "responses": ["that's not how you ask.", "you asking or telling me?", "maybe.\n\nwhat's the plan?", "and do what exactly?", "you make it sound so simple 😂"]
+    },
+    {
+      "id": "tension",
+      "triggers": ["my bad", "you mad", "are you mad", "mad at me"],
+      "triggerDelays": { "my bad": 25, "you mad": 60, "are you mad": 60, "mad at me": 60 },
+      "delaySeconds": 25,
+      "responses": ["i hear you.", "i'm not trying to argue.", "you say that like it fixes everything.", "no.\n\ni just notice things.", "i'm fine.\n\njust thinking.", "we're okay.", "i needed a minute.", "i'm not mad anymore.", "let's not do this over text.", "just don't make it a habit."]
+    }
+  ],
+  "fallbackResponses": ["hey.\n\nwhat's going on?", "i'm listening.", "you good?", "wait what happened?", "tell me more.", "how'd you get there?", "that's a lot 😂", "okay...\n\nand then what?", "i can see that.", "what do you think you're gonna do?"]
+}
