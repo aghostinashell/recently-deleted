@@ -221,6 +221,12 @@
     updatePlayerUI();
   }
 
+  function musicIsForeground() {
+    const appWindow = document.getElementById("appWindow");
+    return Boolean(host?.isConnected && appWindow?.classList.contains("open") &&
+      appWindow.dataset.activeAppId === "music");
+  }
+
   function setError(message) {
     loadError = message;
     const error = host?.querySelector("[data-music-error]");
@@ -249,7 +255,10 @@
     showLyrics = false;
     activeView = "player";
     trackEvent("song_viewed", trackProperties(track));
-    render(playerView());
+    // Advancing from an ended track or Media Session control must not replace
+    // whichever app the listener is currently using. Opening Music later will
+    // render the current track from the preserved playback state.
+    if (musicIsForeground()) render(playerView());
     try {
       await audio.play();
     } catch (error) {
