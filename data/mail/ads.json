@@ -3,6 +3,7 @@
     {
       "id": "recently-deleted-streaming",
       "tier": "Premium",
+      "premiumSponsor": true,
       "sender": "Ed X",
       "subject": "Recently Deleted — Now Streaming",
       "preview": "Stream Recently Deleted now in the myPhone Music app and on your favorite platform.",
@@ -27,6 +28,7 @@
     {
       "id": "blank-tab-studios",
       "tier": "Premium",
+      "premiumSponsor": false,
       "sender": "Blank Tab Studios",
       "subject": "Start with a blank tab.",
       "preview": "Save 20% on custom website design for a limited time.",
@@ -50,6 +52,7 @@
     {
       "id": "ghosts-in-shells",
       "tier": "Premium",
+      "premiumSponsor": true,
       "sender": "Ghosts In Shells",
       "logo": "media/mail/ghosts-in-shells-logo.png",
       "subject": "You’re already inside it.",
