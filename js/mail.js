@@ -42,6 +42,36 @@
     localStorage.setItem(key, JSON.stringify(value));
   }
 
+  function deduplicateInboxDeliveries(deliveries, campaigns) {
+    const campaignsById = new Map(campaigns.map((campaign) => [campaign.id, campaign]));
+    const seenCampaigns = new Set();
+    const keptNewestFirst = [];
+    for (let index = deliveries.length - 1; index >= 0; index -= 1) {
+      const delivery = deliveries[index];
+      if (delivery.type === "order") {
+        keptNewestFirst.push(delivery);
+        continue;
+      }
+      const campaign = campaignsById.get(delivery.campaignId);
+      if (!campaign) continue;
+      if (campaign.premiumSponsor === true || !seenCampaigns.has(delivery.campaignId)) {
+        keptNewestFirst.push(delivery);
+        seenCampaigns.add(delivery.campaignId);
+      }
+    }
+    return keptNewestFirst.reverse();
+  }
+
+  function persistInboxDeliveries(deliveries, campaigns, newUnreadIds = []) {
+    const compacted = deduplicateInboxDeliveries(deliveries, campaigns);
+    const validIds = new Set(compacted.map((delivery) => delivery.id));
+    const unread = [...readList(UNREAD_KEY), ...newUnreadIds]
+      .filter((id, index, list) => validIds.has(id) && list.indexOf(id) === index);
+    writeList(DELIVERED_KEY, compacted);
+    writeList(UNREAD_KEY, unread);
+    return compacted;
+  }
+
   function orderEmail(delivery) {
     const order = readList(ORDER_KEY).find((item) => item.id === delivery.orderId);
     if (!order) return null;
@@ -137,8 +167,7 @@
       campaignId: campaign.id,
       deliveredAt: new Date().toISOString()
     };
-    writeList(DELIVERED_KEY, [...deliveries, delivery]);
-    writeList(UNREAD_KEY, [...readList(UNREAD_KEY), delivery.id]);
+    persistInboxDeliveries([...deliveries, delivery], campaigns, [delivery.id]);
     syncUnreadBadge();
     showNotification(campaign, delivery);
     remainingDelay = nextDelay();
@@ -157,8 +186,7 @@
       campaignId: campaign.id,
       deliveredAt: new Date().toISOString()
     };
-    writeList(DELIVERED_KEY, [...readList(DELIVERED_KEY), delivery]);
-    writeList(UNREAD_KEY, [...readList(UNREAD_KEY), delivery.id]);
+    persistInboxDeliveries([...readList(DELIVERED_KEY), delivery], campaigns, [delivery.id]);
     syncUnreadBadge();
     showNotification(campaign, delivery);
     const openMailHost = document.getElementById("appContent");
@@ -553,7 +581,8 @@
 
   function renderInbox(host, campaigns) {
     trackEvent("mailbox_viewed", { app_name: "mail", mailbox: "inbox" });
-    const deliveries = readList(DELIVERED_KEY);
+    const storedDeliveries = readList(DELIVERED_KEY);
+    const deliveries = persistInboxDeliveries(storedDeliveries, campaigns);
     const unread = readList(UNREAD_KEY);
     const inbox = deliveries.map((delivery) => ({ delivery, campaign: mailForDelivery(delivery, campaigns) })).filter((item) => item.campaign).reverse();
     host.innerHTML = `
@@ -622,6 +651,10 @@
 
   function initialize() {
     syncUnreadBadge();
+    getCampaigns().then((campaigns) => {
+      persistInboxDeliveries(readList(DELIVERED_KEY), campaigns);
+      syncUnreadBadge();
+    }).catch(() => {});
     processOrderMail();
     window.setInterval(processOrderMail, 30000);
     window.setTimeout(deliverStreamingCampaign, 5000);
