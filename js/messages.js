@@ -357,7 +357,7 @@
     const previousUserAt = Number(state.lastUserAt || 0);
     const active = activeAmberCategory(engine, state);
     const doubleText = previousUserAt && Date.now() - previousUserAt < 45 * 1000;
-    writeList(pendingKey(thread.threadId), []);
+    localStorage.setItem(pendingKey(thread.threadId), JSON.stringify([]));
     state.lastUserAt = Date.now();
     state.lastUserMessage = text.slice(0, 500);
     state.messageCount = Number(state.messageCount || 0) + 1;
